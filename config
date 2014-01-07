@@ -9,10 +9,6 @@ function log {
 # Read in the settings for this unit
 # ------------
 source "${0%/*}/config-settings"
-if [[ -z "$room" ]]; then
- log "Cannot start.  Run setup to configure."
- exit 1
-fi
 
 
 # ------------

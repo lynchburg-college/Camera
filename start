@@ -2,6 +2,11 @@
 
 # Common
 source "${0%/*}/config"
+if [[ -z "$room" ]]; then
+ log "Cannot start!  Run sudo ./setup to configure"
+ exit 1
+fi
+
 
 # Make sure all the necessary paths exists
 [ -d "$pathLog" ] || mkdir -p "$pathLog"
