@@ -31,6 +31,8 @@ source "${0%/*}/config"
   [ "$value" == "" ] || roomName=$value
 
   echo -e "#--- Configuration updated $(date)\n\nroom=$room\nroomName=\"$roomName\"" > $pathRoot/config-settings
+  chown capture ./config-settings
+  
 
   echo "----------------------------"
   echo "New Settings (written to $pathRoot/config-settings)"
@@ -44,19 +46,18 @@ source "${0%/*}/config"
   if [ "$hostname" != "$propername" ] 
   then
     while true; do
-    read -p "Do you want to set the hostname to $propername (Y/N)? " answer
+    read -p "Do you want to set the hostname to $propername (yes or no)? " answer
     case $answer in
-        [Yy]* )  echo $propername > /etc/hostname
-                 sed -i "s/127.0.1.1.*$hostname/127.0.1.1\t$propername/g" /etc/hosts
-                 sudo reboot
-                 break
-                 ;;
+        yes )  echo $propername > /etc/hostname
+               sed -i "s/127.0.1.1.*$hostname/127.0.1.1\t$propername/g" /etc/hosts
+               echo  "You must manually reboot for the new name to take effect"
+               break
+               ;;
 
-        [Nn]* ) echo "You must manually reboot for the change to take effect"
-                break
-                ;;
+         no )  break
+               ;;
 
-        * ) echo "Please answer yes or no.";;
+          * ) echo "Please answer yes or no.";;
     esac
     done
 
