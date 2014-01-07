@@ -1,0 +1,18 @@
+#!/bin/bash
+# usage : notify "[subject]" "[body]"
+
+# Common
+source "${0%/*}/config"
+
+host=$(hostname)
+ip=$(hostname -I)
+
+to="hudson.b@lynchburg.edu"
+
+subject="$1"
+body="$2"
+
+#sendEmail -f "$host@$ip" -t "$to" -u "$subject" -m "$body\n($host/$ip)" -s "mail.lynchburg.edu":25 -o tls=no
+
+
+

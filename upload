@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Common
+source "${0%/*}/config"
+
+# Get all files that haven't yet been uploaded
+{
+for file in  $pathVideo/*.mp4 
+do
+
+if [ -s $file ] 
+then
+
+  isOpen=$(lsof "$file")
+  if [ ! -z "$isOpen" ]
+  then
+   log "Skipping $file"
+  else
+
+   log "Found $file"
+
+   # If the filename is a date, use it as the start time
+   asOf=$(basename "$file")
+   asOf="${asOf%.*}"
+   date -d "$asOf" > /dev/null 2>&1
+   if [ $? -eq 1 ]
+   then
+     #.. otherwise, use the last modified time of the file
+     asOf=$(date "+$formatISO" -d "$(stat -c "%y" $file)")
+   fi
+
+   # Ask the server for info about the class meeting at that time
+   url="$urlInfo&asOf=$asOf&mode=meeting"
+   log "Calling $url"
+   info=$(curl -sL "$url")
+   log "Got $info"
+
+
+   # Rename to show that we are uploading..
+   mv $file $file.uploading
+
+   # Post to the media server
+   cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file.uploading\" $urlUpload"
+   log "$cmd"
+   info=$(eval "$cmd")
+
+   # If successful (response from server) then rename it.
+   if [[ "$info" == *Success* ]]
+   then
+	# rm "$file.uploading"
+        mv "$file.uploading" "$file.uploaded"
+        log "$file was sucessfully uploaded"
+   else
+        log "$info "
+        $pathRoot/notify "Upload Error" "$file\n$info"
+        mv "$file.uploading" "$file.error"
+   fi
+
+
+  fi
+
+fi
+
+done } | tee -a $logFile
+

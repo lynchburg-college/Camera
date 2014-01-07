@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#!/bin/bash
+
+# Common
+source "${0%/*}/config"
+
+
+if ( ps -A | grep vlc )
+then
+ log  "Stopping VLC"
+ killall vlc -w
+fi
+
+if (ps -A | grep curl )
+then
+ log "Stopping CURL"
+ killall curl -w
+fi
+
+echo "" > $pathRoot/preview.jpg

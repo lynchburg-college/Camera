@@ -1,0 +1,67 @@
+<?vlc
+require "httprequests"
+
+function pairsByKeys (t, f)
+      local a = {}
+      for n in pairs(t) do table.insert(a, n) end
+      table.sort(a, f)
+      local i = 0      -- iterator variable
+      local iter = function ()   -- iterator function
+        i = i + 1
+        if a[i] == nil then return nil
+        else return a[i], t[a[i]]
+        end
+      end
+      return iter
+ end
+
+
+function getProperties ( collection )
+
+   local o={}
+   
+   for k,v in pairsByKeys(collection) do
+
+    if(type(v.children) == "table" ) then
+     o[v.name]=getProperties( v.children )
+    else
+     o[v.name]=v.value
+    end
+
+   end
+
+   return o
+end
+
+json = {}
+
+command=_GET["command"]
+if(command == nil) then
+  command="show"
+end
+
+if(command == "reload media") then
+ os.execute("/home/capture/Camera/schedule")
+end
+
+if(command == "fetch schedule") then
+ os.execute("/home/capture/Camera/schedule")
+ command="show schedule"
+end
+
+response = vlc.vlm():execute_command( command )
+
+if( type(response.children) == "table" ) then
+    result = getProperties( response.children )
+else
+    result = response.value
+end
+
+
+json["command"] = command
+json["timestamp"]=os.date("%Y-%m-%d %H:%M:%S (%a)")
+json["result"]=result
+
+httprequests.printTableAsJson(json)
+
+?>

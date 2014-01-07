@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# ------------
+# Read in the settings for this unit
+# ------------
+source "${0%/*}/config-settings"
+
+# Common logging function
+function log {
+  echo "$(date) : $1"
+}
+
+# ------------
+# Common  for all scripts
+# -----------
+
+# Create a log file for whatever script is running
+logFile="${0%/*}/log/${0##*/}.log"
+
+formatISO="%Y-%m-%dT%TZ"
+
+# Local paths
+pathRoot="/home/capture/Camera"
+pathLog="$pathRoot/log"
+pathVideo="$pathRoot/video"
+
+# URLs
+urlInfo="http://apps.lynchburg.edu/campus/system/public/calendar/roominfo.asp?room=$room"
+urlUpload="http://media.lynchburg.edu/upload.php"
+
+
+# Make sure all the necessary paths exists
+[ -d "$pathLog" ] || mkdir -p "$pathLog"
+[ -d "$pathVideo" ] || mkdir -p "$pathVideo"
+
+

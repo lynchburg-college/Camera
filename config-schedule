@@ -1,0 +1,206 @@
+# ------------------------
+# SHWL134 schedule / generated 1/3/2014 4:10:31 PM
+# ------------------------
+
+del schedule
+
+# TEST
+new s0-test-start schedule
+setup s0-test-start date 2014/01/06-15:01:00
+setup s0-test-start append control recorder play
+setup s0-test-start enabled
+
+new s0-test-stop schedule
+setup s0-test-stop date 2014/01/06-15:02:30
+setup s0-test-stop append control recorder stop
+setup s0-test-stop enabled
+
+
+# ------------------------
+# MBA 690 A : GLOBL BUS COMP & STR / Meets M for 150 minutes.
+# ------------------------
+
+# -- MBA 690 A Segment 1
+
+new s1-MBA690A-start schedule
+setup s1-MBA690A-start date 2014/01/20-18:00:00
+setup s1-MBA690A-start append control recorder play
+setup s1-MBA690A-start enabled
+
+new s1-MBA690A-stop schedule
+setup s1-MBA690A-stop date 2014/01/20-18:59:59
+setup s1-MBA690A-stop append control recorder stop
+setup s1-MBA690A-stop enabled
+
+# -- MBA 690 A Segment 2
+
+new s2-MBA690A-start schedule
+setup s2-MBA690A-start date 2014/01/20-19:00:00
+setup s2-MBA690A-start append control recorder play
+setup s2-MBA690A-start enabled
+
+new s2-MBA690A-stop schedule
+setup s2-MBA690A-stop date 2014/01/20-19:59:59
+setup s2-MBA690A-stop append control recorder stop
+setup s2-MBA690A-stop enabled
+
+# -- MBA 690 A Segment 3
+
+new s3-MBA690A-start schedule
+setup s3-MBA690A-start date 2014/01/20-20:00:00
+setup s3-MBA690A-start append control recorder play
+setup s3-MBA690A-start enabled
+
+new s3-MBA690A-stop schedule
+setup s3-MBA690A-stop date 2014/01/20-20:30:00
+setup s3-MBA690A-stop append control recorder stop
+setup s3-MBA690A-stop enabled
+
+
+# ------------------------
+# MKTG 398C A : SPECIAL TOPICS MKTG / Meets TR for 75 minutes.
+# ------------------------
+new s4-MKTG398CA-start schedule
+setup s4-MKTG398CA-start date 2014/01/21-10:00:00
+setup s4-MKTG398CA-start append control recorder play
+setup s4-MKTG398CA-start enabled
+
+new s4-MKTG398CA-stop schedule
+setup s4-MKTG398CA-stop date 2014/01/21-11:15:00
+setup s4-MKTG398CA-stop append control recorder stop
+setup s4-MKTG398CA-stop enabled
+
+
+# ------------------------
+# MKTG 209 B : PRIN OF MARKETING / Meets TR for 75 minutes.
+# ------------------------
+new s5-MKTG209B-start schedule
+setup s5-MKTG209B-start date 2014/01/21-11:30:00
+setup s5-MKTG209B-start append control recorder play
+setup s5-MKTG209B-start enabled
+
+new s5-MKTG209B-stop schedule
+setup s5-MKTG209B-stop date 2014/01/21-12:45:00
+setup s5-MKTG209B-stop append control recorder stop
+setup s5-MKTG209B-stop enabled
+
+
+# ------------------------
+# MKTG 451 A : MARKETING MANAGEMENT / Meets TR for 75 minutes.
+# ------------------------
+new s6-MKTG451A-start schedule
+setup s6-MKTG451A-start date 2014/01/21-13:00:00
+setup s6-MKTG451A-start append control recorder play
+setup s6-MKTG451A-start enabled
+
+new s6-MKTG451A-stop schedule
+setup s6-MKTG451A-stop date 2014/01/21-14:15:00
+setup s6-MKTG451A-stop append control recorder stop
+setup s6-MKTG451A-stop enabled
+
+
+# ------------------------
+# MKTG 398C A : SPECIAL TOPICS MKTG / Meets TR for 75 minutes.
+# ------------------------
+new s7-MKTG398CA-start schedule
+setup s7-MKTG398CA-start date 2014/01/23-10:00:00
+setup s7-MKTG398CA-start append control recorder play
+setup s7-MKTG398CA-start enabled
+
+new s7-MKTG398CA-stop schedule
+setup s7-MKTG398CA-stop date 2014/01/23-11:15:00
+setup s7-MKTG398CA-stop append control recorder stop
+setup s7-MKTG398CA-stop enabled
+
+
+# ------------------------
+# MKTG 209 B : PRIN OF MARKETING / Meets TR for 75 minutes.
+# ------------------------
+new s8-MKTG209B-start schedule
+setup s8-MKTG209B-start date 2014/01/23-11:30:00
+setup s8-MKTG209B-start append control recorder play
+setup s8-MKTG209B-start enabled
+
+new s8-MKTG209B-stop schedule
+setup s8-MKTG209B-stop date 2014/01/23-12:45:00
+setup s8-MKTG209B-stop append control recorder stop
+setup s8-MKTG209B-stop enabled
+
+
+# ------------------------
+# MKTG 451 A : MARKETING MANAGEMENT / Meets TR for 75 minutes.
+# ------------------------
+new s9-MKTG451A-start schedule
+setup s9-MKTG451A-start date 2014/01/23-13:00:00
+setup s9-MKTG451A-start append control recorder play
+setup s9-MKTG451A-start enabled
+
+new s9-MKTG451A-stop schedule
+setup s9-MKTG451A-stop date 2014/01/23-14:15:00
+setup s9-MKTG451A-stop append control recorder stop
+setup s9-MKTG451A-stop enabled
+
+
+# ------------------------
+# MBA 696C A : SPECIAL TOPICS BUSN / Meets F for 300 minutes.
+# ------------------------
+
+# -- MBA 696C A Segment 1
+
+new s10-MBA696CA-start schedule
+setup s10-MBA696CA-start date 2014/01/24-08:00:00
+setup s10-MBA696CA-start append control recorder play
+setup s10-MBA696CA-start enabled
+
+new s10-MBA696CA-stop schedule
+setup s10-MBA696CA-stop date 2014/01/24-08:59:59
+setup s10-MBA696CA-stop append control recorder stop
+setup s10-MBA696CA-stop enabled
+
+# -- MBA 696C A Segment 2
+
+new s11-MBA696CA-start schedule
+setup s11-MBA696CA-start date 2014/01/24-09:00:00
+setup s11-MBA696CA-start append control recorder play
+setup s11-MBA696CA-start enabled
+
+new s11-MBA696CA-stop schedule
+setup s11-MBA696CA-stop date 2014/01/24-09:59:59
+setup s11-MBA696CA-stop append control recorder stop
+setup s11-MBA696CA-stop enabled
+
+# -- MBA 696C A Segment 3
+
+new s12-MBA696CA-start schedule
+setup s12-MBA696CA-start date 2014/01/24-10:00:00
+setup s12-MBA696CA-start append control recorder play
+setup s12-MBA696CA-start enabled
+
+new s12-MBA696CA-stop schedule
+setup s12-MBA696CA-stop date 2014/01/24-10:59:59
+setup s12-MBA696CA-stop append control recorder stop
+setup s12-MBA696CA-stop enabled
+
+# -- MBA 696C A Segment 4
+
+new s13-MBA696CA-start schedule
+setup s13-MBA696CA-start date 2014/01/24-11:00:00
+setup s13-MBA696CA-start append control recorder play
+setup s13-MBA696CA-start enabled
+
+new s13-MBA696CA-stop schedule
+setup s13-MBA696CA-stop date 2014/01/24-11:59:59
+setup s13-MBA696CA-stop append control recorder stop
+setup s13-MBA696CA-stop enabled
+
+# -- MBA 696C A Segment 5
+
+new s14-MBA696CA-start schedule
+setup s14-MBA696CA-start date 2014/01/24-12:00:00
+setup s14-MBA696CA-start append control recorder play
+setup s14-MBA696CA-start enabled
+
+new s14-MBA696CA-stop schedule
+setup s14-MBA696CA-stop date 2014/01/24-12:59:59
+setup s14-MBA696CA-stop append control recorder stop
+setup s14-MBA696CA-stop enabled
