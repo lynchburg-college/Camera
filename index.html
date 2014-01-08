@@ -10,7 +10,10 @@
   <title>Camera</title>
 
   <style>
-     #header H1,H2,H3,H4,H5 { margin:0.25em; } 
+     #header  { position:absolute; right:20px; z-index:99; text-align:right; padding: 0.25em;}
+     #header * { margin:0px; }
+
+     H1,H2,H3,H4,H5 { margin:0.25em; } 
 
     .floatL { width:49%;float:left;text-align:left;}
     .floatR { width:49%;float:right;text-align:right;}
@@ -26,23 +29,27 @@
     .ui-widget-header { padding:0.5em; }
   </style>
 
-  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
-  <link rel="stylesheet" class="theme-link" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" type="text/css" media="screen" />
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet" />
+  <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" rel="stylesheet" class="theme-link" type="text/css" media="screen" />
+  <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" rel="stylesheet" />
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-  <script src="index.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js"></script>
 
+  <script src="index.js"></script>
+  
 </head>
 
 <body> 
 
 <div id="header">
-  <i class="fa fa-video-camera fa-2x fa-border pull-left"></i>
-  <p>
-     <div><h2 id="room">Camera</h2></div>
-     <div><b id="roomName"></b></div>
-  </p>
+  <table>
+    <tr>
+      <td><h2 id="room">Camera</h2><h5 id="roomName"></h5></td>
+      <td><i class="fa fa-video-camera fa-3x"></i></td>
+    </tr>
+  </table>
 </div>
 
 <div id="content">
@@ -56,7 +63,6 @@
 
    <div id="panel-status">
    <p>
-
      <div class="ui-widget">
        <div class="ui-widget-header"><i class="fa fa-gear"></i>  Device Status</div>
        <div id="status-media" class="ui-widget-content">Getting Media...</div>
@@ -64,45 +70,27 @@
    </p>
    </div>
  
-   <div id="panel-schedule">
-   <p>
-
-     <div class="ui-widget">
-       <div class="ui-widget-header">
-         <i class="fa fa-calendar"></i>  Recording Schedule <span class="link fa fa-refresh" title="Reload" onClick="send('reload schedule', showSchedule);"></span>
-       </div>
-       <div id="status-schedule" class="ui-widget-content">
-
-        <table id="status-schedule-table">
-         <caption></caption>
-         <thead>
-          <tr>
-            <th data-sort="date">Schedule Launch</th>
-            <th data-sort="string">Description</th>
-            <th data-sort="string">Action</th>
-          </tr>
-         </thead>
-         <tbody>
-          <tr><td colspan="3">Getting Schedule</td></tr>
-         </tbody>
-        </table> 
-
-       </div>
-     </div>
-
 <!--
      <div><input type="text" style="width:300px" id="command" name="command"><input type="button" onClick="send( $('#command').val() )" value="Send"></div>
      <div><input type="button" onClick="updateStatus()" value="Status"></div>
 -->
-    </p>
-   </div>
 
+  <div id="panel-schedule">
+   <p>
+     <div class="ui-widget">
+       <div class="ui-widget-header"><i class="fa fa-gear"></i>  Schedule</div>
+       <div id="status-schedule" class="ui-widget-content">Getting Schedule..</div>
+     </div>
+   </p>
+  </div>
 
   <div id="panel-preview">
-
-   <div class="ui-widget-header">Streaming Preview (requires VLC on your machine)</div>
-   <div id="status-preview">Note:  This requires VLC on your machine.  Click <span class="link" onClick="showPreview()">here</span> to start.</div>
-
+  <p>
+     <div class="ui-widget">
+      <div class="ui-widget-header">Streaming Preview (requires VLC on your machine)</div>
+      <div id="status-preview">Note:  This requires VLC on your machine.  Click <span class="link" onClick="showPreview()">here</span> to start.</div>
+    </div>
+  </p>
   </div>
 
 </div>

@@ -1,5 +1,6 @@
 del all
 
+# Camera
 new camera broadcast
 setup camera input v4l2:///dev/video0:width=800:height=448:fps:30:chroma=mjpg
 setup camera option input-slave=alsa://hw:0,0

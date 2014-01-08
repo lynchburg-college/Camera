@@ -1,4 +1,5 @@
 
+
 var send = function(cmd,update) {
 
 //  console.log("Sending "+cmd);
@@ -19,8 +20,6 @@ if(update) {
   return(response);
 
 }
-
-
 
 
 
@@ -100,68 +99,40 @@ var showMedia=function() {
 
 
 
+
 var showSchedule=function() {
 
    response=send('show schedule');
    vlcStatus = eval( "("+response+")" );
 
-   // Clear the table body
-   $('#status-schedule-table > tbody').empty;
-   
-   items='';
-
-  schedule=[];
-  $.each( (vlcStatus.result.schedule || {}), function(k,v) {
+   events=[];
+   $.each( (vlcStatus.result.schedule || {}), function(k,v) {
                                                               if ( v['next launch'] ) {
-                                                                 v.scheduleName=k;
-                                                                 schedule.push(v);
+                                                                 eventInfo=k.split("-");
+                                                                 eventDate=v['next launch'];
+                                                                 events.push( { 
+                                                                                title : eventInfo[1]+' ('+eventInfo[2]+')',
+                                                                                start : eventDate,
+                                                                                allDay : false
+                                                                               } );
                                                               }                                           
                                                            }
         );
                                                             
-  schedule.sort( 
-                  function(a,b) {
+    calendarOptions={
+                      events:events,
+                      timeFormat: 'h(:mm)t - ',
+                      height: 800,
+                      title:'Scheduled Recordings',
+                      
+                    };
 
-                                   dateA=new Date( ( a['next launch'] || '' ).substring(0,20) );
-                                   dateB=new Date( ( b['next launch'] || '' ).substring(0,20) );
-
-                                   return ( dateA < dateB ) ? -1 : ( dateA > dateB ) ?  1 : 0;
-                                 }
-               );                                         
-
-  $.each( schedule, function(k,v) {
-
-          tokens=v.scheduleName.split("-");
-
-          scheduleID=tokens[0];
-          scheduleName=tokens[1];
-          scheduleAction=tokens[2];
-
-          launch=( v['next launch'] ) ? v['next launch'] : 'not scheduled';
-
-          row='<tr>' + 
-                           '<td>'+launch+'</td>' + 
-                           '<td><span class="fa '+getIcon('schedule')+'">  '+scheduleName+'</span></td>' +
-                           '<td><span>' + scheduleAction+' </span></td>'+
-               '</tr>';
-
-          items=items+row; 
-
-    });
-
-   if(items=='') {
-    items = "<tr><td>Nothing is scheduled.</td></tr>";
-    asOf='';
-   }
-
-   $('#status-schedule-table > caption').html(vlcStatus.timestamp);
-   $('#status-schedule-table > tbody').html(items);
+   $("#status-schedule").fullCalendar( calendarOptions );
+   
 
    
-   
+ 
 }
-
-
 
 
  var showPreview=function() {
@@ -184,6 +155,8 @@ var showSchedule=function() {
  }
 
 
+
+
  var showIcon=function(icon) {
  
    var link = document.createElement('link');
@@ -194,14 +167,16 @@ var showSchedule=function() {
 }
 
 
+
+
  $( function() {  
    
-                  $(document).tooltip();
-                  $("#content").tabs();
                   showRoomInfo();
                   showMedia();
-                  showSchedule();
                   window.setInterval( function(){ showMedia() }, 60000 );
+                  showSchedule();
+
+                  $("#content").tabs();
                }
  );
 
