@@ -18,7 +18,6 @@ if(update) {
 }
 
   return(response);
-
 }
 
 
@@ -108,13 +107,16 @@ var showSchedule=function() {
    events=[];
    $.each( (vlcStatus.result.schedule || {}), function(k,v) {
                                                               if ( v['next launch'] ) {
+
                                                                  eventInfo=k.split("-");
+                                                                 eventName=eventInfo[1];
                                                                  eventDate=v['next launch'];
+
                                                                  events.push( { 
                                                                                 title : eventInfo[1]+' ('+eventInfo[2]+')',
                                                                                 start : eventDate,
                                                                                 allDay : false
-                                                                               } );
+                                                                               });
                                                               }                                           
                                                            }
         );
