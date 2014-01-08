@@ -140,8 +140,8 @@ var showSchedule=function() {
  var showPreview=function() {
 
    var url='http://'+window.location.hostname+':8990/camera';
-   var width='1024';
-   var height='576';
+   var width='640';
+   var height='480';
 
    template =  '<object type="application/x-vlc-plugin" data="$url" width="$width" height="$height" id="preview">' +
                ' <param name="movie" value="$url"/>' + 
