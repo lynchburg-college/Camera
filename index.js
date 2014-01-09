@@ -41,7 +41,7 @@ var showRoomInfo=function() {
   
   config = $.ajax({
         type: "GET",
-        url: "config-settings",
+        url: "config-machine",
         async: false,
     }).responseText;
 
@@ -92,7 +92,8 @@ var showMedia=function() {
                       '</tr>';
     });
 
-   $("#status-media").html( '<i> '+vlcStatus.timestamp+'</i><hr><table>'+items+'</table>');
+   $("#status-media-timestamp").html( ' as of ' + vlcStatus.timestamp);
+   $("#status-media").html( '<table>'+items+'</table>');
 
 };
 

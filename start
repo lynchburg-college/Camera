@@ -16,18 +16,16 @@ fi
 # Make sure everything is stopped..
 $pathRoot/stop
 
-# Clear out the preview image (or create it so VLC will serve it up)
-echo > $pathRoot/preview.jpg
+#logVLC=$pathRoot/log/vlc.log
+logVLC=/dev/null
 
+# Start the camera
+cvlc --quiet 'v4l2:///dev/video0:chroma=H264:width=1024:height=576:fps=30' --sout '#standard{access=http,mux=ts,dst=:8990/camera}' >> "$logVLC" 2>&1 &
+log "Camera Launched (logging to $logVLC)"
 
-# Start VLC
-logVLC=$pathRoot/log/vlc.log
-
-
-cvlc -vvvvvv --intf=http  --http-port=8888  --http-src="$pathRoot"  --vlm-conf="$pathRoot/config-media"  >> "$logVLC" 2>&1  &
-#     --scene-format=jpg --scene-path="$pathRoot"  --scene-prefix=preview --scene-width=320 --scene-height=180 --scene-replace \
-
-log "VLC Launched (logging to $logVLC)"
+# Start the HTTP interface
+cvlc --quiet --intf=http  --http-port=8888  --http-src="$pathRoot"  --vlm-conf="$pathRoot/config-media"  >> "$logVLC" 2>&1  &
+log "Recorder Launched (logging to $logVLC)"
 
 # Sleep for a bit, then set the camera options
 sleep 5

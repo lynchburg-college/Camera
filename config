@@ -8,7 +8,7 @@ function log {
 # ------------
 # Read in the settings for this unit
 # ------------
-source "${0%/*}/config-settings"
+source "${0%/*}/config-machine"
 
 
 # ------------

@@ -1,12 +1,12 @@
 del all
 
 # Camera
-new camera broadcast
-setup camera input v4l2:///dev/video0:width=800:height=448:fps:30:chroma=mjpg
-setup camera option input-slave=alsa://hw:0,0
-setup camera output #transcode{vcodec=mp1v,fps=30,vb=8192,scale=0,acodec=mpga,ab=256}:standard{access=http,mux=mpeg1,dst=:8990/camera}
-setup camera enabled
-control camera play
+#new camera broadcast
+#setup camera input v4l2:///dev/video0:width=800:height=448:fps:30:chroma=mjpg
+#setup camera option input-slave=alsa://hw:0,0
+#setup camera output #transcode{vcodec=mp1v,fps=30,vb=8192,scale=0,acodec=mpga,ab=256}:standard{access=http,mux=mpeg1,dst=:8990/camera}
+#setup camera enabled
+#control camera play
 
 
 # Recorder 

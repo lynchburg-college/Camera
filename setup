@@ -14,7 +14,7 @@ source "${0%/*}/config"
   mac=$(ifconfig eth0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
  
   echo "----------------------------"
-  echo "Current Settings"
+  echo "Current Machine Settings"
   echo "----------------------------"
   echo "        IP : $ip"
   echo "       MAC : $mac"
@@ -30,12 +30,12 @@ source "${0%/*}/config"
   read -p "New Room Description ($roomName) : " value
   [ "$value" == "" ] || roomName=$value
 
-  echo -e "#--- Configuration updated $(date)\n\nroom=$room\nroomName=\"$roomName\"" > $pathRoot/config-settings
-  chown capture ./config-settings
+  echo -e "#--- Configuration updated $(date)\n\nroom=$room\nroomName=\"$roomName\"" > $pathRoot/config-machine
+  chown capture ./config-machine
   
 
   echo "----------------------------"
-  echo "New Settings (written to $pathRoot/config-settings)"
+  echo "New Machine Settings (written to $pathRoot/config-machine)"
   echo "----------------------------"
   echo "      ROOM : $room"
   echo "  ROOMNAME : $roomName"
