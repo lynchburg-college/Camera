@@ -18,4 +18,3 @@ then
  killall curl -w
 fi
 
-echo "" > $pathRoot/preview.jpg

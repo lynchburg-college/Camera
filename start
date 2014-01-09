@@ -23,13 +23,15 @@ logVLC=/dev/null
 cvlc --quiet 'v4l2:///dev/video0:chroma=H264:width=1024:height=576:fps=30' --sout '#standard{access=http,mux=ts,dst=:8990/camera}' >> "$logVLC" 2>&1 &
 log "Camera Launched (logging to $logVLC)"
 
+# Sleep for a bit, then set the camera options
+log "Making camera settings.. stand by."
+sleep 5
+$pathRoot/quality
+
 # Start the HTTP interface
 cvlc --quiet --intf=http  --http-port=8888  --http-src="$pathRoot"  --vlm-conf="$pathRoot/config-media"  >> "$logVLC" 2>&1  &
 log "Recorder Launched (logging to $logVLC)"
 
-# Sleep for a bit, then set the camera options
-sleep 5
-$pathRoot/quality
 
 # Notify that we're running
 $pathRoot/notify "Capture Started"
