@@ -1,8 +1,9 @@
 
+jQuery.fn.exists=function(){ return this.length>0;}
 
 var send = function(cmd,update) {
 
-//  console.log("Sending "+cmd);
+  console.log("Sending "+cmd);
   
   url="cmd.xml?command="+encodeURIComponent(cmd);
   response = $.ajax({
@@ -12,7 +13,7 @@ var send = function(cmd,update) {
     }).responseText;
 
   console.log(response);
-if(update) {
+  if(update) {
   console.log('callback');
   setTimeout( update, 3000);
 }
@@ -20,21 +21,6 @@ if(update) {
   return(response);
 }
 
-
-
-var icons={
-             'idle'     : 'fa-gear',
-             'active'   : 'fa-gear fa-spin',
-             'media'    : 'fa-gear',
-             'schedule' : 'fa-tasks',
-             'media-camera'   : 'fa-camera',
-             'media-recorder' : 'fa-users',
-             'media-preview'  : 'fa-picture-o'
-           };
-
-var getIcon=function(i) {
-  return ( icons[i] || 'fa-gear' );
-}
 
 
 var showRoomInfo=function() {
@@ -59,41 +45,41 @@ var showMedia=function() {
 
    response=send('show media');
    vlcStatus = eval( "("+response+")" );
+ 
+   $(".fa-inverse").removeClass("fa-inverse");
+   $("#status-media-timestamp").html( ' as of ' + vlcStatus.timestamp);
    
    items='';
-   $.each( ( vlcStatus.result.media || {} ), function(k,v) {
+   $.each( ( vlcStatus.result.media || {} ), 
+   function(k,v) {
 
           name=k;
           output=v.output;
     
+          item=$('#media-'+k);
+          console.log( item );
+    
+          if( !item.exists() ) {
+
+            item=$('<div/>', { id: 'media-'+k, title: k, text:k } );
+
+            controls=$('<span/>').addClass('controls');      
+
+            buttonStop=$('<i/>').addClass('fa fa-stop').click(function(){ send('control ' + k + ' stop', showMedia)}).appendTo(controls);
+            buttonPlay=$('<i/>').addClass('fa fa-play').click(function(){ send('control ' + k + ' play', showMedia)}).appendTo(controls);
+
+            controls.appendTo(item);
+            
+            item.appendTo('#status-media');
+          };
+
           if ( v['instances'] ) {
-            state = "active";
-            actionIcon='fa-stop';
-            actionCommand='control '+k+' stop';
-            actionTitle="Stop";
+            m='#media-'+k+' .controls i.fa-play';
+            $(m).addClass("fa-inverse");
           }
-         else {
-            state="idle";
-            actionIcon='fa-play';
-            actionCommand='control '+k+' play';
-            actionTitle="Start";
-         }
 
-          icon='<span class="fa '+getIcon('media-'+name)+' "></span>';
-
-          action='<span class="link fa '+actionIcon+'" title="'+actionTitle+'" onClick="send(\''+actionCommand+'\', showMedia);"></span>';
-
-          status='<span class="fa ' +getIcon(state)+'"></span>';
-
-          items=items+'<tr class="item">' + 
-                              '<td>' + icon + '</td>' + 
-                              '<td>' + name + '</td>' +
-                              '<td>' + action + '  ' + status + '</td> ' +
-                      '</tr>';
     });
 
-   $("#status-media-timestamp").html( ' as of ' + vlcStatus.timestamp);
-   $("#status-media").html( '<table>'+items+'</table>');
 
 };
 
@@ -176,7 +162,6 @@ var showSchedule=function() {
    
                   showRoomInfo();
                   showMedia();
-                  window.setInterval( function(){ showMedia() }, 60000 );
                   showSchedule();
 
                   $("#content").tabs();

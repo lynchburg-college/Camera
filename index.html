@@ -15,17 +15,7 @@
 
      H1,H2,H3,H4,H5 { margin:0.25em; } 
 
-    .floatL { width:49%;float:left;text-align:left;}
-    .floatR { width:49%;float:right;text-align:right;}
-
-    .item   { margin-top: 0.25em}
-    .item .autohide { display:none; }
-
-    .item:hover { background-color: gainsboro; }
-    .item:hover .XXautohide { display:block; }
-    .link   { color:purple; cursor:pointer; }
-    .info   { width: 100px; }
-
+     .controls i { background-color:gainsboro;padding:0.5em; cursor:pointer } 
     .ui-widget-header { padding:0.5em; }
   </style>
 
@@ -67,7 +57,7 @@
 
      <div class="ui-widget">
        <div class="ui-widget-header"><i class="fa fa-gear"></i>  Status <span id="status-media-timestamp"></span></div>
-       <div id="status-media" class="ui-widget-content">Getting Media...</div>
+       <div id="status-media" class="ui-widget-content"></div>
      </div>
  
 <!--
