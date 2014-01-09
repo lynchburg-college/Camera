@@ -130,9 +130,9 @@ var showSchedule=function() {
    var width='640';
    var height='480';
 
-   template =  '<object type="application/x-vlc-plugin" data="$url" width="$width" height="$height" id="preview">' +
+   template =  '<object type="application/x-vlc-plugin" data="$url" width="$width" height="$height" id="preview" controls="yes">' +
                ' <param name="movie" value="$url"/>' + 
-               ' <embed type="application/x-vlc-plugin" name="preview"  autoplay="yes" loop="no" width="$width" height="$height"  target="$url" />' + 
+               ' <embed type="application/x-vlc-plugin" name="preview"  autoplay="yes"  loop="no" width="$width" height="$height"  target="$url" />' + 
               '</object>';
 
    template=template.replace("$url", url);
