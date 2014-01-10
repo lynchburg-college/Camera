@@ -2,18 +2,17 @@ del all
 
 # Camera
 new streamer broadcast
-setup streamer input v4l2:///dev/video0:width=1024:height=576:fps=30:chroma=h264
+setup streamer input v4l2:///dev/video0:width=1280:height=720:fps=30:chroma=h264
 setup streamer option input-slave=alsa://hw:1,0
-#setup streamer output #transcode{vcodec=mp1v,fps=30,vb=8192,scale=0,acodec=mpga,ab=256}:standard{access=http,mux=mpeg1,dst=:8990/camera}
-setup streamer output #transcode{acodec=mpga,ab=256}:standard{access=http,mux=ts,dst=:8990/camera}
+setup streamer output #standard{access=http,mux=ts,dst=:8990/camera}
 setup streamer enabled
 
 
 # Recorder 
 new recorder broadcast
-setup recorder input v4l2:///dev/video0:width=1024:height=576:chroma=mjpg
+setup recorder input v4l2:///dev/video0:height=480:fps=30:chroma=h264
 setup recorder option input-slave=alsa://hw:1,0
-setup recorder output #transcode{vcodec=h264,vb=3000,acodec=mp4a,ab=128,deinterlace,audio-sync}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4}
+setup recorder output #transcode{acodec=mpga}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4}
 setup recorder enabled
 
 
