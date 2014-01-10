@@ -61,7 +61,7 @@ var showMedia=function() {
     
           if( !item.exists() ) {
 
-            item=$('<div/>', { id: 'media-'+k, title: k, text:k } );
+            item=$('<span/>', { id: 'media-'+k, title: k, text:k } ).addClass('item');
 
             controls=$('<span/>').addClass('controls');      
 

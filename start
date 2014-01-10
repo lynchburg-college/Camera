@@ -16,23 +16,17 @@ fi
 # Make sure everything is stopped..
 $pathRoot/stop
 
-#logVLC=$pathRoot/log/vlc.log
-logVLC=/dev/null
-
-# Send video
-#cvlc --quiet 'v4l2:///dev/video0:chroma=H264:width=1024:height=576:fps=30:input-slave=alsa:///\"hw:2,0\"' --sout '#transcode{acodec=mpga,vb=128}:standard{access=http,mux=ts,dst=:8990/camera}' >> "$logVLC" 2>&1 &
-#log "Camera Launched (logging to $logVLC)"
-
+logVLC=$pathRoot/log/vlc.log
+#logVLC=/dev/null
 
 # Start the HTTP interface
-cvlc --quiet --intf=http  --http-port=8888  --http-src="$pathRoot"  --vlm-conf="$pathRoot/config-media"  >> "$logVLC" 2>&1  &
+cvlc --quiet -vvvvvvvvvv --aspect-ratio=16:9 --intf=http  --http-port=8888  --http-src="$pathRoot"  --vlm-conf="$pathRoot/config-media"  >> "$logVLC" 2>&1  &
 log "Recorder Launched (logging to $logVLC)"
 
 # Sleep for a bit, then set the camera options
 log "Making camera settings.. stand by."
-sleep 5
+sleep 2
 $pathRoot/quality
-
 
 
 # Notify that we're running
