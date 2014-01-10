@@ -97,12 +97,16 @@ var showSchedule=function() {
 
                                                                  eventInfo=k.split("-");
                                                                  eventName=eventInfo[1];
+                                                                 eventType=eventInfo[2];
                                                                  eventDate=v['next launch'];
+                                                             
+                                                                 eventColor=(eventType=='start')?'green':'red';
 
                                                                  events.push( { 
-                                                                                title : eventInfo[1]+' ('+eventInfo[2]+')',
+                                                                                title : eventName+' ('+eventType+')',
                                                                                 start : eventDate,
-                                                                                allDay : false
+                                                                                allDay : false,
+                                                                                color  : eventColor
                                                                                });
                                                               }                                           
                                                            }
