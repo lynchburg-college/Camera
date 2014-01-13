@@ -15,10 +15,8 @@
 
      H1,H2,H3,H4,H5 { margin:0.25em; } 
 
-     span.item { padding:1em; border:thin solid navy; border-radius:10px; }
      span.controls i { background-color:gainsboro;padding:0.5em; cursor:pointer } 
 
-    .ui-widget-header { padding:0.5em; }
   </style>
 
   <link rel="icon" type="image/jpg" href="favicon.jpg?v=2" />
@@ -54,23 +52,21 @@
      <li><a href="#panel-config">Configuration</a></li>
    </ul>
 
+
    <div id="panel-status">
    <p>
 
-     <div class="ui-widget">
-       <div class="ui-widget-header"><i class="fa fa-gear"></i>  Status <span id="status-media-timestamp"></span></div>
-       <div id="status-media" class="ui-widget-content"></div>
+     <div id="add-schedule-dialog" title="Add Recording Schedule">
+         <div><label>Start : </label></div>
+         <div><label>Stop  : </label></div>
      </div>
- 
-<!--
-     <div><input type="text" style="width:300px" id="command" name="command"><input type="button" onClick="send( $('#command').val() )" value="Send"></div>
-     <div><input type="button" onClick="updateStatus()" value="Status"></div>
--->
-     <hr>
 
      <div class="ui-widget">
-       <div class="ui-widget-header"><i class="fa fa-gear"></i>  Recording Schedule</div>
-       <div id="status-schedule" class="ui-widget-content">Getting Schedule..</div>
+       <div class="ui-widget-header">
+          <button id="add-schedule-button">Ad-Hoc Recording</button> 
+          <button id="reload-schedule-button">Reload Schedule</button> 
+       </div>
+       <div id="status-schedule" class="ui-widget-content"></div>
      </div>
 
    </p>
@@ -85,6 +81,15 @@
   </p>
   </div>
 
+  <div id="panel-config">
+  <p>
+     <div id="status-media" class="ui-widget-content"></div>
+     <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Go</button></div>
+     <pre id="command-result"></pre>
+     
+  </p>
+  </div>
+  
 </div>
 
 </body>

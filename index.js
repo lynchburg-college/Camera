@@ -1,6 +1,8 @@
 
 jQuery.fn.exists=function(){ return this.length>0;}
 
+
+
 var send = function(cmd,update) {
 
   console.log("Sending "+cmd);
@@ -22,6 +24,8 @@ var send = function(cmd,update) {
 }
 
 
+var roomID;
+var roomName;
 
 var showRoomInfo=function() {
   
@@ -32,12 +36,15 @@ var showRoomInfo=function() {
     }).responseText;
 
   match=config.match(/room=(.*)/);
-  if( match!= null ) { $("#room").text( match[1] );document.title=match[1]; };
+  if( match!= null ) { roomID=match[1]; $("#room").text( roomID );document.title=roomID; };
 
   match=config.match(/roomName=(.*)/);
-  if( match!= null ) { $("#roomName").text( match[1] ) };
+  if( match!= null ) { roomName=match[1]; $("#roomName").text( roomName ) };
  
 
+}
+
+var toggleMedia=function(m) {
 }
 
 
@@ -61,7 +68,7 @@ var showMedia=function() {
     
           if( !item.exists() ) {
 
-            item=$('<span/>', { id: 'media-'+k, title: k, text:k } ).addClass('item');
+            item=$('<button/>', { id: 'media-'+k, title: k, text:k } );
 
             controls=$('<span/>').addClass('controls');      
 
@@ -85,6 +92,49 @@ var showMedia=function() {
 
 
 
+var reloadSchedule=function( confirmed ) {
+
+ if(!confirmed){
+   $("<div>This will reload all schedules from the academic data source.  Ad-hoc schedules will be lost.<br>Continue?</div>")
+   .dialog({
+                appendTo : "body",
+                resizable: false,
+                height:240,
+                modal:true,
+                title : "Reload Entire Schedule",
+                buttons: { 
+                              Cancel :  function() { $(this).dialog("close"); } ,
+                             'Reload':  function() { $(this).dialog("close");reloadSchedule(true); }
+                         },
+           })
+   .dialog( "open" );
+   return;
+ }  
+
+ // Go get the schedule from the academic source
+ roomID='SHWL232';
+ url="http://apps.lynchburg.edu/campus/system/public/calendar/roominfo.asp?room="+roomID;
+
+ scheduleSource = $.ajax({
+        type: "GET",
+        url: url,
+        async: false,
+ }).responseText;
+
+ $.each( scheduleSource.split('\n'), function(k,line) {
+                                        send( line );
+                                     });
+                                     
+
+ send("save config-schedule");
+
+ showSchedule();
+ 
+   
+ 
+
+}
+
 
 var showSchedule=function() {
 
@@ -96,14 +146,16 @@ var showSchedule=function() {
                                                               if ( v['next launch'] ) {
 
                                                                  eventInfo=k.split("-");
+
                                                                  eventName=eventInfo[1];
                                                                  eventType=eventInfo[2];
                                                                  eventDate=v['next launch'];
-                                                             
-                                                                 eventColor=(eventType=='start')?'green':'red';
+
+                                                                 eventInfo=(eventType=='start')?' - ' + eventName:'';
+                                                                 eventColor=(eventType=='start')?'#04B45F':'#3B0B0B';
 
                                                                  events.push( { 
-                                                                                title : eventName+' ('+eventType+')',
+                                                                                title : eventType + eventInfo,
                                                                                 start : eventDate,
                                                                                 allDay : false,
                                                                                 color  : eventColor
@@ -111,24 +163,18 @@ var showSchedule=function() {
                                                               }                                           
                                                            }
         );
-                                                            
-    calendarOptions={
-                      events:events,
-                      timeFormat: 'h(:mm)t - ',
-                      height: 800,
-                      title:'Scheduled Recordings',
-                      
-                    };
+                                                           
 
-   $("#status-schedule").fullCalendar( calendarOptions );
-   
-
-   
+   $("#status-schedule").fullCalendar( 'removeEvents' );
+   $("#status-schedule").fullCalendar( { events: events } );
+      
  
 }
 
 
- var showPreview=function() {
+
+
+var showPreview=function() {
 
    var url='http://'+window.location.hostname+':8990/camera';
    var width='640';
@@ -162,8 +208,16 @@ var showSchedule=function() {
 
 
 
+
  $( function() {  
    
+                  $("#add-schedule-button").button().click( function(e){ e.preventDefault;$("#add-schedule-dialog").dialog("open") } );
+                  $("#reload-schedule-button").button().click( function(e){ e.preventDefault;reloadSchedule();} );
+                  $("#add-schedule-dialog").dialog({
+                    modal: true,
+                    autoOpen : false
+                  });
+
                   showRoomInfo();
                   showMedia();
                   showSchedule();
