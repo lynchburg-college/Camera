@@ -10,7 +10,7 @@ setup streamer enabled
 
 # Recorder 
 new recorder broadcast
-setup recorder input v4l2:///dev/video0:height=480:fps=24:chroma=mjpg
+setup recorder input v4l2:///dev/video0:width=1280:height=720:fps=24:chroma=mjpg
 setup recorder option input-slave=alsa://hw:1,0
 setup recorder output #transcode{vcodec=mp4v,vb=5000,acodec=mpga}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4}
 setup recorder enabled
