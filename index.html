@@ -9,21 +9,13 @@
 
   <title>Camera</title>
 
-  <style>
-     #header  { position:absolute; right:20px; z-index:99; text-align:right; padding: 0.25em;}
-     #header * { margin:0px; }
-
-     H1,H2,H3,H4,H5 { margin:0.25em; } 
-
-     span.controls i { background-color:gainsboro;padding:0.5em; cursor:pointer } 
-
-  </style>
 
   <link rel="icon" type="image/jpg" href="favicon.jpg?v=2" />
 
   <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet" />
   <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" rel="stylesheet" class="theme-link" type="text/css" media="screen" />
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" rel="stylesheet" />
+  <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.print.css" rel="stylesheet" />
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
@@ -31,6 +23,19 @@
 
   <script src="index.js"></script>
   
+  <style>
+
+     body { font-size : 14px; font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif; }
+     H1,H2,H3,H4,H5 { margin:0.25em; } 
+    
+     #header  { position:absolute; right:20px; z-index:99; text-align:right; padding: 0.25em;}
+     #header * { margin:0px; }
+
+     #status-schedule { height:300px; margin: 0 auto; }
+     span.controls i { background-color:gainsboro;padding:0.5em; cursor:pointer } 
+
+  </style>
+
 </head>
 
 <body> 
@@ -44,6 +49,7 @@
   </table>
 </div>
 
+
 <div id="content">
 
    <ul>
@@ -52,9 +58,7 @@
      <li><a href="#panel-config">Configuration</a></li>
    </ul>
 
-
    <div id="panel-status">
-   <p>
 
      <div id="add-schedule-dialog" title="Add Recording Schedule">
          <div><label>Start : </label></div>
@@ -66,10 +70,10 @@
           <button id="add-schedule-button">Ad-Hoc Recording</button> 
           <button id="reload-schedule-button">Reload Schedule</button> 
        </div>
-       <div id="status-schedule" class="ui-widget-content"></div>
-     </div>
+    </div>
 
-   </p>
+    <div id="status-schedule"></div>
+
   </div>
 
   <div id="panel-preview">

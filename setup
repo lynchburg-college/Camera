@@ -32,7 +32,12 @@ source "${0%/*}/config"
 
   echo -e "#--- Configuration updated $(date)\n\nroom=$room\nroomName=\"$roomName\"" > $pathRoot/config-machine
   chown capture ./config-machine
-  
+    
+  mkdir $pathRoot/video
+  chown capture $pathRoot/video
+
+  mkdir $pathRoot/log
+  chown capture $pathRoot/log
 
   echo "----------------------------"
   echo "New Machine Settings (written to $pathRoot/config-machine)"

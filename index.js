@@ -5,7 +5,7 @@ jQuery.fn.exists=function(){ return this.length>0;}
 
 var send = function(cmd,update) {
 
-  console.log("Sending "+cmd);
+//  console.log("Sending "+cmd);
   
   url="cmd.xml?command="+encodeURIComponent(cmd);
   response = $.ajax({
@@ -14,11 +14,12 @@ var send = function(cmd,update) {
         async: false,
     }).responseText;
 
-  console.log(response);
+//  console.log(response);
+
   if(update) {
-  console.log('callback');
-  setTimeout( update, 3000);
-}
+    // console.log('callback');
+    setTimeout( update, 3000);
+  }
 
   return(response);
 }
@@ -136,38 +137,45 @@ var reloadSchedule=function( confirmed ) {
 }
 
 
-var showSchedule=function() {
+var getSchedule=function() {
 
    response=send('show schedule');
    vlcStatus = eval( "("+response+")" );
 
-   events=[];
+   var events={};
    $.each( (vlcStatus.result.schedule || {}), function(k,v) {
-                                                              if ( v['next launch'] ) {
+          if ( v['next launch'] ) {
 
-                                                                 eventInfo=k.split("-");
+             eventInfo=k.split("-");
 
-                                                                 eventName=eventInfo[1];
-                                                                 eventType=eventInfo[2];
-                                                                 eventDate=v['next launch'];
+             eventID=eventInfo[0];
+             eventName=eventInfo[1];
+             eventType=eventInfo[2];
 
-                                                                 eventInfo=(eventType=='start')?' - ' + eventName:'';
-                                                                 eventColor=(eventType=='start')?'#04B45F':'#3B0B0B';
+             eventLaunch=v['next launch'].substring(0,19);
 
-                                                                 events.push( { 
-                                                                                title : eventType + eventInfo,
-                                                                                start : eventDate,
-                                                                                allDay : false,
-                                                                                color  : eventColor
-                                                                               });
-                                                              }                                           
-                                                           }
-        );
-                                                           
+             event = ( events[eventID] );
+             if(!event) {
+                event={ eventID:eventID,title:eventName,allDay:false};
+             }
 
-   $("#status-schedule").fullCalendar( 'removeEvents' );
-   $("#status-schedule").fullCalendar( { events: events } );
-      
+             if(eventType=='start') {
+               event['start']=eventLaunch;
+             }
+             else {
+               event['end']=eventLaunch; 
+             }             
+
+             events[eventID] = event;
+
+          }                                           
+
+   });
+  console.log(events);
+                                                         
+  eventsArray=[];
+  $.each( events, function(k,v) { eventsArray.push(v) } );
+  return eventsArray;     
  
 }
 
@@ -207,10 +215,11 @@ var showPreview=function() {
 
 
 
-
-
- $( function() {  
+ $(document).ready( function() {  
    
+                  showRoomInfo();
+                  showMedia();
+
                   $("#add-schedule-button").button().click( function(e){ e.preventDefault;$("#add-schedule-dialog").dialog("open") } );
                   $("#reload-schedule-button").button().click( function(e){ e.preventDefault;reloadSchedule();} );
                   $("#add-schedule-dialog").dialog({
@@ -218,9 +227,18 @@ var showPreview=function() {
                     autoOpen : false
                   });
 
-                  showRoomInfo();
-                  showMedia();
-                  showSchedule();
+                  $("#status-schedule").fullCalendar( {  events : getSchedule(),
+                                                         header : { left:'today', center:'prev,title,next',  right:'month,agendaWeek,agendaDay' },
+                                                         theme : true,
+                                                         weekMode : 'liquid',
+                                                         contentHeight: 500,
+                                                         handleWindowResize: true ,
+                                                         timeFormat : '',
+                                                         defaultView : 'agendaWeek',
+                                                         defaultEventMinutes : 15,
+                                                         slotMinutes : 30
+                
+                                                       } );
 
                   $("#content").tabs();
                }
