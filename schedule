@@ -4,7 +4,7 @@ source "${0%/*}/config/common"
 
 # Get the schedule
 log "Obtaining Schedule from $urlInfo"
-wget -O $pathRoot/config/schedule "$urlInfo$parms"
+wget -O $pathRoot/config/schedule "$urlInfo?room=$room"
 
 # Update VLM if asked
 if [ "$1" == "update" ] 
