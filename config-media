@@ -1,20 +1,19 @@
 del all
 
-# Camera
-new streamer broadcast
-setup streamer input v4l2:///dev/video0:width=1280:height=720:fps=24:chroma=mjpg
-setup streamer option input-slave=alsa://hw:1,0
-setup streamer output #transcode{vcodec=mp4v,vb=5000,acodec=mpga}:standard{access=http,mux=ts,dst=:8990/camera}
-setup streamer enabled
+# Preview
+new preview broadcast
+setup preview input v4l2:///dev/video0:width=1280:height=720:fps=24:chroma=mjpg
+setup preview option input-slave=alsa://hw:1,0
+setup preview output #transcode{vcodec=mp4v,vb=6000,acodec=mpga}:standard{access=http,mux=ts,dst=:8990/camera}
+setup preview enabled
 
 
 # Recorder 
 new recorder broadcast
 setup recorder input v4l2:///dev/video0:width=1280:height=720:fps=24:chroma=mjpg
 setup recorder option input-slave=alsa://hw:1,0
-setup recorder output #transcode{vcodec=mp4v,vb=5000,acodec=mpga}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4}
+setup recorder output #transcode{vcodec=mp4v,vb=6000,acodec=mpga}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4}
 setup recorder enabled
-
 
 
 # Load the schedule file

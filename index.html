@@ -26,7 +26,6 @@
   <style>
 
      body { font-size : 14px; font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif; }
-     H1,H2,H3,H4,H5 { margin:0.25em; } 
     
      #header  { position:absolute; right:20px; z-index:99; text-align:right; padding: 0.25em;}
      #header * { margin:0px; }
@@ -41,53 +40,38 @@
 <body> 
 
 <div id="header">
-  <table>
-    <tr>
-      <td><h2 id="room">Camera</h2><h5 id="roomName"></h5></td>
-      <td><i class="fa fa-video-camera fa-3x"></i></td>
-    </tr>
-  </table>
+      <table>
+       <tr>
+         <td><h2 id="room">Camera</h2></td>
+         <td><h5 id="roomName"></h5></td>
+         <td><i class="fa fa-video-camera fa-3x"></i></td>
+       </tr>
+      </table>
 </div>
 
 
 <div id="content">
 
    <ul>
-     <li><a href="#panel-status">Status</a></li>
-     <li><a href="#panel-preview">Preview</a></li>
+     <li><a href="#panel-status">Schedule</a></li>
      <li><a href="#panel-config">Configuration</a></li>
    </ul>
 
    <div id="panel-status">
 
-     <div id="add-schedule-dialog" title="Add Recording Schedule">
-         <div><label>Start : </label></div>
-         <div><label>Stop  : </label></div>
+     <div id="add-schedule-dialog" title="Ad-Hoc Recording">
+         <div><label>Start : </label><select id="adhoc-start-time"></select></div>
+         <div><label>Stop  : </label><select id="adhoc-stop-time"></select></div>
      </div>
 
-     <div class="ui-widget">
-       <div class="ui-widget-header">
-          <button id="add-schedule-button">Ad-Hoc Recording</button> 
-          <button id="reload-schedule-button">Reload Schedule</button> 
-       </div>
-    </div>
+    <div><div id="status-schedule"></div></div>
 
-    <div id="status-schedule"></div>
-
-  </div>
-
-  <div id="panel-preview">
-  <p>
-     <div class="ui-widget">
-      <div class="ui-widget-header">Streaming Preview (requires VLC on your machine)</div>
-      <div id="status-preview">Note:  This requires VLC on your machine.  Click <span class="link" onClick="showPreview()">here</span> to start.</div>
-    </div>
-  </p>
   </div>
 
   <div id="panel-config">
   <p>
-     <div id="status-media" class="ui-widget-content"></div>
+
+     <div id="status-media">(click to toggle) </div>
      <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Go</button></div>
      <pre id="command-result"></pre>
      

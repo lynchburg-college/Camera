@@ -1,12 +1,21 @@
 
 jQuery.fn.exists=function(){ return this.length>0;}
 
+jQuery.fn.redraw = function() {
+    return this.hide(0, function() {
+        $(this).show();
+    });
+};
+
+
+var roomID;
+var roomName;
 
 
 var send = function(cmd,update) {
 
-//  console.log("Sending "+cmd);
-  
+  //console.log("Sending "+cmd);
+   
   url="cmd.xml?command="+encodeURIComponent(cmd);
   response = $.ajax({
         type: "GET",
@@ -14,7 +23,7 @@ var send = function(cmd,update) {
         async: false,
     }).responseText;
 
-//  console.log(response);
+  //console.log(response);
 
   if(update) {
     // console.log('callback');
@@ -24,9 +33,6 @@ var send = function(cmd,update) {
   return(response);
 }
 
-
-var roomID;
-var roomName;
 
 var showRoomInfo=function() {
   
@@ -41,11 +47,23 @@ var showRoomInfo=function() {
 
   match=config.match(/roomName=(.*)/);
   if( match!= null ) { roomName=match[1]; $("#roomName").text( roomName ) };
- 
+
 
 }
 
-var toggleMedia=function(m) {
+var toggleMedia=function( item ) {
+
+    mediaName=$(item).attr('id').replace('media-','');
+
+    status=send('show '+mediaName);
+    console.log(status);
+
+    action=( status.indexOf('instance') == -1 ) ? 'play' : 'stop';
+    status=send('control '+mediaName+' '+action);
+
+    $(item).button("option","label", mediaName+' (<i>stand by</i>)').button("refresh");
+    window.setTimeout( 'showMedia()', 3000);
+
 }
 
 
@@ -53,91 +71,41 @@ var showMedia=function() {
 
    response=send('show media');
    vlcStatus = eval( "("+response+")" );
- 
-   $(".fa-inverse").removeClass("fa-inverse");
-   $("#status-media-timestamp").html( ' as of ' + vlcStatus.timestamp);
-   
+   console.log(vlcStatus);
+    
    items='';
    $.each( ( vlcStatus.result.media || {} ), 
    function(k,v) {
 
           name=k;
           output=v.output;
-    
-          item=$('#media-'+k);
-          console.log( item );
-    
+          isStream=(output.indexOf('http'));
+          
+          item=$('#media-'+name);
+              
+          // Create the button element if needed
           if( !item.exists() ) {
-
-            item=$('<button/>', { id: 'media-'+k, title: k, text:k } );
-
-            controls=$('<span/>').addClass('controls');      
-
-            buttonStop=$('<i/>').addClass('fa fa-stop').click(function(){ send('control ' + k + ' stop', showMedia)}).appendTo(controls);
-            buttonPlay=$('<i/>').addClass('fa fa-play').click(function(){ send('control ' + k + ' play', showMedia)}).appendTo(controls);
-
-            controls.appendTo(item);
-            
-            item.appendTo('#status-media');
+            item=$('<button/>', { id: 'media-'+name, title: name, text:name } )
+                 .click( function() { toggleMedia( $(this) ) })
+                 .appendTo('#status-media')
+                 .button();
           };
-
-          if ( v['instances'] ) {
-            m='#media-'+k+' .controls i.fa-play';
-            $(m).addClass("fa-inverse");
-          }
-
+         
+         if( v['instances'] ) { 
+            if( output.indexOf('http') != -1 ) { showPreview(name) };
+            name=name+' (playing)' 
+         };
+          
+         item.button("option","label", name).button("refresh");
+       
     });
-
 
 };
 
 
 
-var reloadSchedule=function( confirmed ) {
 
- if(!confirmed){
-   $("<div>This will reload all schedules from the academic data source.  Ad-hoc schedules will be lost.<br>Continue?</div>")
-   .dialog({
-                appendTo : "body",
-                resizable: false,
-                height:240,
-                modal:true,
-                title : "Reload Entire Schedule",
-                buttons: { 
-                              Cancel :  function() { $(this).dialog("close"); } ,
-                             'Reload':  function() { $(this).dialog("close");reloadSchedule(true); }
-                         },
-           })
-   .dialog( "open" );
-   return;
- }  
-
- // Go get the schedule from the academic source
- roomID='SHWL232';
- url="http://apps.lynchburg.edu/campus/system/public/calendar/roominfo.asp?room="+roomID;
-
- scheduleSource = $.ajax({
-        type: "GET",
-        url: url,
-        async: false,
- }).responseText;
-
- $.each( scheduleSource.split('\n'), function(k,line) {
-                                        send( line );
-                                     });
-                                     
-
- send("save config-schedule");
-
- showSchedule();
- 
-   
- 
-
-}
-
-
-var getSchedule=function() {
+var getEvents=function( calendarStart, calendarEnd, callback ) {
 
    response=send('show schedule');
    vlcStatus = eval( "("+response+")" );
@@ -171,34 +139,48 @@ var getSchedule=function() {
           }                                           
 
    });
-  console.log(events);
                                                          
   eventsArray=[];
-  $.each( events, function(k,v) { eventsArray.push(v) } );
-  return eventsArray;     
- 
+  $.each( events, function(k,v) {
+      eventStart=new Date(v.start);
+      eventEnd=new Date(v.end);
+      
+      if( (calendarStart <= eventStart) && ( eventEnd <= calendarEnd ) ) {
+       eventsArray.push(v) 
+     }
+
+   });
+
+  callback(eventsArray);
 }
 
 
 
+var showPreview=function( mediaName ) {
 
-var showPreview=function() {
+   previewID='media-'+mediaName+'-preview'
+   preview=$('#'+previewID);
+   if( !preview.exists() ) {
 
-   var url='http://'+window.location.hostname+':8990/camera';
-   var width='640';
-   var height='480';
+       var url='http://'+window.location.hostname+':8990/camera';
+       var width='640';
+       var height='480';
 
-   template =  '<object type="application/x-vlc-plugin" data="$url" width="$width" height="$height" id="preview" controls="yes">' +
-               ' <param name="movie" value="$url"/>' + 
-               ' <embed type="application/x-vlc-plugin" name="preview"  autoplay="yes"  loop="no" width="$width" height="$height"  target="$url" />' + 
-              '</object>';
+       template =  '<object type="application/x-vlc-plugin" data="'+url+'" width="'+width+'" height="'+height+'" id="'+previewID+'-content" controls="yes">' +
+                   ' <param name="movie" value="$url"/>' + 
+                   ' <embed type="application/x-vlc-plugin" name="'+previewID+'-content"  autoplay="yes"  loop="no" width="'+width+'" height="'+height+'"  target="'+url+'" />' + 
+                  '</object>';
 
-   template=template.replace("$url", url);
-   template=template.replace("$width", width);
-   template=template.replace("$height", height);
-
-   $("#status-preview").html(  template );
-
+       // Create a modal dialog and throw the preview in it
+       $("<div></div>", {id:previewID} )
+       .html( template )
+       .dialog ({  title : url,
+                   width: parseInt(width)+70,
+                  height: parseInt(height)+70,
+                appendTo: "body",
+                  close : function() {  mediaName=$(this).attr('id').split('-')[1];  toggleMedia($('#media-'+mediaName)); $(this).dialog("destroy") }
+                });                             
+  }
  }
 
 
@@ -221,14 +203,25 @@ var showPreview=function() {
                   showMedia();
 
                   $("#add-schedule-button").button().click( function(e){ e.preventDefault;$("#add-schedule-dialog").dialog("open") } );
-                  $("#reload-schedule-button").button().click( function(e){ e.preventDefault;reloadSchedule();} );
                   $("#add-schedule-dialog").dialog({
                     modal: true,
                     autoOpen : false
                   });
 
-                  $("#status-schedule").fullCalendar( {  events : getSchedule(),
-                                                         header : { left:'today', center:'prev,title,next',  right:'month,agendaWeek,agendaDay' },
+                  $("#reload-schedule-button").button().click( function(e){ e.preventDefault;$("#reload-schedule-dialog").dialog("open") } );
+                  $("#reload-schedule-dialog").dialog({
+                    modal: true,
+                    autoOpen : false,
+                    resizable: false,
+                    height:240,
+                    title : "Reload "+roomID,
+                    buttons: { 
+                                  Cancel :  function() { $("#reload-schedule-dialog").dialog("close"); } ,
+                                 'Reload':  function() { reloadSchedule(true); }
+                             },
+                 });
+
+                  $("#status-schedule").fullCalendar( {  header : { left:'today', center:'prev,title,next',  right:'month,agendaWeek,agendaDay' },
                                                          theme : true,
                                                          weekMode : 'liquid',
                                                          contentHeight: 500,
@@ -236,11 +229,13 @@ var showPreview=function() {
                                                          timeFormat : '',
                                                          defaultView : 'agendaWeek',
                                                          defaultEventMinutes : 15,
-                                                         slotMinutes : 30
-                
+                                                         slotMinutes : 30,
+                                                         events : getEvents 
                                                        } );
 
+
                   $("#content").tabs();
+
                }
  );
 
