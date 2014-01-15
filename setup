@@ -8,6 +8,11 @@ source "${0%/*}/config/common"
 #    exit
 #  fi
 
+function addJob {
+  command=$1
+  cat <(fgrep -i -v "$command" <(crontab -l)) <(echo -e "$command") | crontab -
+}
+
 
   echo "----------------------------"
   echo "Current Machine Settings"
@@ -42,23 +47,19 @@ source "${0%/*}/config/common"
   echo "  ROOMNAME : $roomName"
   echo ""
 
-  command="/home/capture/Camera/upload"
-  job="\n# Capture Upload\n05,35 * * * * $command\n"
-  cat <(fgrep -i -v "$command" <(crontab -l)) <(echo -e "$job") | crontab -
-
-  command="/home/capture/Camera/schedule"
-  job="\n# Get the schedule\n0 1 * * 0 $command\n"
-  cat <(fgrep -i -v "$command" <(crontab -l)) <(echo -e "$job") | crontab -
-
-  echo "Scheduled upload job created"
-
+  addJob "@reboot /home/capture/Camera/start"
+  addJob "05,35 * * * * /home/capture/Camera/upload"
+  addJob "0     1 * * 0 /home/capture/Camera/schedule"
+  addJob "5     1 * * 0 /home/capture/Camera/stop"
+  addJob "10     1 * * 0 /home/capture/Camera/start"
 
   echo ""
   echo "... setup complete."
   
-  ./start
+  /home/capture/Camera/schedule
 
-  
+  /home/capture/Camera/start
+    
 
 
 
