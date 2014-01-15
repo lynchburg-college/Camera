@@ -1,5 +1,5 @@
-# Ignore this directory, except the gitignore file
+# 
 
-*
-!media
+machine
+schedule
 !.gitignore

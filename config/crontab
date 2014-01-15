@@ -1,0 +1,12 @@
+# ----------
+# Scheduled jobs for lecture capture system
+# ----------
+# M H D M W Command
+# Start the system at reboot
+@reboot /home/capture/Camera/start
+
+# Upload any completed videos at 10:00p nightly
+0 22 * * * /home/capture/Camera/upload
+
+# Get a new schedule at 3:00a on Sunday
+0 3 0 * * /home/capture/Camera/schedule
