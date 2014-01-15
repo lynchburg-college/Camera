@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Common
-source "${0%/*}/config"
+source "${0%/*}/config/common"
 
 # Get all files that haven't yet been uploaded
 {
@@ -30,7 +30,7 @@ then
    fi
 
    # Ask the server for info about the class meeting at that time
-   url="$urlInfo&asOf=$asOf&mode=meeting"
+   url="$urlInfo?room=$room&asOf=$asOf&mode=meeting"
    log "Calling $url"
    info=$(curl -sL "$url")
    log "Got $info"

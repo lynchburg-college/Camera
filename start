@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Common
-source "${0%/*}/config"
+source "${0%/*}/config/common"
 if [[ -z "$room" ]]; then
- log "Cannot start!  Run sudo ./setup to configure"
+ log "Cannot start!  Run ./setup to configure"
  exit 1
 fi
 
@@ -20,14 +20,28 @@ logVLC=$pathRoot/log/vlc.log
 #logVLC=/dev/null
 
 # Start the HTTP interface
-cvlc --quiet --intf=http  --http-port=8888  --http-src="$pathRoot"  --vlm-conf="$pathRoot/config-media"  >> "$logVLC" 2>&1  &
-log "VLC Launched (logging to $logVLC)"
+cvlc -vvvvvvvvvv --aspect-ratio=16x9 --intf=http  --http-port=8888  --http-src="$pathRoot"  --vlm-conf="$pathRoot/config/media"  >> "$logVLC" 2>&1  &
+log "Started (logging to $logVLC)"
 
 # Sleep for a bit, then set the camera options
-log "Making camera settings.. stand by."
+log "Making camera quality settings.. stand by."
 sleep 2
 $pathRoot/quality
 
-
 # Notify that we're running
-$pathRoot/notify "Capture Started"
+$pathRoot/notify "Capture Started."
+
+# Give the web address
+  ip=$(hostname -I)
+  hostname=$(hostname)
+  mac=$(ifconfig eth0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
+ 
+  echo "----------------------------"
+  echo "Machine Settings"
+  echo "----------------------------"
+  echo "        IP : $ip"
+  echo "       MAC : $mac"
+  echo "  HOSTNAME : $hostname"
+  echo "    MANAGE : http://$ip:8888"
+  echo "----------------------------"
+  

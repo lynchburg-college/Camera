@@ -27,7 +27,7 @@
 
      body { font-size : 14px; font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif; }
     
-     #header  { position:absolute; right:20px; z-index:99; text-align:right; padding: 0.25em;}
+     #header  { font-size:x-large; font-weight:bold; position:absolute; right:20px; z-index:99; text-align:right; padding: 0.25em;}
      #header * { margin:0px; }
 
      #status-schedule { height:300px; margin: 0 auto; }
@@ -40,13 +40,8 @@
 <body> 
 
 <div id="header">
-      <table>
-       <tr>
-         <td><h2 id="room">Camera</h2></td>
-         <td><h5 id="roomName"></h5></td>
-         <td><i class="fa fa-video-camera fa-3x"></i></td>
-       </tr>
-      </table>
+ <span id="roomInfo"></span>
+ <i class="fa fa-video-camera"></i>
 </div>
 
 
@@ -59,20 +54,29 @@
 
    <div id="panel-status">
 
+<!--
      <div id="add-schedule-dialog" title="Ad-Hoc Recording">
          <div><label>Start : </label><select id="adhoc-start-time"></select></div>
          <div><label>Stop  : </label><select id="adhoc-stop-time"></select></div>
      </div>
-
+-->
     <div><div id="status-schedule"></div></div>
 
   </div>
 
+
   <div id="panel-config">
   <p>
 
-     <div id="status-media">(click to toggle) </div>
-     <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Go</button></div>
+     <div id="status-media"></div>
+     <hr>
+     <table>
+      <tr><th>Room ID</th><td><input id="config-roomID" /></td></tr>
+      <tr><th>Room Name</th><td><input id="config-roomName" /></td></tr>
+      <tr><th></th><td><button id="config-save">Save</button></td></tr>
+     </table>
+     <hr>
+     <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send Command</button></div>
      <pre id="command-result"></pre>
      
   </p>

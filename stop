@@ -3,7 +3,7 @@
 #!/bin/bash
 
 # Common
-source "${0%/*}/config"
+source "${0%/*}/config/common"
 
 
 if ( ps -A | grep vlc )

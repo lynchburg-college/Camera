@@ -1,14 +1,14 @@
 #!/bin/bash
 # Common
-source "${0%/*}/config"
+source "${0%/*}/config/common"
 
 # Get the schedule
 log "Obtaining Schedule from $urlInfo"
-wget -O $pathRoot/config-schedule "$urlInfo$parms"
+wget -O $pathRoot/config/schedule "$urlInfo$parms"
 
 # Update VLM if asked
 if [ "$1" == "update" ] 
 then
  log "Updating VLC with local schedule"
- wget -O "$logFile" http://localhost:8888/cmd.xml?command=load%20config-schedule
+ wget -O "$logFile" http://localhost:8888/cmd.xml?command=load%20config/schedule
 fi

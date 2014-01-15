@@ -8,11 +8,10 @@ jQuery.fn.redraw = function() {
 };
 
 
-var roomID;
-var roomName;
+var roomID='UNDEFINED';
+var roomName='UNDEFINED';
 
-
-var send = function(cmd,update) {
+var send = function(cmd) {
 
   //console.log("Sending "+cmd);
    
@@ -25,34 +24,35 @@ var send = function(cmd,update) {
 
   //console.log(response);
 
-  if(update) {
-    // console.log('callback');
-    setTimeout( update, 3000);
-  }
-
   return(response);
 }
 
 
-var showRoomInfo=function() {
-  
-  config = $.ajax({
-        type: "GET",
-        url: "config-machine",
-        async: false,
-    }).responseText;
+var loadConfig=function() {
+             
+              config = $.ajax({
+                    type: "GET",
+                    url: "config/machine",
+                    async: false,
+                }).responseText;
 
-  match=config.match(/room=(.*)/);
-  if( match!= null ) { roomID=match[1]; $("#room").text( roomID );document.title=roomID; };
+              match=config.match(/room=(.*)/);
+              if( match!= null ) { roomID=match[1]; };
 
-  match=config.match(/roomName=(.*)/);
-  if( match!= null ) { roomName=match[1]; $("#roomName").text( roomName ) };
+              match=config.match(/roomName=(.*)/);
+              if( match!= null ) { roomName=match[1].replace(/"/g,'') };
 
+              $("#config-roomID").val( roomID );
+              $("#config-roomName").val( roomName );
+              $("#roomInfo").text( roomID + ' / ' + roomName )
+              document.title=roomID;
 
 }
 
+
 var toggleMedia=function( item ) {
 
+console.log(item);
     mediaName=$(item).attr('id').replace('media-','');
 
     status=send('show '+mediaName);
@@ -85,15 +85,17 @@ var showMedia=function() {
               
           // Create the button element if needed
           if( !item.exists() ) {
+
             item=$('<button/>', { id: 'media-'+name, title: name, text:name } )
-                 .click( function() { toggleMedia( $(this) ) })
                  .appendTo('#status-media')
+                 .click( function() { toggleMedia( $(this) ) } )
                  .button();
-          };
+         }
          
          if( v['instances'] ) { 
             if( output.indexOf('http') != -1 ) { showPreview(name) };
             name=name+' (playing)' 
+            
          };
           
          item.button("option","label", name).button("refresh");
@@ -159,10 +161,11 @@ var getEvents=function( calendarStart, calendarEnd, callback ) {
 var showPreview=function( mediaName ) {
 
    previewID='media-'+mediaName+'-preview'
+
    preview=$('#'+previewID);
    if( !preview.exists() ) {
 
-       var url='http://'+window.location.hostname+':8990/camera';
+       var url='http://'+window.location.hostname+':8990/preview';
        var width='640';
        var height='480';
 
@@ -178,7 +181,7 @@ var showPreview=function( mediaName ) {
                    width: parseInt(width)+70,
                   height: parseInt(height)+70,
                 appendTo: "body",
-                  close : function() {  mediaName=$(this).attr('id').split('-')[1];  toggleMedia($('#media-'+mediaName)); $(this).dialog("destroy") }
+                  close : function() {  mediaName=$(this).attr('id').split('-')[1]; toggleMedia( $('#media-'+mediaName) ); $(this).dialog("destroy") }
                 });                             
   }
  }
@@ -199,45 +202,26 @@ var showPreview=function( mediaName ) {
 
  $(document).ready( function() {  
    
-                  showRoomInfo();
-                  showMedia();
+              loadConfig();
 
-                  $("#add-schedule-button").button().click( function(e){ e.preventDefault;$("#add-schedule-dialog").dialog("open") } );
-                  $("#add-schedule-dialog").dialog({
-                    modal: true,
-                    autoOpen : false
-                  });
+              showMedia();
+              $("#status-media").buttonset();
+              
+              $("#status-schedule").fullCalendar( {  header : { left:'today', center:'prev,title,next',  right:'month,agendaWeek,agendaDay' },
+                                                     theme : true,
+                                                     weekMode : 'liquid',
+                                                     contentHeight: 500,
+                                                     handleWindowResize: true ,
+                                                     timeFormat : '',
+                                                     defaultView : 'agendaWeek',
+                                                     defaultEventMinutes : 15,
+                                                     slotMinutes : 30,
+                                                     events : getEvents 
+                                                    } );
 
-                  $("#reload-schedule-button").button().click( function(e){ e.preventDefault;$("#reload-schedule-dialog").dialog("open") } );
-                  $("#reload-schedule-dialog").dialog({
-                    modal: true,
-                    autoOpen : false,
-                    resizable: false,
-                    height:240,
-                    title : "Reload "+roomID,
-                    buttons: { 
-                                  Cancel :  function() { $("#reload-schedule-dialog").dialog("close"); } ,
-                                 'Reload':  function() { reloadSchedule(true); }
-                             },
-                 });
+              $("#content").tabs();
 
-                  $("#status-schedule").fullCalendar( {  header : { left:'today', center:'prev,title,next',  right:'month,agendaWeek,agendaDay' },
-                                                         theme : true,
-                                                         weekMode : 'liquid',
-                                                         contentHeight: 500,
-                                                         handleWindowResize: true ,
-                                                         timeFormat : '',
-                                                         defaultView : 'agendaWeek',
-                                                         defaultEventMinutes : 15,
-                                                         slotMinutes : 30,
-                                                         events : getEvents 
-                                                       } );
-
-
-                  $("#content").tabs();
-
-               }
- );
+ });
 
 
 

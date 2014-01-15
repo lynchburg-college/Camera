@@ -1,24 +1,17 @@
 #!/bin/bash
 
-source "${0%/*}/config"
+source "${0%/*}/config/common"
+
+#  if [ $(whoami) != "root" ]
+#  then
+#    echo "Setup must be run as root (ie. sudo ./setup)"
+#    exit
+#  fi
 
 
-  if [ $(whoami) != "root" ]
-  then
-    echo "Setup must be run as root (ie. sudo ./setup)"
-    exit
-  fi
-
-  ip=$(hostname -I)
-  hostname=$(hostname)
-  mac=$(ifconfig eth0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
- 
   echo "----------------------------"
   echo "Current Machine Settings"
   echo "----------------------------"
-  echo "        IP : $ip"
-  echo "       MAC : $mac"
-  echo "  HOSTNAME : $hostname"
   echo "      ROOM : $room"
   echo "  ROOMNAME : $roomName"
   echo "----------------------------"
@@ -30,8 +23,8 @@ source "${0%/*}/config"
   read -p "New Room Description ($roomName) : " value
   [ "$value" == "" ] || roomName=$value
 
-  echo -e "#--- Configuration updated $(date)\n\nroom=$room\nroomName=\"$roomName\"" > $pathRoot/config-machine
-  chown capture ./config-machine
+  echo -e "#--- Configuration updated $(date)\n\nroom=$room\nroomName=\"$roomName\"" > $pathRoot/config/machine
+  chown capture $pathRoot/config/machine
     
   mkdir $pathRoot/video
   chown capture $pathRoot/video
@@ -39,38 +32,33 @@ source "${0%/*}/config"
   mkdir $pathRoot/log
   chown capture $pathRoot/log
 
+  mkdir $pathRoot/config
+  chown capture $pathRoot/log
+
   echo "----------------------------"
-  echo "New Machine Settings (written to $pathRoot/config-machine)"
+  echo "New Machine Settings (written to $pathRoot/config/machine)"
   echo "----------------------------"
   echo "      ROOM : $room"
   echo "  ROOMNAME : $roomName"
   echo ""
 
+  command="/home/capture/Camera/upload"
+  job="\n# Capture Upload\n05,35 * * * * $command\n"
+  cat <(fgrep -i -v "$command" <(crontab -l)) <(echo -e "$job") | crontab -
 
-  propername="CAPTURE-$room"
-  if [ "$hostname" != "$propername" ] 
-  then
-    while true; do
-    read -p "Do you want to set the hostname to $propername (yes or no)? " answer
-    case $answer in
-        yes )  echo $propername > /etc/hostname
-               sed -i "s/127.0.1.1.*$hostname/127.0.1.1\t$propername/g" /etc/hosts
-               echo  "You must manually reboot for the new name to take effect"
-               break
-               ;;
+  command="/home/capture/Camera/schedule"
+  job="\n# Get the schedule\n0 1 * * 0 $command\n"
+  cat <(fgrep -i -v "$command" <(crontab -l)) <(echo -e "$job") | crontab -
 
-         no )  break
-               ;;
+  echo "Scheduled upload job created"
 
-          * ) echo "Please answer yes or no.";;
-    esac
-    done
-
-  fi
 
   echo ""
   echo "... setup complete."
+  
+  ./start
 
+  
 
 
 

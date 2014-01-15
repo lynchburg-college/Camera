@@ -2,7 +2,7 @@
 # usage : notify "[subject]" "[body]"
 
 # Common
-source "${0%/*}/config"
+source "${0%/*}/config/common"
 
 host=$(hostname)
 ip=$(hostname -I)
