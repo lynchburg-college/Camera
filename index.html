@@ -29,9 +29,11 @@
     
      #header  { font-size:x-large; font-weight:bold; position:absolute; right:20px; z-index:99; text-align:right; padding: 0.25em;}
      #header * { margin:0px; }
+     #header .fa { color: green; }
 
-     #status-schedule { height:300px; margin: 0 auto; }
-     span.controls i { background-color:gainsboro;padding:0.5em; cursor:pointer } 
+     .hover-toolbar{ padding:0; margin:0; text-align:right; position:absolute; top:0; width:100%;}
+     .hover-delete { color:red; cursor:pointer; }
+    
 
   </style>
 
@@ -53,15 +55,8 @@
    </ul>
 
    <div id="panel-status">
-
-<!--
-     <div id="add-schedule-dialog" title="Ad-Hoc Recording">
-         <div><label>Start : </label><select id="adhoc-start-time"></select></div>
-         <div><label>Stop  : </label><select id="adhoc-stop-time"></select></div>
-     </div>
--->
-    <div><div id="status-schedule"></div></div>
-
+    <div><div id="event-dialog"></div></div>
+    <div><div id="event-calendar"></div></div>
   </div>
 
 
@@ -76,6 +71,14 @@
       <tr><th></th><td><button id="config-save">Save</button></td></tr>
      </table>
      <hr>
+     <table width="100%">
+      <tr>
+        <td width="50%">
+        </td>
+        <td width="50%">
+        </td>
+      </tr>
+     </table>        
      <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send Command</button></div>
      <pre id="command-result"></pre>
      

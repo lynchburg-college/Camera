@@ -2,13 +2,24 @@
 # Common
 source "${0%/*}/config/common"
 
+# Allow passing the room on the command line
+if [ "$1" != "" ] && [ "$1" != "update" ]
+then
+ room="$1"
+ shift
+fi
+
+  
 # Get the schedule
-log "Obtaining Schedule from $urlInfo"
-wget -O $pathRoot/config/schedule "$urlInfo?room=$room"
+log "Obtaining Schedule for $room"
+wget --quiet -O $pathRoot/config/schedule "$urlInfo?room=$room" 
 
 # Update VLM if asked
-if [ "$1" == "update" ] 
+if [ "$1" == "update" ]
 then
- log "Updating VLC with local schedule"
- wget -O "$logFile" http://localhost:8888/cmd.xml?command=load%20config/schedule
+ log "Appying schedule to current session"
+ wget --quiet -O "$logFile" http://localhost:8888/cmd.xml?command=load%20config/schedule 
 fi
+
+log "Done."
+

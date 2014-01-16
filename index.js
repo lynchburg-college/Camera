@@ -50,13 +50,22 @@ var loadConfig=function() {
 }
 
 
+var showVideos=function(item) {
+
+   response=send('show media');
+   vlcStatus = eval( "("+response+")" );
+   
+   $.each( ( vlcStatus.result), 
+   function(k,v) {
+     console.log(v);
+   });
+  
+}
+
 var toggleMedia=function( item ) {
 
-console.log(item);
     mediaName=$(item).attr('id').replace('media-','');
-
     status=send('show '+mediaName);
-    console.log(status);
 
     action=( status.indexOf('instance') == -1 ) ? 'play' : 'stop';
     status=send('control '+mediaName+' '+action);
@@ -66,14 +75,11 @@ console.log(item);
 
 }
 
-
 var showMedia=function() {
 
    response=send('show media');
    vlcStatus = eval( "("+response+")" );
-   console.log(vlcStatus);
     
-   items='';
    $.each( ( vlcStatus.result.media || {} ), 
    function(k,v) {
 
@@ -105,8 +111,6 @@ var showMedia=function() {
 };
 
 
-
-
 var getEvents=function( calendarStart, calendarEnd, callback ) {
 
    response=send('show schedule');
@@ -126,7 +130,11 @@ var getEvents=function( calendarStart, calendarEnd, callback ) {
 
              event = ( events[eventID] );
              if(!event) {
-                event={ eventID:eventID,title:eventName,allDay:false};
+                event={ eventID:eventID,
+                        courseID:eventName,
+                        title:eventName,
+                        allDay:false
+                       };
              }
 
              if(eventType=='start') {
@@ -157,6 +165,69 @@ var getEvents=function( calendarStart, calendarEnd, callback ) {
 }
 
 
+var handleDelete=function( event, confirmed ) {
+
+ if(!confirmed) {
+
+      courseID=event.courseID;
+
+      content='<div id="deleteOptions">'+
+                '<input type="checkbox" id="deleteSingle" value="all"><label for="deleteSingle">Remove this recording only</label>' + 
+                '<input type="checkbox" id="deleteAll" value="all"><label for="deleteAll">Remove all scheduled recordings for '+courseID +'</label>' + 
+              '</div>';
+                
+      
+      $('<div>').appendTo("body")
+               .html( content )
+               .data( "event", event )
+               .dialog({ title:'Confirm',
+                          modal: true,
+                          buttons: { 
+                                     'Never Mind':function(){ $(this).dialog("close") } ,
+                                     'Yes, Delete It':function(){ $(this).dialog("close");handleDelete( $(this).data("event"), true) } 
+                                    }
+                        });
+ }
+ else {
+  console.log(event);
+
+ }
+  
+}
+
+
+var handleHover=function( event, jsEvent, view) {
+
+  switch (jsEvent.type) {
+
+   case 'mouseenter' :
+
+                     toolBar=$('<span>', { class:'hover-toolbar' } );
+
+                     buttonDelete=$('<span>', { id:'delete-'+event.eventID, class:'fa fa-times fa-2x hover-delete' } )
+                                  .data("event", event)
+                                  .click( function(){ handleDelete( $(this).data("event")) } )
+                                  .appendTo(toolBar);
+                     
+                     $('.fc-event-inner', this).append( toolBar );
+
+                     break;
+                     
+   case 'mouseleave'  :
+                    $('.hover-toolbar', this).remove();
+                     break;
+ }
+ 
+
+}
+
+var handleSelect=function( startDate, endDate, allDay, jsEvent, view ) {
+
+  $("#event-calendar").fullCalendar( 'unselect' );
+  $("#event-dialog").dialog( "open" );
+}
+
+
 
 var showPreview=function( mediaName ) {
 
@@ -181,7 +252,7 @@ var showPreview=function( mediaName ) {
                    width: parseInt(width)+70,
                   height: parseInt(height)+70,
                 appendTo: "body",
-                  close : function() {  mediaName=$(this).attr('id').split('-')[1]; toggleMedia( $('#media-'+mediaName) ); $(this).dialog("destroy") }
+                   close : function() {  mediaName=$(this).attr('id').split('-')[1]; toggleMedia( $('#media-'+mediaName) ); $(this).dialog("destroy") }
                 });                             
   }
  }
@@ -201,22 +272,38 @@ var showPreview=function( mediaName ) {
 
 
  $(document).ready( function() {  
-   
+
+  
               loadConfig();
 
               showMedia();
               $("#status-media").buttonset();
+
+              $("#event-dialog").dialog( {autoOpen:false, title:"Scheduler"} );
               
-              $("#status-schedule").fullCalendar( {  header : { left:'today', center:'prev,title,next',  right:'month,agendaWeek,agendaDay' },
-                                                     theme : true,
-                                                     weekMode : 'liquid',
+                var date = new Date();
+                var d = date.getDate();
+                var m = date.getMonth();
+                var y = date.getFullYear();
+                  $("#event-calendar").fullCalendar( {  events : getEvents,
+                                                     header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaWeek,agendaDay'},
+                                                     eventColor : '#ABABAB',
                                                      contentHeight: 500,
                                                      handleWindowResize: true ,
-                                                     timeFormat : '',
-                                                     defaultView : 'agendaWeek',
-                                                     defaultEventMinutes : 15,
-                                                     slotMinutes : 30,
-                                                     events : getEvents 
+                                                     selectable: true,
+                                                     selectHelper: true,
+                                                    theme : true,
+                                                    year:  y,
+                                                    month: m,
+                                                    date:  d,                                                     
+                                                    defaultView : 'agendaWeek',
+                                                    defaultEventMinutes : 15,
+                                                    slotMinutes : 15,
+                                                    firstHour : 7,
+                                                    allDaySlot : false,
+                                                    select : handleSelect,
+                                                    eventMouseover : handleHover,
+                                                    eventMouseout : handleHover
                                                     } );
 
               $("#content").tabs();

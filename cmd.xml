@@ -40,21 +40,17 @@ if(command == nil) then
   command="show"
 end
 
-if(command == "reload media") then
- os.execute("/home/capture/Camera/schedule")
-end
+if( command == "show videos") then
+   result = vlc.net.opendir( 'video' )
 
-if(command == "fetch schedule") then
- os.execute("/home/capture/Camera/schedule")
- command="show schedule"
-end
-
-response = vlc.vlm():execute_command( command )
-
-if( type(response.children) == "table" ) then
-    result = getProperties( response.children )
 else
-    result = response.value
+
+   response = vlc.vlm():execute_command( command )
+   if( type(response.children) == "table" ) then
+      result = getProperties( response.children )
+   else
+      result = response.value
+   end
 end
 
 

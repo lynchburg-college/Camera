@@ -8,11 +8,6 @@ source "${0%/*}/config/common"
 #    exit
 #  fi
 
-function addJob {
-  command=$1
-  cat <(fgrep -i -v "$command" <(crontab -l)) <(echo -e "$command") | crontab -
-}
-
 
   echo "----------------------------"
   echo "Current Machine Settings"
@@ -31,27 +26,23 @@ function addJob {
   echo -e "#--- Configuration updated $(date)\n\nroom=$room\nroomName=\"$roomName\"" > $pathRoot/config/machine
   chown capture $pathRoot/config/machine
     
-  mkdir $pathRoot/video
+  mkdir -p $pathRoot/video
   chown capture $pathRoot/video
 
-  mkdir $pathRoot/log
+  mkdir -p $pathRoot/log
   chown capture $pathRoot/log
 
-  mkdir $pathRoot/config
-  chown capture $pathRoot/log
+  mkdir -p $pathRoot/config
+  chown capture $pathRoot/config
 
   echo "----------------------------"
-  echo "New Machine Settings (written to $pathRoot/config/machine)"
+  echo "Machine Settings ($pathRoot/config/machine)"
   echo "----------------------------"
   echo "      ROOM : $room"
   echo "  ROOMNAME : $roomName"
   echo ""
 
-  addJob "@reboot /home/capture/Camera/start"
-  addJob "05,35 * * * * /home/capture/Camera/upload"
-  addJob "0     1 * * 0 /home/capture/Camera/schedule"
-  addJob "5     1 * * 0 /home/capture/Camera/stop"
-  addJob "10     1 * * 0 /home/capture/Camera/start"
+  crontab $pathRoot/config/crontab
 
   echo ""
   echo "... setup complete."
