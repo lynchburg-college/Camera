@@ -6,8 +6,8 @@
 # Start the system at reboot
 @reboot /home/capture/Camera/start
 
-# Upload any completed videos nightly
-00 22 *  *  * /home/capture/Camera/upload
+# Upload any completed videos
+*/10 *  *  *  * /home/capture/Camera/upload
 
 # Get a new schedule weekly
 00 03 *  * 00 /home/capture/Camera/schedule

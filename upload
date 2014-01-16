@@ -3,24 +3,25 @@
 # Common
 source "${0%/*}/config/common"
 
-# Get all files that haven't yet been uploaded
-{
-for file in  $pathVideo/*.mp4 
-do
+touch $logFile
 
-if [ -s $file ] 
+{
+
+# Only check if we aren't busy recording (or uploading)
+isBusy=$(lsof $pathVideo/*)
+if [ -z "$isBusy" ]
 then
 
-  isOpen=$(lsof "$file")
-  if [ ! -z "$isOpen" ]
+  #  Find the first file that needs to be uploaded
+  file=$(ls -t $pathVideo/*.mp4 2>/dev/null | head -1)
+  if [ ! -z "$file" ] && [ -s $file ]  
   then
-   log "Skipping $file"
-  else
 
    log "Found $file"
 
    # If the filename is a date, use it as the start time
    asOf=$(basename "$file")
+
    asOf="${asOf%.*}"
    date -d "$asOf" > /dev/null 2>&1
    if [ $? -eq 1 ]
@@ -60,6 +61,5 @@ then
   fi
 
 fi
-
-done } | tee -a $logFile
+} | tee -a $logFile
 
