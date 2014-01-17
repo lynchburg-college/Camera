@@ -16,17 +16,17 @@ fi
 # Make sure everything is stopped..
 $pathRoot/stop
 
-logVLC=$pathRoot/log/vlc.log
-#logVLC=/dev/null
+#logVLC=$pathRoot/log/vlc.log
+logVLC=/dev/null
 
 # Start the HTTP interface
-cvlc -vvvvvvvvvv --aspect-ratio=16x9 --intf=http  --http-port=8888  --http-src="$pathRoot"  --vlm-conf="$pathRoot/config/media"  >> "$logVLC" 2>&1  &
+cvlc --intf=http  --http-port=8888  --http-src="$pathRoot"  --vlm-conf="$pathRoot/config/media"  >> "$logVLC" 2>&1  &
 log "Started (logging to $logVLC)"
 
 # Sleep for a bit, then set the camera options
 log "Making camera quality settings.. stand by."
 sleep 2
-$pathRoot/config/quality
+$pathRoot/quality
 
 # Notify that we're running
 $pathRoot/notify "Capture Started."
