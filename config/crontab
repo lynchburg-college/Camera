@@ -7,10 +7,7 @@
 @reboot /home/capture/Camera/start
 
 # Upload any completed videos
-*/10 *  *  *  * /home/capture/Camera/upload
-
-# Get a new schedule weekly
-00 03 *  * 00 /home/capture/Camera/schedule
+#*/10 *  *  *  * /home/capture/Camera/upload
 
 # Restart weekly
 15 03 *  * 00 /home/capture/Camera/stop

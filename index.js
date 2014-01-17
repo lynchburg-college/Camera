@@ -284,7 +284,7 @@ var showPreview=function( mediaName ) {
    if( !preview.exists() ) {
 
        var url='http://'+window.location.hostname+':8990/preview';
-       var width='640';
+       var width='864';
        var height='480';
 
        template =  '<object type="application/x-vlc-plugin" data="'+url+'" width="'+width+'" height="'+height+'" id="'+previewID+'-content" controls="yes">' +
