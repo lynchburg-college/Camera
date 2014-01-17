@@ -1,14 +1,16 @@
 del all
 
 new preview broadcast
-setup preview input v4l2:///dev/video0:width=720:height=480:fps=5:chroma=mjpg
+setup preview input v4l2:///dev/video0:width=864:height=480:fps=5:chroma=mjpg
+setup preview option input-slave=alsa://hw:2,0
 setup preview output #transcode{vcodec=mp4v,vb=6000,acodec=mpga}:standard{access=http,mux=ts,dst=:8990/preview}
 setup preview enabled
 
 new recorder broadcast
-setup recorder input v4l2:///dev/video0:width=720:height=480:fps=30:chroma=mjpg
-setup recorder option input-slave=alsa://hw:1,0
-setup recorder output #transcode{venc=x264{},vb=5000,fps="30",acodec=mpga,ab=128,channels=2,samplerate=48000,audio-sync}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4}
+setup recorder input v4l2:///dev/video0:width=864:height=480:fps=30:chroma=mjpg
+setup recorder option input-slave=alsa://hw:2,0
+#setup recorder output #transcode{venc=x264{},vb=5000,fps="30",acodec=mpga,ab=128,channels=2,samplerate=48000,audio-sync}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4}
+setup recorder output #transcode{vcodec=mp4v,width=864,height=480,vb=5000,fps="30",acodec=mpga,ab=128,channels=2,samplerate=48000,audio-sync}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4}
 setup recorder enabled
 
 
