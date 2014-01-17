@@ -13,7 +13,7 @@ var roomName='UNDEFINED';
 
 var send = function(cmd) {
 
-  //console.log("Sending "+cmd);
+  console.log("Sending "+cmd);
    
   url="cmd.xml?command="+encodeURIComponent(cmd);
   response = $.ajax({
@@ -22,7 +22,7 @@ var send = function(cmd) {
         async: false,
     }).responseText;
 
-  //console.log(response);
+  console.log(response);
 
   return(response);
 }
@@ -195,6 +195,34 @@ var handleDelete=function( event, confirmed ) {
   
 }
 
+var formatDateForSchedule=function( sourceDate ) {
+  // Format = 2014/01/16-17:00:00
+
+  d = new Date(sourceDate);
+   f=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate() + ' ' + d.getHours+':'+d.getMinutes()+':'+d.getSeconds();
+  return f;
+
+}
+
+
+var handleAdd=function(event) {
+
+   event='adhoc-'+Math.round(new Date().getTime() / 1000) ;
+
+   send('new '+event+'-start schedule');
+   send('setup '+event+'-start date '+formatDateForSchedule(event.start) );
+   send('setup '+event+'-start append control recorder start');
+   send('setup '+event+'-start enabled');
+   
+   send('new '+event+'-stop schedule');
+   send('setup '+event+'-stop date '+formatDateForSchedule(event.end) );
+   send('setup '+event+'-stop append control recorder start');
+   send('setup '+event+'-stop enabled');
+
+   $('#event-calendar').fullCalendar('refreshEvents');
+      
+}
+
 
 var handleHover=function( event, jsEvent, view) {
 
@@ -221,10 +249,29 @@ var handleHover=function( event, jsEvent, view) {
 
 }
 
+
 var handleSelect=function( startDate, endDate, allDay, jsEvent, view ) {
 
-  $("#event-calendar").fullCalendar( 'unselect' );
-  $("#event-dialog").dialog( "open" );
+       $("#event-calendar").fullCalendar( 'unselect' );
+
+       template = '<div>Starts : ' + startDate.toLocaleTimeString() + '</div><div>Ends : ' + endDate.toLocaleTimeString() + '</div>';
+       $("<div></div>")
+        .html( template )
+        .data( "event", { start:startDate, end:endDate } )
+        .dialog ({  title : "Add A Recording",
+                    width : 300,
+                   height : 150,
+                    modal : true,
+                 appendTo : "body",
+                   buttons: { 
+                              'Never Mind':function(){ $(this).dialog("close") } ,
+                              'Create':function(){ $(this).dialog("close"); handleAdd(  $(this).data("event"), true) } 
+                             }
+
+
+                 });                             
+                 
+
 }
 
 
@@ -249,6 +296,7 @@ var showPreview=function( mediaName ) {
        $("<div></div>", {id:previewID} )
        .html( template )
        .dialog ({  title : url,
+                  modal : true,
                    width: parseInt(width)+70,
                   height: parseInt(height)+70,
                 appendTo: "body",

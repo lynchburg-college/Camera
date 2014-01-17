@@ -30,10 +30,10 @@ v4l2-ctl -d $device -c focus_auto=1
 
 
 # Custom Settings
-#v4l2-ctl -d $device -c focus_auto=0
-#v4l2-ctl -d $device -c focus_absolute=1
-#v4l2-ctl -d $device -c zoom_absolute=128
-#v4l2-ctl -d $device -c sharpness=188
+v4l2-ctl -d $device -c focus_auto=0
+v4l2-ctl -d $device -c focus_absolute=1
+v4l2-ctl -d $device -c zoom_absolute=128
+v4l2-ctl -d $device -c sharpness=188
 
 #v4l2-ctl -d $device -c pan_absolute=-14400
 #v4l2-ctl -d $device -c tilt_absolute=10400

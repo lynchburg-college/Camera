@@ -26,7 +26,7 @@ log "Started (logging to $logVLC)"
 # Sleep for a bit, then set the camera options
 log "Making camera quality settings.. stand by."
 sleep 2
-$pathRoot/quality
+$pathRoot/config/quality
 
 # Notify that we're running
 $pathRoot/notify "Capture Started."
