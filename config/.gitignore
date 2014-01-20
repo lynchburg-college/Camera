@@ -1,6 +1,4 @@
 # 
 
-machine
-schedule
-media
+*
 !.gitignore
