@@ -9,19 +9,18 @@ if [[ -z "$room" ]]; then
 fi
 
 
-# Make sure all the necessary paths exists
-[ -d "$pathLog" ] || mkdir -p "$pathLog"
-[ -d "$pathVideo" ] || mkdir -p "$pathVideo"
-
-
 # Make sure everything is stopped..
 $pathRoot/stop
 
-logVLC=$pathRoot/log/vlc.log
-#logVLC=/dev/null
+if [ "$1" == "debug" ]; then
+ logVLC=$pathRoot/log/vlc.log
+ optionsVLC=-vvvvv
+else
+ logVLC=/dev/null
+fi
 
 # Start the HTTP interface
-cvlc -vvvvvv  --intf=http  --http-port=8888  --http-src="$pathRoot"  --vlm-conf="$pathRoot/config/media"  >> "$logVLC" 2>&1  &
+cvlc $optionsVLC --intf=http  --http-port=8888  --http-src="$pathRoot"  --vlm-conf="$pathRoot/config/media"  >> "$logVLC" 2>&1  &
 log "Started VLC (logging to $logVLC)"
 
 # Sleep for a bit, then set the camera options
