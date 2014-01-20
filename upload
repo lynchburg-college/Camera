@@ -5,73 +5,72 @@ source "${0%/*}/config/common"
 
 touch $logFile
 {
-# Only check if we aren't busy recording (or uploading)
-isBusy=$(lsof $pathVideo/*)
-if [ -z "$isBusy" ]
-then
 
-  #  Since nothing has the video directory open, clean out any "leftover" files
-  rm -f $pathVideo/*converting*
-  rm -f $pathVideo/*uploading*
-  
+  # Only check if we aren't busy recording (or uploading)
+  #isBusy=$(lsof $pathVideo/*)
+  #if [ -z "$isBusy" ]
+  #then
+  #fi
+
   #  Find the first file that needs to be uploaded
-  file=$(ls $pathVideo/*.mp4 2>/dev/null | head -1)
-  if [ ! -z "$file" ] && [ -s $file ]  
-  then
-  
-   log "Found $file"
+  for file in $(ls $pathVideo/*.mp4)
+  do
+      if [ ! -z "$file" ] && [ -s $file ]  
+      then
+      
+       log "Found $file"
 
-   # Convert to our upload format
-   log "Converting $file"
-   /usr/bin/avconv -i $file -vcodec libx264 -b:v 600k -maxrate 1000k -bufsize 1000k -deinterlace -threads 0 -acodec libvo_aacenc -b:a 96k $file.converting.mp4
+       # Convert to our upload format
+       log "Converting $file"
+       /usr/bin/avconv -i $file -vcodec libx264 -b:v 600k -maxrate 1000k -bufsize 1000k -deinterlace -threads 0 -acodec libvo_aacenc -b:a 96k $file.converting.mp4
 
-   # If the conversion was sucessful...
-   if [ ! -s $file.converting.mp4 ]
-   then
-
-       # If the filename is a date, use it as the start time
-       asOf=$(basename "$file")
-
-       asOf="${asOf%.*}"
-       date -d "$asOf" > /dev/null 2>&1
-       if [ $? -eq 1 ]
+       # If the conversion was sucessful...
+       if [ ! -s $file.converting.mp4 ]
        then
-         #.. otherwise, use the last modified time of the file
-         asOf=$(date "+$formatISO" -d "$(stat -c "%y" $file)")
-       fi
 
-       # Ask the server for info about the class meeting at that time
-       url="$urlInfo?room=$room&asOf=$asOf&mode=meeting"
-       log "Calling $url"
-       info=$(curl -sL "$url")
-       log "Got $info"
+           # If the filename is a date, use it as the start time
+           asOf=$(basename "$file")
 
-       # Rename to show that we are uploading..
-       mv $file.converting.mp4 $file.uploading
+           asOf="${asOf%.*}"
+           date -d "$asOf" > /dev/null 2>&1
+           if [ $? -eq 1 ]
+           then
+             #.. otherwise, use the last modified time of the file
+             asOf=$(date "+$formatISO" -d "$(stat -c "%y" $file)")
+           fi
 
-       # Post to the media server
-       cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file.uploading\" $urlUpload"
-       log "$cmd"
-       info=$(eval "$cmd")
+           # Ask the server for info about the class meeting at that time
+           url="$urlInfo?room=$room&asOf=$asOf&mode=meeting"
+           log "Calling $url"
+           info=$(curl -sL "$url")
+           log "Got $info"
 
-       # Remove the converted file no matter what
-       rm "$file.uploading"
-       
-       # Archive the original file
-       if [[ "$info" == *Success* ]]
-       then
-            log "$file was sucessfully converted and uploaded"
-            mv "$file" "$file.uploaded"
-       else
-            log "$info"
-            $pathRoot/notify "Upload Error" "$file\n$info"
-            mv "$file" "$file.error"
-       fi
+           # Rename to show that we are uploading..
+           mv $file.converting.mp4 $file.uploading
 
-    fi
-    
-  fi
+           # Post to the media server
+           cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file.uploading\" $urlUpload"
+           log "$cmd"
+           info=$(eval "$cmd")
 
-fi
+           # Remove the converted file no matter what
+           rm "$file.uploading"
+           
+           # Archive the original file
+           if [[ "$info" == *Success* ]]
+           then
+                log "$file was sucessfully converted and uploaded"
+                mv "$file" "$file.uploaded"
+           else
+                log "$info"
+                $pathRoot/notify "Upload Error" "$file\n$info"
+                mv "$file" "$file.error"
+           fi
+
+        fi
+        
+      fi
+
+done
 } | tee -a $logFile
 
