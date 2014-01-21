@@ -6,14 +6,6 @@ source "${0%/*}/config/common"
 touch $logFile
 {
 
-  # Kill any pending conversions
-  killall avconv
-
-  # Cleanup
-  rm -f $pathVideo/*.converting.mp4
-  rm -f $pathVideo/*.uploading.mp4
- 
-  
   # Only check if we aren't busy recording (or uploading)
   #isBusy=$(lsof $pathVideo/*)
   #if [ -z "$isBusy" ]
@@ -23,18 +15,12 @@ touch $logFile
   #  Find the first file that needs to be uploaded
   for file in $(ls $pathVideo/*.mp4)
   do
+
       if [ ! -z "$file" ] && [ -s $file ]  
       then
-      
+
        log "Found $file"
 
-       # Convert to our upload format
-       log "Converting $file"
-       /usr/bin/avconv -i $file -vcodec libx264 -b:v 600k -maxrate 1000k -bufsize 1000k -deinterlace -threads 0 -acodec libvo_aacenc -b:a 96k $file.converting.mp4
-
-       # If the conversion was sucessful...
-       if [ -s $file.converting.mp4 ]
-       then
 
            # If the filename is a date, use it as the start time
            asOf=$(basename "$file")
@@ -53,17 +39,11 @@ touch $logFile
            info=$(curl -sL "$url")
            log "Got $info"
 
-           # Rename to show that we are uploading..
-           mv $file.converting.mp4 $file.uploading
-
            # Post to the media server
-           cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file.uploading\" $urlUpload"
+           cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file\" $urlUpload"
            log "$cmd"
            info=$(eval "$cmd")
 
-           # Remove the converted file no matter what
-           rm "$file.uploading"
-           
            # Archive the original file
            if [[ "$info" == *Success* ]]
            then
@@ -75,8 +55,6 @@ touch $logFile
                 mv "$file" "$file.error"
            fi
 
-        fi
-        
       fi
 
 done
