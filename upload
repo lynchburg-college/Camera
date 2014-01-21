@@ -6,20 +6,19 @@ source "${0%/*}/config/common"
 touch $logFile
 {
 
-
-
-   #  Find all the files that need to be uploaded
+   #  Find all the files
    for file in $(ls $pathVideo/*.mp4)
    do
 
       if [ ! -z "$file" ] && [ -s $file ]  
       then
 
-          isBusy=$(lsof $pathVideo/* | grep $file)
-          if [ -z "$isBusy" ]
-          then
+        isBusy=$(lsof $file)
+        if [ ! -z "$isBusy" ]
+        then
+          log "Ignoring $file"
 
-
+        else
            log "Found $file"
 
            # If the filename is a date, use it as the start time
@@ -47,7 +46,7 @@ touch $logFile
            # Archive the original file
            if [[ "$info" == *Success* ]]
            then
-                log "$file was sucessfully converted and uploaded"
+                log "$file was sucessfully uploaded"
                 mv "$file" "$file.uploaded"
            else
                 log "$info"
