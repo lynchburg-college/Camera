@@ -6,21 +6,21 @@ source "${0%/*}/config/common"
 touch $logFile
 {
 
-  # Only check if we aren't busy recording (or uploading)
-  #isBusy=$(lsof $pathVideo/*)
-  #if [ -z "$isBusy" ]
-  #then
-  #fi
 
-  #  Find the first file that needs to be uploaded
-  for file in $(ls $pathVideo/*.mp4)
-  do
+
+   #  Find all the files that need to be uploaded
+   for file in $(ls $pathVideo/*.mp4)
+   do
 
       if [ ! -z "$file" ] && [ -s $file ]  
       then
 
-       log "Found $file"
+          isBusy=$(lsof $pathVideo/* | grep $file)
+          if [ -z "$isBusy" ]
+          then
 
+
+           log "Found $file"
 
            # If the filename is a date, use it as the start time
            asOf=$(basename "$file")
@@ -54,6 +54,8 @@ touch $logFile
                 $pathRoot/notify "Upload Error" "$file\n$info"
                 mv "$file" "$file.error"
            fi
+
+        fi
 
       fi
 
