@@ -12,7 +12,7 @@ fi
   
 # Get the schedule
 log "Obtaining Schedule for $room"
-wget --quiet -O $pathRoot/config/schedule "$urlInfo?room=$room" 
+wget --quiet -O $pathRoot/config/schedule "$urlInfo?room=$room&days=30" 
 
 # Update VLM if asked
 if [ "$1" == "update" ]

@@ -8,6 +8,8 @@ if [[ -z "$room" ]]; then
  exit 1
 fi
 
+# Move to the home directory
+cd $pathRoot
 
 # Make sure everything is stopped..
 $pathRoot/stop
