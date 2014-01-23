@@ -129,19 +129,23 @@ var getEvents=function( calendarStart, calendarEnd, callback ) {
              eventLaunch=v['next launch'].substring(0,19);
 
              event = ( events[eventID] );
+
              if(!event) {
                 event={ eventID:eventID,
                         courseID:eventName,
                         title:eventName,
-                        allDay:false
+                        allDay:false,
+                        start:eventLaunch // If creating, use the current time as the start 
                        };
              }
 
              if(eventType=='start') {
                event['start']=eventLaunch;
+               event['hasStart']=true;
              }
              else {
                event['end']=eventLaunch; 
+               event['hasEnd']=true;
              }             
 
              events[eventID] = event;
@@ -152,12 +156,13 @@ var getEvents=function( calendarStart, calendarEnd, callback ) {
                                                          
   eventsArray=[];
   $.each( events, function(k,v) {
+
       eventStart=new Date(v.start);
       eventEnd=new Date(v.end);
-      
+      if( !v.hasStart ) { v.title = v.title + ' / STOP' }
       if( (calendarStart <= eventStart) && ( eventEnd <= calendarEnd ) ) {
        eventsArray.push(v) 
-     }
+      }
 
    });
 
