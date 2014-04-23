@@ -11,9 +11,10 @@ jQuery.fn.redraw = function() {
 var roomID='UNDEFINED';
 var roomName='UNDEFINED';
 
+
 var send = function(cmd) {
 
-  console.log("Sending "+cmd);
+//  console.log("Sending "+cmd);
    
   url="cmd.xml?command="+encodeURIComponent(cmd);
   response = $.ajax({
@@ -28,7 +29,7 @@ var send = function(cmd) {
 }
 
 
-var loadConfig=function() {
+var loadMachine=function() {
              
               config = $.ajax({
                     type: "GET",
@@ -46,6 +47,61 @@ var loadConfig=function() {
               $("#config-roomName").val( roomName );
               $("#roomInfo").text( roomID + ' / ' + roomName )
               document.title=roomID;
+
+}
+
+var loadControls=function() {
+
+   response=send('show camera');
+   controls=[];
+   
+   vlcStatus = eval( "("+response+")" );
+   $.each( vlcStatus.result.split("\n") ,
+           function(k,line) {
+
+                  item=$.trim(line.split(":")[0]);
+                  value=$.trim(line.split(":")[1]);
+
+
+                  pluck=item.match(/\((.*)\)/);
+                  if (pluck) {
+
+                    item=$.trim(item.split('(')[0]);
+                    itemType = (pluck) ? pluck[1]: '' ;
+                    value='control='+item+' type='+itemType+' '+value;
+
+                    value=value.replace(/=/g, ":\"")
+                               .split(" ").join(",")
+                               .replace(/,/g, "\",") + '"';
+
+                    console.log (value) ;
+                    controls.push( eval('({'+value+'})') );
+                  }
+
+           } );
+           
+   return controls;
+}
+
+var showControls=function( controls ) {
+
+   $.each( controls,
+           function(k,v) {
+
+           name=v['control'];
+           value=v['value'];
+           control=$('#control-'+name);
+
+           if( !control.exists() ) {
+
+                  $('<button>', {id:'control-'+name} )
+                   .html(name)
+                   .button()
+                   .appendTo('#list-controls');
+           };
+
+   });
+
 
 }
 
@@ -97,14 +153,23 @@ var showMedia=function() {
                  .click( function() { toggleMedia( $(this) ) } )
                  .button();
          }
+         item.removeClass('active');
+         item.removeClass('idle');
          
          if( v['instances'] ) { 
             if( output.indexOf('http') != -1 ) { showPreview(name) };
-            name=name+' (playing)' 
-            
+            name=name+' (active)';
+            currentClass='active';
+         }
+         else
+         {
+            name=name+' (idle)' ;
+            currentClass='idle';
          };
           
-         item.button("option","label", name).button("refresh");
+         item.addClass( currentClass )
+             .button("option","label", name)
+             .button("refresh");
        
     });
 
@@ -312,7 +377,6 @@ var showPreview=function( mediaName ) {
 
 
 
-
  var showIcon=function(icon) {
  
    var link = document.createElement('link');
@@ -323,45 +387,6 @@ var showPreview=function( mediaName ) {
 }
 
 
-
- $(document).ready( function() {  
-
-  
-              loadConfig();
-
-              showMedia();
-              $("#status-media").buttonset();
-
-              $("#event-dialog").dialog( {autoOpen:false, title:"Scheduler"} );
-              
-                var date = new Date();
-                var d = date.getDate();
-                var m = date.getMonth();
-                var y = date.getFullYear();
-                  $("#event-calendar").fullCalendar( {  events : getEvents,
-                                                     header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaWeek,agendaDay'},
-                                                     eventColor : '#ABABAB',
-                                                     contentHeight: 500,
-                                                     handleWindowResize: true ,
-                                                     selectable: true,
-                                                     selectHelper: true,
-                                                    theme : true,
-                                                    year:  y,
-                                                    month: m,
-                                                    date:  d,                                                     
-                                                    defaultView : 'agendaWeek',
-                                                    defaultEventMinutes : 15,
-                                                    slotMinutes : 15,
-                                                    firstHour : 7,
-                                                    allDaySlot : false,
-                                                    select : handleSelect,
-                                                    eventMouseover : handleHover,
-                                                    eventMouseout : handleHover
-                                                    } );
-
-              $("#content").tabs();
-
- });
 
 
 

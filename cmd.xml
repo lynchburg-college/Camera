@@ -1,6 +1,14 @@
 <?vlc
 require "httprequests"
 
+function os.capture(cmd, raw)
+  local f = assert(io.popen(cmd, 'r'))
+  local s = assert(f:read('*a'))
+  f:close()
+  if raw then return s end
+  return s
+end
+
 function pairsByKeys (t, f)
       local a = {}
       for n in pairs(t) do table.insert(a, n) end
@@ -42,6 +50,9 @@ end
 
 if( command == "show videos") then
    result = vlc.net.opendir( 'video' )
+
+elseif( command == "show camera") then
+   result = os.capture( 'v4l2-ctl -L' )
 
 else
 

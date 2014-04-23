@@ -34,9 +34,56 @@
      .hover-toolbar{ padding:0; margin:0; text-align:right; position:absolute; top:0; width:100%;}
      .hover-delete { color:red; cursor:pointer; }
     
+     .control-wrapper { display:block; }
+     .control-label { display:inline; float:left; width:200px;}
+     .control-content { display:inline; float:left; width:300px;}
 
   </style>
 
+  <script>
+
+ $(document).ready( function() {  
+  
+              loadMachine();
+
+              showControls( loadControls() );
+
+              showMedia();
+              $("#status-media").buttonset();
+
+              $("#event-dialog").dialog( {autoOpen:false, title:"Scheduler"} );
+              
+                var date = new Date();
+                var d = date.getDate();
+                var m = date.getMonth();
+                var y = date.getFullYear();
+                  $("#event-calendar").fullCalendar( {  events : getEvents,
+                                                     header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaWeek,agendaDay'},
+                                                     eventColor : '#ABABAB',
+                                                     contentHeight: 500,
+                                                     handleWindowResize: true ,
+                                                     selectable: true,
+                                                     selectHelper: true,
+                                                    theme : true,
+                                                    year:  y,
+                                                    month: m,
+                                                    date:  d,                                                     
+                                                    defaultView : 'agendaWeek',
+                                                    defaultEventMinutes : 15,
+                                                    slotMinutes : 15,
+                                                    firstHour : 7,
+                                                    allDaySlot : false,
+                                                    select : handleSelect,
+                                                    eventMouseover : handleHover,
+                                                    eventMouseout : handleHover
+                                                    } );
+
+              $("#content").tabs();
+
+ });
+
+  </script>
+  
 </head>
 
 <body> 
@@ -52,6 +99,7 @@
    <ul>
      <li><a href="#panel-status">Schedule</a></li>
      <li><a href="#panel-config">Configuration</a></li>
+     <li><a href="#panel-controls">Controls</a></li>
    </ul>
 
    <div id="panel-status">
@@ -82,6 +130,12 @@
      <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send Command</button></div>
      <pre id="command-result"></pre>
      
+  </p>
+  </div>
+  
+  <div id="panel-controls">
+  <p>
+      <div id="list-controls"></div>
   </p>
   </div>
   
