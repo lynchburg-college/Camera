@@ -80,7 +80,11 @@
                                                     eventMouseout : handleHover
                                                     } );
 
-              $("#content").tabs();
+              $("#content").tabs({
+                                   activate : function(e,ui) {
+                                      $("#event-calendar").fullCalendar( 'refetchEvents' );
+                                   }
+              });
 
  });
 

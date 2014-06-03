@@ -81,9 +81,11 @@ var updateMachine=function() {
        p=p+v['name']+'='+v['value']+'&';
    });
    $('#command-result').html( send('update machine', p) );
-   window.alert("Configuration Saved.")
    $('#command-result').html( send('update schedule', p) );
-   window.alert("Schedule Updated.")
+   $("#event-calendar").fullCalendar( 'refetchEvents' );
+   $("#event-calendar").fullCalendar( 'rerenderEvents' );
+
+   window.alert("Configuration and Schedule Updated.")
 }
 
 
@@ -214,10 +216,12 @@ var showMedia=function() {
 };
 
 
-var getEvents=function( calendarStart, calendarEnd, callback ) {
+var getEvents=function( calendarStart, calendarEnd,  callback ) {
 
    response=send('show schedule');
    vlcStatus = eval( "("+response+")" );
+
+console.log("events");
 
    var events={};
    $.each( (vlcStatus.result.schedule || {}), function(k,v) {
@@ -381,7 +385,6 @@ var handleSelect=function( startDate, endDate, allDay, jsEvent, view ) {
                  
 
 }
-
 
 
 var showPreview=function( mediaName ) {
