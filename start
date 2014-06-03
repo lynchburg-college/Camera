@@ -3,7 +3,7 @@
 # Common
 source "${0%/*}/config/common"
 
-if [[ -z "$room" ]]; then
+if [[ -z "$roomID" ]]; then
  log "Cannot start!  Run ./setup to configure"
  exit 1
 fi

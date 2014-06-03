@@ -12,18 +12,18 @@ source "${0%/*}/config/common"
   echo "----------------------------"
   echo "Current Machine Settings"
   echo "----------------------------"
-  echo "      ROOM : $room"
+  echo "      ROOM : $roomID"
   echo "  ROOMNAME : $roomName"
   echo "----------------------------"
   echo ""
  
-  read -p "New Room Code ($room) : " value
-  [ "$value" == "" ] || room=${value//[[:space:]]/}
+  read -p "New Room Code ($roomID) : " value
+  [ "$value" == "" ] || roomID=${value//[[:space:]]/}
 
   read -p "New Room Description ($roomName) : " value
   [ "$value" == "" ] || roomName=$value
 
-  echo -e "#--- Configuration updated $(date)\n\nroom=$room\nroomName=\"$roomName\"" > $pathRoot/config/machine
+  echo -e "#--- Configuration updated $(date)\n\nroomID=$roomID\nroomName=\"$roomName\"" > $pathRoot/config/machine
   chown capture $pathRoot/config/machine
     
   mkdir -p $pathRoot/video

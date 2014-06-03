@@ -26,7 +26,10 @@ String.prototype.toObjectArray=function() {
    if( v.length > 1 && v.charAt(0) != "#") {
      vv=v.split("=");
      name=vv[0];
-     value=vv[1].replace("+"," ");
+     value=vv[1]
+           .replace(/\+/g," ")
+           .replace(/"/g,'');
+
      x.push( { "name" : name, "value" : value } );
    }
 
@@ -55,7 +58,6 @@ var send = function(cmd,parms) {
 }
 
 
-
 var loadMachine=function() {
              
               raw = $.ajax({
@@ -74,6 +76,7 @@ var loadMachine=function() {
               document.title=$("#config-roomID").val();
 
 }
+
 var updateMachine=function() {
    config=$("#config-form").serializeArray();
    p='';
@@ -220,8 +223,6 @@ var getEvents=function( calendarStart, calendarEnd,  callback ) {
 
    response=send('show schedule');
    vlcStatus = eval( "("+response+")" );
-
-console.log("events");
 
    var events={};
    $.each( (vlcStatus.result.schedule || {}), function(k,v) {

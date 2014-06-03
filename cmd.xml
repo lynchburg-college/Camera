@@ -20,10 +20,10 @@ function updateMachine()
    file:write('\n')
 
    file:write('roomID='.._GET["roomID"]..'\n')
-   file:write('roomName='.._GET["roomName"]..'\n')
+   file:write('roomName="'.._GET["roomName"]..'"\n')
    file:write('splitMinutes='.._GET["splitMinutes"]..'\n')
-   file:write('include='.._GET["include"]..'\n')
-   file:write('exclude='.._GET["exclude"]..'\n')
+   file:write('include="'.._GET["include"]..'"\n')
+   file:write('exclude="'.._GET["exclude"]..'"\n')
    
    file:flush()
    file:close()
@@ -99,11 +99,13 @@ if( string.starts ( command, "show" ) ) then
  elseif ( string.ends ( command, "space") ) then
    result = os.capture( 'df -h' )
 
+ elseif ( string.ends( command, "ip") ) then
+   result = os.capture( "ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{print $1}'" )
 
  end
 
 end
-
+   
 
 if( string.starts ( command, "update" ) ) then
 
