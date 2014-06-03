@@ -54,6 +54,9 @@ if( command == "show videos") then
 elseif( command == "show camera") then
    result = os.capture( 'v4l2-ctl -L' )
 
+elseif( command == "update") then
+   result = os.capture( 'git pull' )
+
 else
 
    response = vlc.vlm():execute_command( command )

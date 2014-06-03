@@ -119,14 +119,10 @@
       <tr><th></th><td><button id="config-save">Save</button></td></tr>
      </table>
      <hr>
-     <table width="100%">
-      <tr>
-        <td width="50%">
-        </td>
-        <td width="50%">
-        </td>
-      </tr>
-     </table>        
+     <div>
+       <button onClick="$('#command-result').html( send( 'update' ) )">Update From GIT</button>
+     </div>
+     <hr>
      <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send Command</button></div>
      <pre id="command-result"></pre>
      
