@@ -12,21 +12,20 @@ var roomID='UNDEFINED';
 var roomName='UNDEFINED';
 
 
-var send = function(cmd) {
+var send = function(cmd,parms) {
 
 //  console.log("Sending "+cmd);
    
-  url="cmd.xml?command="+encodeURIComponent(cmd);
+  url="cmd.xml?command="+encodeURIComponent(cmd)+'&'+(parms||'')
+//  console.log(url);
+
   response = $.ajax({
         type: "GET",
         url: url,
         async: false,
     }).responseText;
 
-  console.log("RESPONSE");
-  console.log(response);
-
-  return(response);
+  return (response);
 }
 
 
@@ -47,8 +46,16 @@ var loadMachine=function() {
               $("#config-roomID").val( roomID );
               $("#config-roomName").val( roomName );
               $("#roomInfo").text( roomID + ' / ' + roomName )
+
               document.title=roomID;
 
+}
+
+var updateMachine=function() {
+   roomID=$("#config-roomID").val();
+   roomName=$("#config-roomName").val();
+   $('#command-result').html( send('update machine', 'roomID='+roomID+'&roomName='+roomName ) );
+   window.alert("Configuration Saved.")
 }
 
 var loadControls=function() {

@@ -37,6 +37,7 @@
      .control-wrapper { display:block; }
      .control-label { display:inline; float:left; width:200px;}
      .control-content { display:inline; float:left; width:300px;}
+ 
 
   </style>
 
@@ -124,10 +125,11 @@
       <h3>Machine Configuration</h3>
       <div>
         <p>
-         <table>
-          <tr><th>Room ID</th><td><input id="config-roomID" /></td></tr>
-          <tr><th>Room Name</th><td><input id="config-roomName" /></td></tr>
-          <tr><th></th><td><button id="config-save">Save</button></td></tr>
+         <div><label class="control-label">Room ID</label><input id="config-roomID" /></div>
+         <div><label class="control-label">Room Name</label><input id="config-roomName" /></div>
+         <hr>
+         <button onClick="updateMachine()">Update Configuration</button>
+
          </table>
         </p>
      </div>
@@ -136,8 +138,9 @@
       <div>
         <p>
              <button onClick="$('#command-result').html( send( 'update schedule' ) )">Update Schedule</button>
-             <button onClick="$('#command-result').html( send( 'update software' ) )">Update Software</button>
              <button onClick="$('#command-result').html( send( 'show videos' ) )">Show Videos</button>
+             &nbsp;&nbsp;
+             <button onClick="$('#command-result').html( send( 'update software' ) )">Update Software</button>
         </p>
       </div>
 

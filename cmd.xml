@@ -9,6 +9,21 @@ function string.ends(String,End)
    return End=='' or string.sub(String,-string.len(End))==End
 end
 
+function updateMachine(roomID,roomName)
+
+   now = os.date("%a %b %d, %Y @ %I:%M:%S%p  ")
+
+   local file = io.open("config/machine", "w")
+
+   file:write('# Configuration written from web : '..now..'\n')
+   file:write('\n')
+   file:write('room='..roomID..'\n')
+   file:write('roomName="'..roomName..'"\n')
+ 
+   file:flush()
+   file:close()
+
+end
 
 function os.capture(cmd, raw)
   local f = assert(io.popen(cmd, 'r'))
@@ -60,6 +75,14 @@ end
 
 result = ""
 
+
+
+
+if( string.starts ( command, "control" ) ) then
+end
+
+
+
 if( string.starts ( command, "show" ) ) then
 
  if     ( string.ends ( command, "videos") ) then
@@ -76,9 +99,22 @@ if( string.starts ( command, "show" ) ) then
 
 end
 
+
 if( string.starts ( command, "update" ) ) then
 
- if     ( string.ends ( command, "software") ) then
+ if ( string.starts(  command, "update machine") ) then
+
+   roomID=_GET["roomID"]
+   roomName=_GET["roomName"]
+   updateMachine( roomID, roomName )
+
+   result="Config Written"
+   json["alert"]="Configuration Was Saved"
+   json["room"]=roomID
+   json["roomName"]=roomName
+  
+   
+ elseif     ( string.ends ( command, "software") ) then
    result = os.capture( 'git pull' )
 
  elseif ( string.ends ( command, "schedule") ) then
@@ -86,7 +122,7 @@ if( string.starts ( command, "update" ) ) then
    json["os_command"] = os.capture( './schedule' )
    json["vlc_command"] = vlc.vlm():execute_command( "load config/schedule" )
 
-end
+ end
  
 end
 
