@@ -7,10 +7,36 @@ jQuery.fn.redraw = function() {
     });
 };
 
+String.prototype.trim = function() {
+	return this.replace(/^\s+|\s+$/g,"");
+}
+String.prototype.ltrim = function() {
+	return this.replace(/^\s+/,"");
+}
+String.prototype.rtrim = function() {
+	return this.replace(/\s+$/,"");
+}
+
+String.prototype.toObjectArray=function() {
+ x=[];
+
+ $.each( this.split("\n"), function(i,v) {
+
+   v = v.ltrim();
+   if( v.length > 1 && v.charAt(0) != "#") {
+     vv=v.split("=");
+     name=vv[0];
+     value=vv[1].replace("+"," ");
+     x.push( { "name" : name, "value" : value } );
+   }
+
+ })
+ return x;
+}
+
 
 var roomID='UNDEFINED';
 var roomName='UNDEFINED';
-
 
 var send = function(cmd,parms) {
 
@@ -29,34 +55,38 @@ var send = function(cmd,parms) {
 }
 
 
+
 var loadMachine=function() {
              
-              config = $.ajax({
+              raw = $.ajax({
                     type: "GET",
                     url: "config/machine",
                     async: false,
                 }).responseText;
 
-              match=config.match(/room=(.*)/);
-              if( match!= null ) { roomID=match[1]; };
+              config=raw.toObjectArray();
 
-              match=config.match(/roomName=(.*)/);
-              if( match!= null ) { roomName=match[1].replace(/"/g,'') };
-
-              $("#config-roomID").val( roomID );
-              $("#config-roomName").val( roomName );
-              $("#roomInfo").text( roomID + ' / ' + roomName )
-
-              document.title=roomID;
+              $.each( config, function(i,v) {
+                $("#config-"+v['name'] ).val( v['value'] );
+              });
+             
+              $("#roomInfo").text( $("#config-roomID").val() + ' / ' + $("#config-roomName").val() )
+              document.title=$("#config-roomID").val();
 
 }
-
 var updateMachine=function() {
-   roomID=$("#config-roomID").val();
-   roomName=$("#config-roomName").val();
-   $('#command-result').html( send('update machine', 'roomID='+roomID+'&roomName='+roomName ) );
+   config=$("#config-form").serializeArray();
+   p='';
+   $.each( config, function(i,v) { 
+       p=p+v['name']+'='+v['value']+'&';
+   });
+   $('#command-result').html( send('update machine', p) );
    window.alert("Configuration Saved.")
+   $('#command-result').html( send('update schedule', p) );
+   window.alert("Schedule Updated.")
 }
+
+
 
 var loadControls=function() {
 

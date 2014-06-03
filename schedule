@@ -5,14 +5,14 @@ source "${0%/*}/config/common"
 # Allow passing the room on the command line
 if [ "$1" != "" ] && [ "$1" != "update" ]
 then
- room="$1"
+ roomID="$1"
  shift
 fi
 
   
 # Get the schedule
-log "Obtaining Schedule for $room"
-wget --quiet -O $pathRoot/config/schedule "$urlInfo?room=$room&days=30" 
+log "Obtaining Schedule for $roomID"
+wget --quiet -O $pathRoot/config/schedule "$urlInfo?room=$roomID&days=30" 
 
 # Update VLM if asked
 if [ "$1" == "update" ]

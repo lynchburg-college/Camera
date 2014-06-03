@@ -9,7 +9,8 @@ function string.ends(String,End)
    return End=='' or string.sub(String,-string.len(End))==End
 end
 
-function updateMachine(roomID,roomName)
+
+function updateMachine()
 
    now = os.date("%a %b %d, %Y @ %I:%M:%S%p  ")
 
@@ -17,9 +18,13 @@ function updateMachine(roomID,roomName)
 
    file:write('# Configuration written from web : '..now..'\n')
    file:write('\n')
-   file:write('room='..roomID..'\n')
-   file:write('roomName="'..roomName..'"\n')
- 
+
+   file:write('roomID='.._GET["roomID"]..'\n')
+   file:write('roomName='.._GET["roomName"]..'\n')
+   file:write('splitMinutes='.._GET["splitMinutes"]..'\n')
+   file:write('include='.._GET["include"]..'\n')
+   file:write('exclude='.._GET["exclude"]..'\n')
+   
    file:flush()
    file:close()
 
@@ -104,15 +109,10 @@ if( string.starts ( command, "update" ) ) then
 
  if ( string.starts(  command, "update machine") ) then
 
-   roomID=_GET["roomID"]
-   roomName=_GET["roomName"]
-   updateMachine( roomID, roomName )
-
-   result="Config Written"
-   json["alert"]="Configuration Was Saved"
-   json["room"]=roomID
-   json["roomName"]=roomName
-  
+   updateMachine()
+   result="Machine Config Written"
+   json["alert"]="Machine Configuration Was Saved"
+ 
    
  elseif     ( string.ends ( command, "software") ) then
    result = os.capture( 'git pull' )

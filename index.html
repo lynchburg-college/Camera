@@ -59,7 +59,7 @@
                 var d = date.getDate();
                 var m = date.getMonth();
                 var y = date.getFullYear();
-                  $("#event-calendar").fullCalendar( {  events : getEvents,
+                 $("#event-calendar").fullCalendar( {  events : getEvents,
                                                      header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaWeek,agendaDay'},
                                                      eventColor : '#ABABAB',
                                                      contentHeight: 500,
@@ -125,24 +125,29 @@
       <h3>Machine Configuration</h3>
       <div>
         <p>
-         <div><label class="control-label">Room ID</label><input id="config-roomID" /></div>
-         <div><label class="control-label">Room Name</label><input id="config-roomName" /></div>
-         <hr>
+         <form id="config-form" onSubmit="return false">
+          <div><label class="control-label">Room ID</label><input name="roomID" id="config-roomID" /></div>
+          <div><label class="control-label">Room Name</label><input name="roomName" id="config-roomName" /></div>
+          <div><label class="control-label">Recording Split</label>
+               <select name="splitMinutes" id="config-splitMinutes" />
+                 <option value="00">Don't Split</option>
+                 <option value="30">30 Minute blocks</option>
+                 <option value="60">1 Hour blocks</option>
+                 <option value="90">90 Minute blocks</option>
+               </select>
+          </div>
+          <div><label class="control-label">Include Courses</label><input name="include" id="config-include" /></div>
+          <div><label class="control-label">Exclude Courses</label><input name="exclude" id="config-exclude" /></div>
+         </form>
          <button onClick="updateMachine()">Update Configuration</button>
+         <hr>
+         <button onClick="$('#command-result').html( send( 'update schedule' ) )">Update Schedule</button>
+         <button onClick="$('#command-result').html( send( 'show videos' ) )">Show Videos</button>
+         &nbsp;&nbsp;
+         <button onClick="$('#command-result').html( send( 'update software' ) )">Update Software</button>
 
-         </table>
         </p>
      </div>
-
-      <h3>System</h3>
-      <div>
-        <p>
-             <button onClick="$('#command-result').html( send( 'update schedule' ) )">Update Schedule</button>
-             <button onClick="$('#command-result').html( send( 'show videos' ) )">Show Videos</button>
-             &nbsp;&nbsp;
-             <button onClick="$('#command-result').html( send( 'update software' ) )">Update Software</button>
-        </p>
-      </div>
 
       <h3>VLC Command</h3>
       <div>
