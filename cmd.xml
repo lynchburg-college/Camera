@@ -1,6 +1,15 @@
 <?vlc
 require "httprequests"
 
+function string.starts(String,Start)
+   return string.sub(String,1,string.len(Start))==Start
+end
+
+function string.ends(String,End)
+   return End=='' or string.sub(String,-string.len(End))==End
+end
+
+
 function os.capture(cmd, raw)
   local f = assert(io.popen(cmd, 'r'))
   local s = assert(f:read('*a'))
@@ -8,6 +17,7 @@ function os.capture(cmd, raw)
   if raw then return s end
   return s
 end
+
 
 function pairsByKeys (t, f)
       local a = {}
@@ -48,16 +58,40 @@ if(command == nil) then
   command="show"
 end
 
-if( command == "show videos") then
+result = ""
+
+if( string.starts ( command, "show" ) ) then
+
+ if     ( string.ends ( command, "videos") ) then
    result = vlc.net.opendir( 'video' )
 
-elseif( command == "show camera") then
+ elseif ( string.ends ( command, "camera") ) then
    result = os.capture( 'v4l2-ctl -L' )
+   
+ elseif ( string.ends ( command, "space") ) then
+   result = os.capture( 'df -h' )
 
-elseif( command == "update") then
+
+ end
+
+end
+
+if( string.starts ( command, "update" ) ) then
+
+ if     ( string.ends ( command, "software") ) then
    result = os.capture( 'git pull' )
 
-else
+ elseif ( string.ends ( command, "schedule") ) then
+   result = "Schedule Updated"
+   json["os_command"] = os.capture( './schedule' )
+   json["vlc_command"] = vlc.vlm():execute_command( "load config/schedule" )
+
+end
+ 
+end
+
+
+if (result == "" ) then
 
    response = vlc.vlm():execute_command( command )
    if( type(response.children) == "table" ) then
@@ -65,6 +99,7 @@ else
    else
       result = response.value
    end
+
 end
 
 

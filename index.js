@@ -23,6 +23,7 @@ var send = function(cmd) {
         async: false,
     }).responseText;
 
+  console.log("RESPONSE");
   console.log(response);
 
   return(response);

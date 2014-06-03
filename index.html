@@ -46,8 +46,9 @@
   
               loadMachine();
 
-              showControls( loadControls() );
+              $("#content-config").accordion();
 
+              //showControls( loadControls() );
               showMedia();
               $("#status-media").buttonset();
 
@@ -99,7 +100,6 @@
    <ul>
      <li><a href="#panel-status">Schedule</a></li>
      <li><a href="#panel-config">Configuration</a></li>
-     <li><a href="#panel-controls">Controls</a></li>
    </ul>
 
    <div id="panel-status">
@@ -111,29 +111,51 @@
   <div id="panel-config">
   <p>
 
-     <table>
-      <tr><th>Room ID</th><td><input id="config-roomID" /></td></tr>
-      <tr><th>Room Name</th><td><input id="config-roomName" /></td></tr>
-      <tr><th></th><td><button id="config-save">Save</button></td></tr>
-     </table>
-     <hr>
-     <div>
-       <button onClick="$('#command-result').html( send( 'update' ) )">Update From GIT</button>
+     <div id="content-config">
+
+      <h3>Video Controls</h3>
+      <div>
+        <p>
+          <div id="status-media"></div>
+          <div id="list-controls"></div>
+        </p>
+      </div>
+
+      <h3>Machine Configuration</h3>
+      <div>
+        <p>
+         <table>
+          <tr><th>Room ID</th><td><input id="config-roomID" /></td></tr>
+          <tr><th>Room Name</th><td><input id="config-roomName" /></td></tr>
+          <tr><th></th><td><button id="config-save">Save</button></td></tr>
+         </table>
+        </p>
      </div>
-     <hr>
-     <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send Command</button></div>
-     <pre id="command-result"></pre>
+
+      <h3>System</h3>
+      <div>
+        <p>
+             <button onClick="$('#command-result').html( send( 'update schedule' ) )">Update Schedule</button>
+             <button onClick="$('#command-result').html( send( 'update software' ) )">Update Software</button>
+             <button onClick="$('#command-result').html( send( 'show videos' ) )">Show Videos</button>
+        </p>
+      </div>
+
+      <h3>VLC Command</h3>
+      <div>
+        <p>
+             <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send Command</button></div>
+        </p>
+      </div>
+      
+     </div>
+       
+
+    <pre id="command-result"></pre>
      
   </p>
   </div>
   
-  <div id="panel-controls">
-  <p>
-      <div id="status-media"></div>
-      <hr>
-      <div id="list-controls"></div>
-  </p>
-  </div>
   
 </div>
 
