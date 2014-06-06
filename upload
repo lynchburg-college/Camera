@@ -32,7 +32,7 @@ touch $logFile
            fi
 
            # Ask the server for info about the class meeting at that time
-           url="$urlInfo?room=$room&asOf=$asOf&mode=meeting"
+           url="$urlInfo?room=$roomID&asOf=$asOf&mode=meeting"
            log "Calling $url"
            info=$(curl -sL "$url")
            log "Got $info"
