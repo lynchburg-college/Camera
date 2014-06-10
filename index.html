@@ -9,20 +9,16 @@
 
   <title>Camera</title>
 
-
   <link rel="icon" type="image/jpg" href="favicon.jpg?v=2" />
 
-  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet" />
+  <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+
   <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" rel="stylesheet" class="theme-link" type="text/css" media="screen" />
+
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" rel="stylesheet" />
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.print.css" rel="stylesheet" />
 
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js"></script>
-
-  <script src="index.js"></script>
-  
   <style>
 
      body { font-size : 14px; font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif; }
@@ -37,11 +33,102 @@
      .control-wrapper { display:block; }
      .control-label { display:inline; float:left; width:200px;}
      .control-content { display:inline; float:left; width:300px;}
- 
+   </style>
+  
+</head>
 
-  </style>
+<body> 
 
-  <script>
+  <nav class="navbar navbar-inverse navbar-fixed-top navbar-default" role="navigation">
+     <div class="container">
+
+      <div class="navbar-header">
+         <a class="navbar-brand" href="#"><span id="roomInfo"></span></a>
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+       </div>
+
+       <div class="collapse navbar-collapse navbar-exl-collapse collapse pull-right">
+             <ul class="nav navbar-nav">
+                <li class="active"><a href="#panel-schedule" data-toggle="tab"><span class="glyphicon glyphicon-calendar"></span>  Schedule</a></li>
+                <li><a href="#panel-schedule" data-toggle="tab"><span class="glyphicon glyphicon-cog"></span>  Configuration</a></li>
+             </ul>
+       </div>
+
+    </div>
+  </nav>  
+  
+<br><br><br>
+
+    <div id="panel-status" class="container">
+      <div id="event-dialog"></div>
+      <div id="event-calendar"></div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+     <div class="col-lg-6">
+
+     <div id="panel-config" class="container">
+
+      <h3>Video Controls</h3>
+      <div id="status-media"></div>
+      <div id="list-controls"></div>
+
+      <hr>
+
+      <h3>Machine Configuration</h3>
+      <div>
+         <form id="config-form" onSubmit="return false">
+          <div><label class="control-label">Room ID</label><input name="roomID" id="config-roomID" /></div>
+          <div><label class="control-label">Room Name</label><input name="roomName" id="config-roomName" /></div>
+          <div><label class="control-label">Recording Split</label>
+               <select name="splitMinutes" id="config-splitMinutes" />
+                 <option value="00">Don't Split</option>
+                 <option value="30">30 Minute blocks</option>
+                 <option value="60">1 Hour blocks</option>
+                 <option value="90">90 Minute blocks</option>
+               </select>
+          </div>
+          <div><label class="control-label">Include Courses</label><input name="include" id="config-include" /></div>
+          <div><label class="control-label">Exclude Courses</label><input name="exclude" id="config-exclude" /></div>
+         </form>
+         <button onClick="updateMachine()">Update Configuration</button>
+         <hr>
+         <button onClick="$('#command-result').html( send( 'update schedule' ) )">Update Schedule</button>
+         <button onClick="$('#command-result').html( send( 'show videos' ) )">Show Videos</button>
+         &nbsp|&nbsp;
+         <button onClick="$('#command-result').html( send( 'update software' ) )">Update Software</button>
+         <button onClick="$('#command-result').html( send( 'control reboot' ) )">Reboot Machine</button>
+      </div>
+
+      <hr>
+
+      <h3>VLC Command</h3>
+      <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send Command</button></div>
+      
+    </div>
+   </div>
+
+   <div class="col-row-6">
+      <pre id="command-result"></pre>
+   </div>
+
+  </div>
+
+</div>
+
+ <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+ <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+ <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+ <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js"></script>
+ <script src="index.js"></script>
+ <script>
 
  $(document).ready( function() {  
   
@@ -80,98 +167,18 @@
                                                     eventMouseout : handleHover
                                                     } );
 
+              /*
               $("#content").tabs({
                                    activate : function(e,ui) {
                                       $("#event-calendar").fullCalendar( 'refetchEvents' );
                                    }
               });
+              */
 
  });
 
   </script>
-  
-</head>
-
-<body> 
-
-<div id="header">
- <span id="roomInfo"></span>
- <i class="fa fa-video-camera"></i>
-</div>
-
-
-<div id="content">
-
-   <ul>
-     <li><a href="#panel-status">Schedule</a></li>
-     <li><a href="#panel-config">Configuration</a></li>
-   </ul>
-
-   <div id="panel-status">
-    <div><div id="event-dialog"></div></div>
-    <div><div id="event-calendar"></div></div>
-  </div>
-
-
-  <div id="panel-config">
-  <p>
-
-     <div id="content-config">
-
-      <h3>Video Controls</h3>
-      <div>
-        <p>
-          <div id="status-media"></div>
-          <div id="list-controls"></div>
-        </p>
-      </div>
-
-      <h3>Machine Configuration</h3>
-      <div>
-        <p>
-         <form id="config-form" onSubmit="return false">
-          <div><label class="control-label">Room ID</label><input name="roomID" id="config-roomID" /></div>
-          <div><label class="control-label">Room Name</label><input name="roomName" id="config-roomName" /></div>
-          <div><label class="control-label">Recording Split</label>
-               <select name="splitMinutes" id="config-splitMinutes" />
-                 <option value="00">Don't Split</option>
-                 <option value="30">30 Minute blocks</option>
-                 <option value="60">1 Hour blocks</option>
-                 <option value="90">90 Minute blocks</option>
-               </select>
-          </div>
-          <div><label class="control-label">Include Courses</label><input name="include" id="config-include" /></div>
-          <div><label class="control-label">Exclude Courses</label><input name="exclude" id="config-exclude" /></div>
-         </form>
-         <button onClick="updateMachine()">Update Configuration</button>
-         <hr>
-         <button onClick="$('#command-result').html( send( 'update schedule' ) )">Update Schedule</button>
-         <button onClick="$('#command-result').html( send( 'show videos' ) )">Show Videos</button>
-         &nbsp|&nbsp;
-         <button onClick="$('#command-result').html( send( 'update software' ) )">Update Software</button>
-         <button onClick="$('#command-result').html( send( 'control reboot' ) )">Reboot Machine</button>
-
-        </p>
-     </div>
-
-      <h3>VLC Command</h3>
-      <div>
-        <p>
-             <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send Command</button></div>
-        </p>
-      </div>
-      
-     </div>
-       
-
-    <pre id="command-result"></pre>
-     
-  </p>
-  </div>
-  
-  
-</div>
-
+ 
 </body>
 </html>
 

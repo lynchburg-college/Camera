@@ -8,7 +8,6 @@ source "${0%/*}/config/common"
 #    exit
 #  fi
 
-
   echo "----------------------------"
   echo "Current Machine Settings"
   echo "----------------------------"
@@ -51,8 +50,6 @@ source "${0%/*}/config/common"
   /home/capture/Camera/schedule
   /home/capture/Camera/start
     
-
-
 
 
 
