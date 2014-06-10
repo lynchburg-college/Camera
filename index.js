@@ -78,11 +78,13 @@ var loadMachine=function() {
 }
 
 var updateMachine=function() {
+
    config=$("#config-form").serializeArray();
    p='';
    $.each( config, function(i,v) { 
        p=p+v['name']+'='+v['value']+'&';
    });
+
    $('#command-result').html( send('update machine', p) );
    $('#command-result').html( send('update schedule', p) );
    $("#event-calendar").fullCalendar( 'refetchEvents' );
