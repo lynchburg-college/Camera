@@ -54,6 +54,7 @@ var send = function(cmd,parms) {
         async: false,
     }).responseText;
 
+console.log(response)
   return (response);
 }
 
@@ -193,7 +194,7 @@ var showMedia=function() {
           // Create the button element if needed
           if( !item.exists() ) {
 
-            item=$('<button/>', { id: 'media-'+name, title: name, text:name } )
+            item=$('<button></button>', { id: 'media-'+name, title: name, text:name } )
                  .appendTo('#status-media')
                  .click( function() { toggleMedia( $(this) ) } )
                  .button();
