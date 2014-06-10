@@ -1,0 +1,26 @@
+del all
+
+new preview broadcast
+setup preview input v4l2:///dev/video0:width=1280:height=720:chroma=h264
+setup preview option input-slave=alsa://hw:2,0
+setup preview option focus_auto=0
+setup preview output #transcode{acodec=mpga,ab=128,channels=2,samplerate=48000,audio-sync}:standard{access=http,mux=ts,dst=:8990/preview}
+setup preview enabled
+
+#new preview broadcast
+#setup preview input v4l2:///dev/video0:width=1024:height=576:chroma=mjpg
+#setup preview option input-slave=alsa://hw:2,0
+#setup preview output #transcode{vcodec=h264,ab=96,vb=1000,height=544,width=960,threads=2,acodec=mpga,channels=2,venc=x264{deblock=1:-1,ref=2,subme=4}:duplicate{dst=standard{access=http,mux=ts,dst=:8990/preview}
+#setup preview enabled
+
+new recorder broadcast
+setup recorder input v4l2:///dev/video0:width=1280:height=720:chroma=h264
+setup recorder option input-slave=alsa://hw:2,0
+setup recorder output #transcode{acodec=mpga,ab=128,channels=2,samplerate=48000,audio-sync}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4}
+#setup recorder output #transcode{vcodec=mp4v,width=864,height=480,vb=5000,acodec=mpga,ab=128,channels=2,samplerate=48000,audio-sync}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4}
+setup recorder enabled
+
+# Load the schedule file
+# ----------
+load /home/capture/Camera/config/schedule
+
