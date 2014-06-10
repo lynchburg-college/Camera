@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source "${0%/*}/config/common"
+processor=$(uname -p)
 
 #  if [ $(whoami) != "root" ]
 #  then
@@ -13,6 +14,7 @@ source "${0%/*}/config/common"
   echo "----------------------------"
   echo "    ROOMID : $roomID"
   echo "  ROOMNAME : $roomName"
+  echo " PROCESSOR : $processor"
   echo "----------------------------"
   echo ""
  
@@ -24,6 +26,15 @@ source "${0%/*}/config/common"
 
   echo -e "#--- Configuration updated $(date)\n\nroomID=$roomID\nroomName=\"$roomName\"" > $pathRoot/config/machine
   chown capture $pathRoot/config/machine
+
+  echo "----------------------------"
+  echo "New Machine Settings ($pathRoot/config/machine)"
+  echo "----------------------------"
+  echo "    ROOMID : $roomID"
+  echo "  ROOMNAME : $roomName"
+  echo " PROCESSOR : $processor"
+  echo ""
+
     
   echo "creating directories.."
   mkdir -p $pathRoot/video
@@ -37,18 +48,10 @@ source "${0%/*}/config/common"
 
   echo "creating scheduled tasks.."
   crontab $pathRoot/config/crontab
+  
+  echo "copying templates for $processor.."
+  cp $pathRoot/config/template/$processor/* $pathRoot/config/
 
-  echo "copying templates.."
-  cp $pathRoot/config/template/platform/x86_64/media $pathRoot/config/
-  cp $pathRoot/config/template/camera/logitech_c920/camera $pathRoot/config/
-
-  echo "----------------------------"
-  echo "Machine Settings ($pathRoot/config/machine)"
-  echo "----------------------------"
-  echo "      ROOM : $room"
-  echo "  ROOMNAME : $roomName"
-  echo ""
-  echo ""
   echo "... setup complete."
   
   /home/capture/Camera/schedule
