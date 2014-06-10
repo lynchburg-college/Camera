@@ -3,4 +3,5 @@
 *
 !common
 !crontab
-!.gitignore
+!media
+!!.gitignore
