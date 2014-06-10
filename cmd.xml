@@ -86,7 +86,7 @@ result = ""
 if( string.starts ( command, "control" ) ) then
 
  if     ( string.ends ( command, "reboot") ) then
-   result = os.capture( 'reboot' )
+   result = os.capture( '/sbin/reboot' )
  end
  
 end
