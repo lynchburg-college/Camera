@@ -20,21 +20,10 @@
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.print.css" rel="stylesheet" />
 
   <style>
-*{
-    margin:0;
-    padding:0;
-}
-body{
-    letter-spacing:-1px;
-    position:absolute;
-    top:0px;
-    left:0px;
-    bottom:0px;
-}
-label {
-    width: 10em;
-}
-   </style>
+   label { 
+     width: 10em;
+  }
+  </style>
   
 </head>
 
@@ -63,18 +52,18 @@ label {
 
   <div class="container">
 
-    <section id="panel-schedule" class="container active">
+    <section id="panel-schedule" class="active">
         <div id="event-dialog"></div>
         <div id="event-calendar"></div>
     </section>
 
-    <section id="panel-video" class="container hidden" >
+    <section id="panel-video" class="hidden" >
     <h3>Video Controls</h3>
         <div id="status-media"></div>
         <div id="list-controls"></div>
     </section>
 
-    <section id="panel-vlc" class="container hidden" >
+    <section id="panel-vlc" class="hidden" >
     <h3>VLC Commands</h3>
          <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send</button></div>
          <button onClick="$('#command-result').html( send( 'update schedule' ) )">Update Schedule</button>
@@ -84,7 +73,7 @@ label {
          <pre id="command-result"></pre>
     </section>
     
-    <section id="panel-machine" class="container hidden">
+    <section id="panel-machine" class="hidden">
      <h3>Machine Configuration</h3>
           <div>
              <form id="config-form" onSubmit="return false">
@@ -107,8 +96,10 @@ label {
        </div>
     </div>
   </section>
- 
 
+ </div>
+ 
+ 
 
  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
