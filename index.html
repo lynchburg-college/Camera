@@ -71,55 +71,59 @@
 
     <hr>
 
-    <div class="row">
-     <div class="col-lg-6">
+    <section id="panel-config" class="container">
 
-     <section id="panel-config" class="container">
+     <div class="row">
 
-      <h3>Video Controls</h3>
-      <div id="status-media"></div>
-      <div id="list-controls"></div>
+       <div class="col-sm-5">
+        <h3>Video Controls</h3>
+        <div id="status-media"></div>
+        <div id="list-controls"></div>
+       </div>
 
-      <hr>
+       <div class="col-sm-6">
+         <h3>VLC Command</h3>
+         <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send</button></div>
+       </div>
 
-      <h3>Machine Configuration</h3>
-      <div>
-         <form id="config-form" onSubmit="return false">
-          <div><label class="control-label">Room ID</label><input name="roomID" id="config-roomID" /></div>
-          <div><label class="control-label">Room Name</label><input name="roomName" id="config-roomName" /></div>
-          <div class="clearall"><label class="control-label">Exclude Courses</label><input name="exclude" id="config-exclude" /></div>
-          <div><label class="control-label">Include Courses</label><input name="include" id="config-include" /></div>
-          <div><label class="control-label">Recording Split</label>
-               <select name="splitMinutes" id="config-splitMinutes" />
-                 <option value="00">Don't Split</option>
-                 <option value="30">30 Minute blocks</option>
-                 <option value="60">1 Hour blocks</option>
-                 <option value="90">90 Minute blocks</option>
-               </select>
+     </div>
+    
+    <div class="row"> 
+       <div class="col-sm-5">
+          <h3>Machine Configuration</h3>
+          <div>
+             <form id="config-form" onSubmit="return false">
+              <div><label class="control-label">Room ID</label><input name="roomID" id="config-roomID" /></div>
+              <div><label class="control-label">Room Name</label><input name="roomName" id="config-roomName" /></div>
+              <div class="clearall"><label class="control-label">Exclude Courses</label><input name="exclude" id="config-exclude" /></div>
+              <div><label class="control-label">Include Courses</label><input name="include" id="config-include" /></div>
+              <div><label class="control-label">Recording Split</label>
+                   <select name="splitMinutes" id="config-splitMinutes" />
+                     <option value="00">Don't Split</option>
+                     <option value="30">30 Minute blocks</option>
+                     <option value="60">1 Hour blocks</option>
+                     <option value="90">90 Minute blocks</option>
+                   </select>
+              </div>
+             </form>
+             <br>
+             <button onClick="updateMachine()">Update Configuration</button>
+             <hr>
+             <button onClick="$('#command-result').html( send( 'update schedule' ) )">Update Schedule</button>
+             <button onClick="$('#command-result').html( send( 'show videos' ) )">Show Videos</button>
+             &nbsp|&nbsp;
+             <button onClick="$('#command-result').html( send( 'update software' ) )">Update Software</button>
+             <button onClick="$('#command-result').html( send( 'control reboot' ) )">Reboot Machine</button>
           </div>
-         </form>
-         <br>
-         <button onClick="updateMachine()">Update Configuration</button>
-         <hr>
-         <button onClick="$('#command-result').html( send( 'update schedule' ) )">Update Schedule</button>
-         <button onClick="$('#command-result').html( send( 'show videos' ) )">Show Videos</button>
-         &nbsp|&nbsp;
-         <button onClick="$('#command-result').html( send( 'update software' ) )">Update Software</button>
-         <button onClick="$('#command-result').html( send( 'control reboot' ) )">Reboot Machine</button>
-      </div>
+       </div>
 
-      <hr>
+       <div class="col-sm-6">
+        <pre id="command-result"></pre>
+       </div>
 
-      <h3>VLC Command</h3>
-      <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send Command</button></div>
-      
     </div>
-   </div>
-
-   <div class="col-row-6">
-      <pre id="command-result"></pre>
-   </div>
-
+    
+    
   </section>
 
 </div>
