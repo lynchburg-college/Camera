@@ -3,4 +3,5 @@
 *
 !common
 !crontab
+!templates
 !.gitignore

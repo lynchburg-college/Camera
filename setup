@@ -38,6 +38,9 @@ source "${0%/*}/config/common"
   echo "creating scheduled tasks.."
   crontab $pathRoot/config/crontab
 
+  echo "copying templates.."
+  cp $pathRoot/config/template/camera/logitech_c920/camera $pathRoot/config
+
   echo "----------------------------"
   echo "Machine Settings ($pathRoot/config/machine)"
   echo "----------------------------"
