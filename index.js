@@ -54,7 +54,7 @@ var send = function(cmd,parms) {
         async: false,
     }).responseText;
 
-console.log(response)
+// console.log(response)
   return (response);
 }
 
@@ -305,7 +305,7 @@ var handleDelete=function( event, confirmed ) {
                         });
  }
  else {
-  console.log(event);
+  // console.log(event);
 
  }
   
