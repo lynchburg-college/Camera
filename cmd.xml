@@ -82,12 +82,10 @@ result = ""
 
 
 
-
 if( string.starts ( command, "control" ) ) then
 
  if     ( string.ends ( command, "reboot") ) then
    result = os.capture( '/sbin/reboot' )
- end
  
  elseif ( string.ends ( command, "ifconfig") ) then
    result = os.capture( '/sbin/ifconfig' )
