@@ -119,14 +119,14 @@ if( string.starts ( command, "update" ) ) then
  if ( string.starts(  command, "update machine") ) then
 
    updateMachine()
-   result="Machine Config Written"
-   json["alert"]="Machine Configuration Was Saved"
+   result="Machine Config Written.  Remember to reload the schedule."
  
    
  elseif     ( string.ends ( command, "software") ) then
    result = os.capture( 'git pull' )
 
  elseif ( string.ends ( command, "schedule") ) then
+
    result = "Schedule Updated"
    json["os_command"] = os.capture( './schedule' )
    json["vlc_command"] = vlc.vlm():execute_command( "load config/schedule" )

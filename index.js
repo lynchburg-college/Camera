@@ -111,13 +111,16 @@ var updateMachine=function() {
    });
 
    goDialog( send('update machine', p) );
-   goDialog( send('update schedule', p) );
-   $("#event-calendar").fullCalendar( 'refetchEvents' );
-   $("#event-calendar").fullCalendar( 'rerenderEvents' );
-
+   loadMachine();
+   reloadCalendar();
+   
 }
 
 
+var reloadCalendar = function() {
+   $("#event-calendar").fullCalendar( 'refetchEvents' );
+   $("#event-calendar").fullCalendar( 'rerenderEvents' );
+}
 
 var loadControls=function() {
 
@@ -219,7 +222,6 @@ var showMedia=function() {
 
             item=$('<button></button>', { id: 'media-'+name, title: name, text:name } )
                  .appendTo('#status-media')
-                 .click( function() { toggleMedia( $(this) ) } )
                  .button();
          }
          item.removeClass('active');
