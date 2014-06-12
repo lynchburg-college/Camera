@@ -53,7 +53,7 @@
        </div>
 
        <div class="collapse navbar-collapse collapse pull-right">
-             <ul class="nav navbar-nav">
+             <ul id="nav-list" class="nav navbar-nav">
                 <li class="page-scroll active"><a href="#panel-schedule"><span class="glyphicon glyphicon-calendar"></span>  Schedule</a></li>
                 <li class="page-scroll"><a href="#panel-machine"><span class="glyphicon glyphicon-cog"></span>  Machine</a></li>
                 <li class="page-scroll"><a href="#panel-video"><span class="glyphicon glyphicon-facetime-video"></span>  Video</a></li>
@@ -68,7 +68,7 @@
 
   <div class="container">
 
-    <section id="panel-schedule" class="active">
+    <section id="panel-schedule" class="active" >
         <div id="event-dialog"></div>
         <div id="event-calendar"></div>
         <div class="pull-right">
@@ -76,21 +76,8 @@
        </div>
     </section>
 
-    <section id="panel-video" class="hidden" >
-    <h3>Video Controls</h3>
-        <div id="status-media"></div>
-        <div id="list-controls"></div>
-    </section>
-
-    <section id="panel-vlc" class="hidden" >
-    <h3>VLC Commands</h3>
-         <div><input type="text" style="width:300px" id="command" name="command"><button onClick="goDialog( send( $('#command').val() ) )" value="Send">Send</button></div>
-         <button onClick="goDialog( send( 'show videos' ) )">Show Videos</button>
-    </section>
-    
     <section id="panel-machine" class="hidden">
      <h3>Machine Configuration</h3>
-          <div>
              <form id="config-form" onSubmit="return false">
               <div><label class="control-label">Room ID</label><input name="roomID" id="config-roomID" /></div>
               <div><label class="control-label">Room Name</label><input name="roomName" id="config-roomName" /></div>
@@ -110,10 +97,19 @@
              <hr>
              <button onClick="goDialog( send( 'update software' ) )">Update Software</button>
              <button onClick="goDialog( send( 'control reboot' ) )">Reboot Machine</button>
-          </div>
-       </div>
-    </div>
   </section>
+
+    <section id="panel-video" class="hidden">
+     <h3>Video Controls</h3>
+        <div id="status-media"></div>
+        <div id="list-controls"></div>
+    </section>
+
+    <section id="panel-vlc" class="hidden">
+    <h3>VLC Command</h3>
+         <div><input type="text" style="width:300px" id="command" name="command"><button onClick="goDialog( send( $('#command').val() ) )" value="Send">Send</button></div>
+    </section>
+    
 
  </div>
  

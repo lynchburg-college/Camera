@@ -457,15 +457,13 @@ var showPreview=function( mediaName ) {
 
 
 
-
  $(document).ready( function() {  
   
               loadMachine();
               showMedia();
               $("button:not(.navbar-toggle)").button();
-              
-             $(function() {
-                $('.page-scroll a').bind('click', function(event) {
+             
+              $('.page-scroll a').bind('click', function(event) {
 
                     $("section.active")
                      .fadeOut(100)
@@ -483,12 +481,9 @@ var showPreview=function( mediaName ) {
                      .addClass("active")
                      .removeClass("hidden");
 
-                    $("#navbar-button-toggle").click();
- 
                     event.preventDefault();
 
                 });
-            });
 
 
               $("#event-dialog").dialog( {autoOpen:false, title:"Scheduler"} );
