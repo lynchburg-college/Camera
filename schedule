@@ -11,8 +11,10 @@ fi
 
   
 # Get the schedule
+url="$urlInfo?room=$roomID&days=30"
 log "Obtaining Schedule for $roomID"
-wget --quiet -O $pathRoot/config/schedule "$urlInfo?room=$roomID&days=30" 
+log $url
+wget --quiet -O $pathRoot/config/schedule "$url"
 
 # Update VLM if asked
 if [ "$1" == "update" ]

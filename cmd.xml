@@ -89,6 +89,10 @@ if( string.starts ( command, "control" ) ) then
    result = os.capture( '/sbin/reboot' )
  end
  
+ elseif ( string.ends ( command, "ifconfig") ) then
+   result = os.capture( '/sbin/ifconfig' )
+ end
+
 end
 
 

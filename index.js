@@ -59,6 +59,30 @@ var send = function(cmd,parms) {
 }
 
 
+var goDialog=function( responseData ) {
+
+  json= eval('('+responseData+')' );
+  
+  details='';
+  $.each( json , function(k,v) {
+    details+='<div><label>'+k+'</label>'+v+'</div>';
+  });
+
+  html='';
+  html=(json.result || details ) + '<div class="pull-right small">'+json.timestamp+'</div>';
+  
+  $('<div></div>')
+   .dialog({
+             title : (json.command || "Command Result"),
+             width:"30%",
+             modal : true,
+             buttons: {
+                          Ok: function() { $( this ).dialog( "close" );    }
+                      }
+           })
+   .html( html );
+}
+
 var loadMachine=function() {
              
               raw = $.ajax({
@@ -86,12 +110,11 @@ var updateMachine=function() {
        p=p+v['name']+'='+v['value']+'&';
    });
 
-   $('#command-result').html( send('update machine', p) );
-   $('#command-result').html( send('update schedule', p) );
+   goDialog( send('update machine', p) );
+   goDialog( send('update schedule', p) );
    $("#event-calendar").fullCalendar( 'refetchEvents' );
    $("#event-calendar").fullCalendar( 'rerenderEvents' );
 
-   window.alert("Configuration and Schedule Updated.")
 }
 
 
@@ -420,8 +443,6 @@ var showPreview=function( mediaName ) {
   }
  }
 
-
-
  var showIcon=function(icon) {
  
    var link = document.createElement('link');
@@ -432,6 +453,78 @@ var showPreview=function( mediaName ) {
 }
 
 
+
+
+
+ $(document).ready( function() {  
+  
+              loadMachine();
+              showMedia();
+              $("button:not(.navbar-toggle)").button();
+              
+             $(function() {
+                $('.page-scroll a').bind('click', function(event) {
+
+                    $("section.active")
+                     .fadeOut(100)
+                     .addClass("hidden")
+                     .removeClass("active");
+
+                    $("li.active")
+                     .removeClass("active");
+
+                    $(this).closest("li")
+                    .addClass("active");
+
+                    $($(this).attr("href"))
+                     .fadeIn(100)
+                     .addClass("active")
+                     .removeClass("hidden");
+
+                    $("#navbar-button-toggle").click();
+ 
+                    event.preventDefault();
+
+                });
+            });
+
+
+              $("#event-dialog").dialog( {autoOpen:false, title:"Scheduler"} );
+              
+                var date = new Date();
+                var d = date.getDate();
+                var m = date.getMonth();
+                var y = date.getFullYear();
+                 $("#event-calendar").fullCalendar( {  events : getEvents,
+                                                     header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaWeek,agendaDay'},
+                                                     eventColor : '#ABABAB',
+                                                     contentHeight: 500,
+                                                     handleWindowResize: true ,
+                                                     selectable: true,
+                                                     selectHelper: true,
+                                                    theme : true,
+                                                    year:  y,
+                                                    month: m,
+                                                    date:  d,                                                     
+                                                    defaultView : 'month',
+                                                    defaultEventMinutes : 15,
+                                                    slotMinutes : 15,
+                                                    firstHour : 7,
+                                                    allDaySlot : false,
+                                                    select : handleSelect,
+                                                    eventMouseover : handleHover,
+                                                    eventMouseout : handleHover
+                                                    } );
+
+              /*
+              $("#content").tabs({
+                                   activate : function(e,ui) {
+                                      $("#event-calendar").fullCalendar( 'refetchEvents' );
+                                   }
+              });
+              */
+
+ });
 
 
 

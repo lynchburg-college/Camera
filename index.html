@@ -11,18 +11,25 @@
 
   <link rel="icon" type="image/jpg" href="favicon.jpg?v=2" />
 
-  <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" rel="styleheet">
 
-  <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" rel="stylesheet" class="theme-link" type="text/css" media="screen" />
+  <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" rel="stylesheet" class="theme-link" type="text/css" media="screen" />
 
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" rel="stylesheet" />
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.print.css" rel="stylesheet" />
 
   <style>
-   label { 
+   label {  
      width: 10em;
-  }
+   }
+   section h3 {
+     text-decoration: underline;
+   }
+   td.fc-today div.fc-day-number {
+    font-weight:bold;
+   }
+   
   </style>
   
 </head>
@@ -30,13 +37,22 @@
 <body> 
 
   <nav class="navbar navbar-inverse navbar-fixed-top navbar-default" role="navigation">
-     <div class="container">
+     <div class="container-fluid">
 
       <div class="navbar-header">
+
          <a class="navbar-brand" href="#"><span id="roomInfo"></span></a>
+
+          <button id="navbar-button-toggle" type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+
        </div>
 
-       <div class="collapse navbar-collapse navbar-exl-collapse collapse pull-right">
+       <div class="collapse navbar-collapse collapse pull-right">
              <ul class="nav navbar-nav">
                 <li class="page-scroll active"><a href="#panel-schedule"><span class="glyphicon glyphicon-calendar"></span>  Schedule</a></li>
                 <li class="page-scroll"><a href="#panel-machine"><span class="glyphicon glyphicon-cog"></span>  Machine</a></li>
@@ -55,6 +71,9 @@
     <section id="panel-schedule" class="active">
         <div id="event-dialog"></div>
         <div id="event-calendar"></div>
+        <div class="pull-right">
+         <button onClick="goDialog(send( 'update schedule' ));reloadCalendar();">Reload Schedule</button>
+       </div>
     </section>
 
     <section id="panel-video" class="hidden" >
@@ -65,12 +84,8 @@
 
     <section id="panel-vlc" class="hidden" >
     <h3>VLC Commands</h3>
-         <div><input type="text" style="width:300px" id="command" name="command"><button onClick="$('#command-result').html( send( $('#command').val() ) )" value="Send">Send</button></div>
-         <button onClick="$('#command-result').html( send( 'update schedule' ) )">Update Schedule</button>
-         <button onClick="$('#command-result').html( send( 'show videos' ) )">Show Videos</button>
-         <button onClick="$('#command-result').html( send( 'update software' ) )">Update Software</button>
-         <button onClick="$('#command-result').html( send( 'control reboot' ) )">Reboot Machine</button>
-         <pre id="command-result"></pre>
+         <div><input type="text" style="width:300px" id="command" name="command"><button onClick="goDialog( send( $('#command').val() ) )" value="Send">Send</button></div>
+         <button onClick="goDialog( send( 'show videos' ) )">Show Videos</button>
     </section>
     
     <section id="panel-machine" class="hidden">
@@ -92,6 +107,9 @@
              </form>
              <br>
              <button onClick="updateMachine()">Update Configuration</button>
+             <hr>
+             <button onClick="goDialog( send( 'update software' ) )">Update Software</button>
+             <button onClick="goDialog( send( 'control reboot' ) )">Reboot Machine</button>
           </div>
        </div>
     </div>
@@ -104,69 +122,9 @@
  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
  <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js"></script>
+ <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
  <script src="index.js"></script>
-
- <script>
-
- $(document).ready( function() {  
-  
-              loadMachine();
-              showMedia();
-
-              $("button").button();
-              
-             $(function() {
-                $('.page-scroll a').bind('click', function(event) {
-
-                    $("section.active").fadeOut().addClass("hidden");
-                    $("li.active").removeClass("active");
-                    $(this).closest("li").addClass("active");
-
-                    $($(this).attr("href")).fadeIn().addClass("active").removeClass("hidden");
-                    event.preventDefault();
-                });
-            });
-
-
-              $("#event-dialog").dialog( {autoOpen:false, title:"Scheduler"} );
-              
-                var date = new Date();
-                var d = date.getDate();
-                var m = date.getMonth();
-                var y = date.getFullYear();
-                 $("#event-calendar").fullCalendar( {  events : getEvents,
-                                                     header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaWeek,agendaDay'},
-                                                     eventColor : '#ABABAB',
-                                                     contentHeight: 500,
-                                                     handleWindowResize: true ,
-                                                     selectable: true,
-                                                     selectHelper: true,
-                                                    theme : true,
-                                                    year:  y,
-                                                    month: m,
-                                                    date:  d,                                                     
-                                                    defaultView : 'month',
-                                                    defaultEventMinutes : 15,
-                                                    slotMinutes : 15,
-                                                    firstHour : 7,
-                                                    allDaySlot : false,
-                                                    select : handleSelect,
-                                                    eventMouseover : handleHover,
-                                                    eventMouseout : handleHover
-                                                    } );
-
-              /*
-              $("#content").tabs({
-                                   activate : function(e,ui) {
-                                      $("#event-calendar").fullCalendar( 'refetchEvents' );
-                                   }
-              });
-              */
-
- });
-
-  </script>
  
 </body>
 </html>
