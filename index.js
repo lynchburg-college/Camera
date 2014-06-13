@@ -161,10 +161,34 @@ var interface_calendar = {
           "element" : $("#event-calendar"),
           
           "reload" : function() {
-  
                        interface_calendar.element.fullCalendar('changeView','month');
                        interface_calendar.element.fullCalendar( 'refetchEvents' );
                        interface_calendar.element.fullCalendar( 'rerenderEvents' );
+          },
+
+          "eventClick" : function( event, jsEvent, view) {
+
+                       interface_calendar.element.fullCalendar( 'unselect' );
+
+                       template='<div><label>Course/Title</label>'+event.title+'</div>'+
+                                '<div><label>Starts</label>'+event.start.calendar()+'</div>'+                      
+                                '<div><label>Ends</label>'+event.end.calendar()+'</div>';
+
+                       $("<div></div>")
+                        .dialog ({  title : 'Recording Details',
+                                    width : "40%",
+                                   height : 240,
+                                    modal : true,
+                                 appendTo : "body",
+                            closeOnEscape : true,
+                                   buttons: { 
+                                              'Cancel Recording'  : function() { 
+                                                              if(window.confirm('Are you sure?')) { interface_calendar.delete( event) ; $(this).dialog("destroy") };
+                                                            }, 
+                                              'Close': function() { $(this).dialog("destroy") } ,
+                                             }
+                                 })
+                        .html( template );
           },
 
           "dayClick" : function( date, jsEvent, view) {
@@ -201,7 +225,7 @@ var interface_calendar = {
                                     modal : true,
                                  appendTo : "body",
                                    buttons: { 
-                                              'Never Mind': function() { $(this).dialog("close") } ,
+                                              'Never Mind': function() { $(this).dialog("destroy") } ,
                                               'Create'    : function() { 
                                                               interface_calendar.add( $(".formAdd") ); 
                                                               $(this).dialog("destroy");
@@ -210,6 +234,20 @@ var interface_calendar = {
                                  })
                         .html( template );
                     }             
+          },
+
+          "delete"     : function( calendarEvent ) {
+
+                       scheduleID=calendarEvent.eventID+'-'+calendarEvent.courseID;
+
+                       command = 'del '+scheduleID+'-start';
+                       UI.alert(  Data.send(command) );
+
+                       command = 'del '+scheduleID+'-stop';
+                       UI.alert(  Data.send(command) );
+
+                       interface_calendar.reload();
+                           
           },
 
           "add"     : function( form ) {
@@ -469,60 +507,8 @@ var Handler= {
                        event.preventDefault();
                     }
         
-                },
+                }
  
-                "delete" : function( event, confirmed ) {
-
-                 if(!confirmed) {
-
-                      courseID=event.courseID;
-
-                      content='<div id="deleteOptions">'+
-                                '<input type="checkbox" id="deleteSingle" value="all"><label for="deleteSingle">Remove this recording only</label>' + 
-                                '<input type="checkbox" id="deleteAll" value="all"><label for="deleteAll">Remove all scheduled recordings for '+courseID +'</label>' + 
-                              '</div>';
-                                
-                      
-                      $('<div>').appendTo("body")
-                               .html( content )
-                               .data( "event", event )
-                               .dialog({ title:'Confirm',
-                                          modal: true,
-                                          buttons: { 
-                                                     'Never Mind':function(){ $(this).dialog("close") } ,
-                                                     'Yes, Delete It':function(){ $(this).dialog("close");Handler.delete( $(this).data("event"), true) } 
-                                                    }
-                                        });
-                 }
-                  
-                },
-
-
-                 "hover" : function(event, jsevent, view ) {
-
-                          switch (jsEvent.type) {
-
-                           case 'mouseenter' :
-
-                                             toolBar=$('<span>', { class:'hover-toolbar' } );
-
-                                             buttonDelete=$('<span>', { id:'delete-'+event.eventID, class:'fa fa-times fa-2x hover-delete' } )
-                                                          .data("event", event)
-                                                          .click( function(){ Handler.delete( $(this).data("event")) } )
-                                                          .appendTo(toolBar);
-                                             
-                                             $('.fc-event-inner', this).append( toolBar );
-
-                                             break;
-                                             
-                           case 'mouseleave'  :
-                                            $('.hover-toolbar', this).remove();
-                                             break;
-                         }
-                         
-
-                  }
-
 
 
 };
@@ -579,6 +565,7 @@ var Handler= {
                                                      firstHour : 7,
                                                      allDaySlot : false,
 
+                                                     eventClick: Data.calendar.eventClick,
                                                      dayClick: Data.calendar.dayClick,
                                                      select : Data.calendar.select,
                                                      events : Data.calendar.events
