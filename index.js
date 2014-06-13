@@ -1,4 +1,10 @@
 
+// ----------------------------------------------------------
+// ----------------------------------------------------------
+
+var btn = $.fn.button.noConflict() // reverts $.fn.button to jqueryui btn
+$.fn.btn = btn // assigns bootstrap button functionality to $.fn.btn
+
 jQuery.fn.exists=function(){ return this.length>0;}
 
 jQuery.fn.redraw = function() {
@@ -6,6 +12,7 @@ jQuery.fn.redraw = function() {
         $(this).show();
     });
 };
+
 
 String.prototype.trim = function() {
 	return this.replace(/^\s+|\s+$/g,"");
@@ -19,11 +26,10 @@ String.prototype.rtrim = function() {
 
 String.prototype.toObjectArray=function() {
  x=[];
-
  $.each( this.split("\n"), function(i,v) {
 
    v = v.ltrim();
-   if( v.length > 1 && v.charAt(0) != "#") {
+   if( v.length > 1 && v.charAt(0) != "#" && (v.indexOf("=")>0) ) {
      vv=v.split("=");
      name=vv[0];
      value=vv[1]
@@ -37,432 +43,503 @@ String.prototype.toObjectArray=function() {
  return x;
 }
 
+// ----------------------------------------------------------
+// ----------------------------------------------------------
 
-var roomID='UNDEFINED';
-var roomName='UNDEFINED';
+// ----------------------------------------------------------
+var interface_common = {
 
-var send = function(cmd,parms) {
+                "read" : function(setting) {
+                
+                      common=Data.readconfig('common');
 
-//  console.log("Sending "+cmd);
-   
-  url="cmd.xml?command="+encodeURIComponent(cmd)+'&'+(parms||'')
-//  console.log(url);
+                      $.each( common, function(k,v) {
+                         interface_common[v.name] = v.value;
+                      });
 
-  response = $.ajax({
-        type: "GET",
-        url: url,
-        async: false,
-    }).responseText;
-
-// console.log(response)
-  return (response);
+                }
 }
 
 
-var goDialog=function( responseData ) {
+// ----------------------------------------------------------
+var interface_machine = {
 
-  json= eval('('+responseData+')' );
+                      "read" : function() {
+
+                                  config=Data.readconfig('machine');
+                                  $.each( config, function(i,v) {
+                                    interface_machine[ v['name'] ] = v['value'];
+                                    $("#config-"+v['name'] ).val( v['value'] );
+                                  });
+                                 
+                                  // Update the screen display
+                                  $("#roomInfo").text( interface_machine.roomID + ' / ' + interface_machine.roomName )
+                                  document.title=interface_machine.roomID;
+                        },
+
+                        "write" : function() {
+                           config=$("#config-form").serializeArray();
+                           p='';
+                           $.each( config, function(i,v) { 
+                               p=p+v['name']+'='+v['value']+'&';
+                           });
+
+                           UI.alert( Data.send('update machine', p) );
+
+                           interface_machine.read();
+                           interface_calendar.reload();
+                           
+                        }
+}                
+
+// ----------------------------------------------------------
+
+var interface_media =  { 
+
+        "toggle" : function (item) {
+
+            mediaName=$(item).attr('id').replace('media-','');
+            status=Data.send('show '+mediaName);
+
+            action=( status.indexOf('instance') == -1 ) ? 'play' : 'stop';
+            status=Data.send('control '+mediaName+' '+action);
+
+            $(item).button("option", "label", mediaName+' (<i>stand by</i>)')
+                   .button("refresh");
+
+            window.setTimeout( 'interface_media.read()', 3000);
+
+        },
+        
+        "read" : function() {
+
+           response=Data.send('show media');
+           vlcStatus = eval( "("+response+")" );
+
+           $.each( ( vlcStatus.result.media || {} ), function(k,v) {
+
+                  name=k;
+                  output=v.output;
+                  isStream=(output.indexOf('http'));
+                  
+                  item=$('#media-'+name);
+                  if( !item.exists() ) {
+                    item=$('<button>'+name+'</button>', { id:'media-'+name })
+                         .attr("id", "media-"+name)
+                         .appendTo('#status-media')
+                         .button()
+                         .click( function() { interface_media.toggle(this) } );
+                 }
+                 item.removeClass('active');
+                 item.removeClass('idle');
+                 
+
+                 if( v['instances'] ) { 
+                    if( output.indexOf('http') != -1 ) { showPreview(name) };
+                    name=name+' (active)';
+                    currentClass='active';
+                 }
+                 else
+                 {
+                    name=name+' (idle)' ;
+                    currentClass='idle';
+                 };
+                  
+                 item.addClass( currentClass )
+                     .button("option","label", name)
+                     .button("refresh");
+               
+            });
+
+        }
+};
+
+// ----------------------------------------------------------
+
+var interface_calendar = {
+
+          "element" : $("#event-calendar"),
+          
+          "reload" : function() {
   
-  details='';
-  $.each( json , function(k,v) {
-    details+='<div><label>'+k+'</label>'+v+'</div>';
-  });
+                       interface_calendar.element.fullCalendar('changeView','month');
+                       interface_calendar.element.fullCalendar( 'refetchEvents' );
+                       interface_calendar.element.fullCalendar( 'rerenderEvents' );
+          },
 
-  html='';
-  html=(json.result || details ) + '<div class="pull-right small">'+json.timestamp+'</div>';
-  
-  $('<div></div>')
-   .dialog({
-             title : (json.command || "Command Result"),
-             width:"30%",
-             modal : true,
-             buttons: {
-                          Ok: function() { $( this ).dialog( "close" );    }
-                      }
-           })
-   .html( html );
-}
+          "dayClick" : function( date, jsEvent, view) {
 
-var loadMachine=function() {
-             
-              raw = $.ajax({
-                    type: "GET",
-                    url: "config/machine",
-                    async: false,
-                }).responseText;
+                   if( (view.name!='agendaDay') &&  ( !date.isBefore() )  ) {
+                       interface_calendar.element.fullCalendar( 'gotoDate', date );
+                       interface_calendar.element.fullCalendar('changeView','agendaDay');
+                   }
+          },
+          
+          "select" : function( startMoment, endMoment, jsEvent, view) {
 
-              config=raw.toObjectArray();
-
-              $.each( config, function(i,v) {
-                $("#config-"+v['name'] ).val( v['value'] );
-              });
-             
-              $("#roomInfo").text( $("#config-roomID").val() + ' / ' + $("#config-roomName").val() )
-              document.title=$("#config-roomID").val();
-
-}
-
-var updateMachine=function() {
-
-   config=$("#config-form").serializeArray();
-   p='';
-   $.each( config, function(i,v) { 
-       p=p+v['name']+'='+v['value']+'&';
-   });
-
-   goDialog( send('update machine', p) );
-   loadMachine();
-   reloadCalendar();
-   
-}
-
-
-var reloadCalendar = function() {
-   $("#event-calendar").fullCalendar( 'refetchEvents' );
-   $("#event-calendar").fullCalendar( 'rerenderEvents' );
-}
-
-var loadControls=function() {
-
-   response=send('show camera');
-   controls=[];
-   
-   vlcStatus = eval( "("+response+")" );
-   $.each( vlcStatus.result.split("\n") ,
-           function(k,line) {
-
-                  item=$.trim(line.split(":")[0]);
-                  value=$.trim(line.split(":")[1]);
-
-
-                  pluck=item.match(/\((.*)\)/);
-                  if (pluck) {
-
-                    item=$.trim(item.split('(')[0]);
-                    itemType = (pluck) ? pluck[1]: '' ;
-                    value='control='+item+' type='+itemType+' '+value;
-
-                    value=value.replace(/=/g, ":\"")
-                               .split(" ").join(",")
-                               .replace(/,/g, "\",") + '"';
-
-                    console.log (value) ;
-                    controls.push( eval('({'+value+'})') );
-                  }
-
-           } );
+                   if( view.name == 'agendaDay') {
            
-   return controls;
-}
+                       interface_calendar.element.fullCalendar( 'unselect' );
+               
+                       template='<form class="formAdd" onsubmit="return false">'+
+                                '<input type="hidden" name="add" value="1">'+
+                                '<input type="hidden" name="room" value="'+interface_machine.roomID+'">'+
+                                '<input type="hidden" name="start" value="'+startMoment.format()+'">'+
+                                '<input type="hidden" name="end" value="'+endMoment.format()+'">'+
+                                '<div><label>Starts</label>' + startMoment.calendar() + '</div>'+
+                                '<div><label>Ends</label>' + endMoment.calendar() + '</div>'+
+                                '<div><label>Title</label><input name="title"><small>*required</small></div>'+
+                                '<div><label>Owner</label><input name="owner"><small>*required, network username</small></div>'+
+                                '<div><label>Public?</label><select name="mode"><option value="1">Yes</option><option value="0">No</option></select></div>'+
+                                '<div><label>Description</label><textarea name="description"></textarea></div>'+
+                                '</form>';
+                               
+                       $("<div></div>")
+                        .dialog ({  title : interface_machine.roomID+' - Add A Scheduled Recording',
+                                    width : "40%",
+                                   height : 340,
+                                    modal : true,
+                                 appendTo : "body",
+                                   buttons: { 
+                                              'Never Mind': function() { $(this).dialog("close") } ,
+                                              'Create'    : function() { 
+                                                              interface_calendar.add( $(".formAdd") ); 
+                                                              $(this).dialog("destroy");
+                                                            } 
+                                             }
+                                 })
+                        .html( template );
+                    }             
+          },
 
-var showControls=function( controls ) {
+          "add"     : function( form ) {
 
-   $.each( controls,
-           function(k,v) {
+                         response = $.ajax({
+                                type: "POST",
+                                url: interface_common.urlInfo,
+                                async: false,
+                                data : $(form).serialize(),
+                            }).responseText;
 
-           name=v['control'];
-           value=v['value'];
-           control=$('#control-'+name);
+                         UI.alert ( response );
 
-           if( !control.exists() ) {
-
-                  $('<button>', {id:'control-'+name} )
-                   .html(name)
-                   .button()
-                   .appendTo('#list-controls');
-           };
-
-   });
-
-
-}
-
-
-var showVideos=function(item) {
-
-   response=send('show media');
-   vlcStatus = eval( "("+response+")" );
-   
-   $.each( ( vlcStatus.result), 
-   function(k,v) {
-     console.log(v);
-   });
-  
-}
-
-var toggleMedia=function( item ) {
-
-    mediaName=$(item).attr('id').replace('media-','');
-    status=send('show '+mediaName);
-
-    action=( status.indexOf('instance') == -1 ) ? 'play' : 'stop';
-    status=send('control '+mediaName+' '+action);
-
-    $(item).button("option","label", mediaName+' (<i>stand by</i>)').button("refresh");
-    window.setTimeout( 'showMedia()', 3000);
-
-}
-
-var showMedia=function() {
-
-   response=send('show media');
-   vlcStatus = eval( "("+response+")" );
-    
-   $.each( ( vlcStatus.result.media || {} ), 
-   function(k,v) {
-
-          name=k;
-          output=v.output;
-          isStream=(output.indexOf('http'));
+          },
           
-          item=$('#media-'+name);
-              
-          // Create the button element if needed
-          if( !item.exists() ) {
+          "events"  : function( calendarStart, calendarEnd,  timezone, callback ) {
+           response=Data.send('show schedule');
+           vlcStatus = eval( "("+response+")" );
 
-            item=$('<button></button>', { id: 'media-'+name, title: name, text:name } )
-                 .appendTo('#status-media')
-                 .button();
-         }
-         item.removeClass('active');
-         item.removeClass('idle');
-         
-         if( v['instances'] ) { 
-            if( output.indexOf('http') != -1 ) { showPreview(name) };
-            name=name+' (active)';
-            currentClass='active';
-         }
-         else
-         {
-            name=name+' (idle)' ;
-            currentClass='idle';
-         };
-          
-         item.addClass( currentClass )
-             .button("option","label", name)
-             .button("refresh");
-       
-    });
+           var events={};
+           $.each( (vlcStatus.result.schedule || {}), function(k,v) {
+                  if ( v['next launch'] ) {
+
+                     eventInfo=k.split("-");
+                     eventID=eventInfo[0];
+                     eventName=eventInfo[1];
+                     eventType=eventInfo[2];
+                     eventLaunch=v['next launch'].substring(0,19);
+
+                     event = ( events[eventID] );
+
+                     if(!event) {
+                        event={ eventID:eventID,
+                                courseID:eventName,
+                                title:eventName,
+                                allDay:false,
+                                start:eventLaunch // If creating, use the current time as the start 
+                               };
+                     }
+
+                     if(eventType=='start') {
+                       event['start']=eventLaunch;
+                       event['hasStart']=true;
+                     }
+                     else {
+                       event['end']=eventLaunch; 
+                       event['hasEnd']=true;
+                     }             
+
+                     events[eventID] = event;
+
+                  }                                           
+
+           });
+
+          eventsArray=[];
+          $.each( events, function(k,v) {
+
+              eventStart=new Date(v.start);
+              eventEnd=new Date(v.end);
+
+              if( !v.hasStart ) { v.title = v.title + ' / STOP' }
+              if( (calendarStart <= eventStart) && ( eventEnd <= calendarEnd ) ) {
+               eventsArray.push(v) 
+              }
+
+           });
+
+          if(callback) {
+           callback(eventsArray);
+          } else {
+           return(eventsArray);
+          }
+
+        }
 
 };
 
+// ----------------------------------------------------------
 
-var getEvents=function( calendarStart, calendarEnd,  callback ) {
+var interface_preview = {
 
-   response=send('show schedule');
-   vlcStatus = eval( "("+response+")" );
+          "show"  :  function( mediaName ) {
 
-   var events={};
-   $.each( (vlcStatus.result.schedule || {}), function(k,v) {
-          if ( v['next launch'] ) {
+               previewID='media-'+mediaName+'-preview'
 
-             eventInfo=k.split("-");
+               preview=$('#'+previewID);
+               if( !preview.exists() ) {
 
-             eventID=eventInfo[0];
-             eventName=eventInfo[1];
-             eventType=eventInfo[2];
+                   var url='http://'+window.location.hostname+':8990/preview';
+                   var width='864';
+                   var height='480';
 
-             eventLaunch=v['next launch'].substring(0,19);
+                   template =  '<object type="application/x-vlc-plugin" data="'+url+'" width="'+width+'" height="'+height+'" id="'+previewID+'-content" controls="yes">' +
+                               ' <param name="movie" value="$url"/>' + 
+                               ' <embed type="application/x-vlc-plugin" name="'+previewID+'-content"  autoplay="yes"  loop="no" width="'+width+'" height="'+height+'"  target="'+url+'" />' + 
+                              '</object>';
 
-             event = ( events[eventID] );
+                   // Create a modal dialog and throw the preview in it
+                   $("<div></div>", {id:previewID} )
+                   .html( template )
+                   .dialog ({  title : url,
+                              modal : true,
+                               width: parseInt(width)+70,
+                              height: parseInt(height)+70,
+                            appendTo: "body",
+                               close : function() {  mediaName=$(this).attr('id').split('-')[1]; toggleMedia( $('#media-'+mediaName) ); $(this).dialog("destroy") }
+                            });                             
+              }
+            }
 
-             if(!event) {
-                event={ eventID:eventID,
-                        courseID:eventName,
-                        title:eventName,
-                        allDay:false,
-                        start:eventLaunch // If creating, use the current time as the start 
-                       };
-             }
+};
 
-             if(eventType=='start') {
-               event['start']=eventLaunch;
-               event['hasStart']=true;
-             }
-             else {
-               event['end']=eventLaunch; 
-               event['hasEnd']=true;
-             }             
+// ----------------------------------------------------------
+// ----------------------------------------------------------
 
-             events[eventID] = event;
+var interface_actions = {
 
-          }                                           
+           "attach"          : function() {
 
-   });
-                                                         
-  eventsArray=[];
-  $.each( events, function(k,v) {
+             $("button[data-action]")
+                .button()
+                .click( Handler.click ); 
+            },
 
-      eventStart=new Date(v.start);
-      eventEnd=new Date(v.end);
-      if( !v.hasStart ) { v.title = v.title + ' / STOP' }
-      if( (calendarStart <= eventStart) && ( eventEnd <= calendarEnd ) ) {
-       eventsArray.push(v) 
-      }
+           "reload-schedule" : function() {
+               x=Data.send('update schedule');
+               Data.calendar.reload();
+               UI.alert(x);
+           },
+           
+           "machine-write" : function() {
+               Data.machine.write(); 
+           },
+           
+           "update-software" : function() {
+               UI.alert( Data.send('update-software') );
+           },
 
-   });
+           "send-vlc"        : function() {
+               UI.alert( Data.send( $('#command').val() ) )               
+           },
 
-  callback(eventsArray);
+           "reboot"        : function() {
+               UI.alert( Data.send( 'control reboot' ) )          
+           }
+
 }
 
+// ----------------------------------------------------------
+// ----------------------------------------------------------
 
-var handleDelete=function( event, confirmed ) {
+var Data = {
+                                 
+                "common"   : interface_common,
+                "machine"  : interface_machine,
+                "media"    : interface_media,
+                "calendar" : interface_calendar,
+                "actions"  : interface_actions,
+                                
+                "readconfig" : function( file ) {
 
- if(!confirmed) {
+                      raw = $.ajax({
+                            type: 'GET',
+                            url: 'config/'+file,
+                            async: false,
+                        }).responseText;
 
-      courseID=event.courseID;
+                      return raw.toObjectArray();
 
-      content='<div id="deleteOptions">'+
-                '<input type="checkbox" id="deleteSingle" value="all"><label for="deleteSingle">Remove this recording only</label>' + 
-                '<input type="checkbox" id="deleteAll" value="all"><label for="deleteAll">Remove all scheduled recordings for '+courseID +'</label>' + 
-              '</div>';
+
+                },
+
+                "send" : function(cmd,parms) {
+
+                        url="cmd.xml?command="+encodeURIComponent(cmd)+'&'+(parms||'')
+
+                         response = $.ajax({
+                                type: "GET",
+                                url: url,
+                                async: false,
+                            }).responseText;
+
+                         return (response);
+
+                }
+           
                 
-      
-      $('<div>').appendTo("body")
-               .html( content )
-               .data( "event", event )
-               .dialog({ title:'Confirm',
-                          modal: true,
-                          buttons: { 
-                                     'Never Mind':function(){ $(this).dialog("close") } ,
-                                     'Yes, Delete It':function(){ $(this).dialog("close");handleDelete( $(this).data("event"), true) } 
-                                    }
-                        });
- }
- else {
-  // console.log(event);
+};
 
- }
-  
-}
+// ----------------------------------------------------------
 
-var formatDateForSchedule=function( sourceDate ) {
-  // Format = 2014/01/16-17:00:00
+var UI = {
 
-  d = new Date(sourceDate);
-   f=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate() + ' ' + d.getHours+':'+d.getMinutes()+':'+d.getSeconds();
-  return f;
+            "alert" : function( responseData ) {
 
-}
+              json=(typeof responseData == "string") ? eval('('+responseData+')') : responseData;
+              
+              details='';
+              $.each( json , function(k,v) {
+                details+='<div><label>'+k+'</label>'+v+'</div>';
+              });
 
+              html='';
+              html='<div class="small">'+(json.timestamp || '')+'</div>'+
+                   '<hr>'+
+                   details;
+              
+              $.bootstrapGrowl( html, { 
+                                        type:'warning',
+                                        width: "30%"
+                                       });
 
-var handleAdd=function(event) {
+ /*
+              $('<div></div>')
+               .dialog({
+                         title : (json.command || "Command Result"),
+                         width:"30%",
+                         modal : true,
+                         buttons: {
+                                      Ok: function() { $( this ).dialog( "close" );    }
+                                  }
+                       })
+               .html( html );
+*/
 
-   event='adhoc-'+Math.round(new Date().getTime() / 1000) ;
+            },
+            
+          "calendar" : interface_calendar,
+          "preview"  : interface_preview
+};
 
-   send('new '+event+'-start schedule');
-   send('setup '+event+'-start date '+formatDateForSchedule(event.start) );
-   send('setup '+event+'-start append control recorder start');
-   send('setup '+event+'-start enabled');
-   
-   send('new '+event+'-stop schedule');
-   send('setup '+event+'-stop date '+formatDateForSchedule(event.end) );
-   send('setup '+event+'-stop append control recorder start');
-   send('setup '+event+'-stop enabled');
+// ----------------------------------------------------------
 
-   $('#event-calendar').fullCalendar('refreshEvents');
-      
-}
+var Format = {
+           "date" : {
+              "schedule" : function(sourceDate) {
+                              // Format = 2014/01/16-17:00:00
+                              d = new Date(sourceDate);
+                               f=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate() + ' ' + d.getHours+':'+d.getMinutes()+':'+d.getSeconds();
+                              return f;
+              }
+           }
+}           
 
+// ----------------------------------------------------------
 
-var handleHover=function( event, jsEvent, view) {
+var Handler= {
 
-  switch (jsEvent.type) {
+                "click" : function(event) {
 
-   case 'mouseenter' :
+                    source=event.currentTarget;
+                    action=$(source).attr("data-action");
 
-                     toolBar=$('<span>', { class:'hover-toolbar' } );
-
-                     buttonDelete=$('<span>', { id:'delete-'+event.eventID, class:'fa fa-times fa-2x hover-delete' } )
-                                  .data("event", event)
-                                  .click( function(){ handleDelete( $(this).data("event")) } )
-                                  .appendTo(toolBar);
-                     
-                     $('.fc-event-inner', this).append( toolBar );
-
-                     break;
-                     
-   case 'mouseleave'  :
-                    $('.hover-toolbar', this).remove();
-                     break;
- }
+                    if(action) {
+                       interface_actions[ action ]();
+                       event.preventDefault();
+                    }
+        
+                },
  
+                "delete" : function( event, confirmed ) {
 
-}
+                 if(!confirmed) {
 
+                      courseID=event.courseID;
 
-var handleSelect=function( startDate, endDate, allDay, jsEvent, view ) {
-
-       $("#event-calendar").fullCalendar( 'unselect' );
-
-       template = '<div>Starts : ' + startDate.toLocaleTimeString() + '</div><div>Ends : ' + endDate.toLocaleTimeString() + '</div>';
-       $("<div></div>")
-        .html( template )
-        .data( "event", { start:startDate, end:endDate } )
-        .dialog ({  title : "Add A Recording",
-                    width : 300,
-                   height : 150,
-                    modal : true,
-                 appendTo : "body",
-                   buttons: { 
-                              'Never Mind':function(){ $(this).dialog("close") } ,
-                              'Create':function(){ $(this).dialog("close"); handleAdd(  $(this).data("event"), true) } 
-                             }
-
-
-                 });                             
-                 
-
-}
+                      content='<div id="deleteOptions">'+
+                                '<input type="checkbox" id="deleteSingle" value="all"><label for="deleteSingle">Remove this recording only</label>' + 
+                                '<input type="checkbox" id="deleteAll" value="all"><label for="deleteAll">Remove all scheduled recordings for '+courseID +'</label>' + 
+                              '</div>';
+                                
+                      
+                      $('<div>').appendTo("body")
+                               .html( content )
+                               .data( "event", event )
+                               .dialog({ title:'Confirm',
+                                          modal: true,
+                                          buttons: { 
+                                                     'Never Mind':function(){ $(this).dialog("close") } ,
+                                                     'Yes, Delete It':function(){ $(this).dialog("close");Handler.delete( $(this).data("event"), true) } 
+                                                    }
+                                        });
+                 }
+                  
+                },
 
 
-var showPreview=function( mediaName ) {
+                 "hover" : function(event, jsevent, view ) {
 
-   previewID='media-'+mediaName+'-preview'
+                          switch (jsEvent.type) {
 
-   preview=$('#'+previewID);
-   if( !preview.exists() ) {
+                           case 'mouseenter' :
 
-       var url='http://'+window.location.hostname+':8990/preview';
-       var width='864';
-       var height='480';
+                                             toolBar=$('<span>', { class:'hover-toolbar' } );
 
-       template =  '<object type="application/x-vlc-plugin" data="'+url+'" width="'+width+'" height="'+height+'" id="'+previewID+'-content" controls="yes">' +
-                   ' <param name="movie" value="$url"/>' + 
-                   ' <embed type="application/x-vlc-plugin" name="'+previewID+'-content"  autoplay="yes"  loop="no" width="'+width+'" height="'+height+'"  target="'+url+'" />' + 
-                  '</object>';
+                                             buttonDelete=$('<span>', { id:'delete-'+event.eventID, class:'fa fa-times fa-2x hover-delete' } )
+                                                          .data("event", event)
+                                                          .click( function(){ Handler.delete( $(this).data("event")) } )
+                                                          .appendTo(toolBar);
+                                             
+                                             $('.fc-event-inner', this).append( toolBar );
 
-       // Create a modal dialog and throw the preview in it
-       $("<div></div>", {id:previewID} )
-       .html( template )
-       .dialog ({  title : url,
-                  modal : true,
-                   width: parseInt(width)+70,
-                  height: parseInt(height)+70,
-                appendTo: "body",
-                   close : function() {  mediaName=$(this).attr('id').split('-')[1]; toggleMedia( $('#media-'+mediaName) ); $(this).dialog("destroy") }
-                });                             
-  }
- }
+                                             break;
+                                             
+                           case 'mouseleave'  :
+                                            $('.hover-toolbar', this).remove();
+                                             break;
+                         }
+                         
 
- var showIcon=function(icon) {
- 
-   var link = document.createElement('link');
-    link.type = 'image/x-icon';
-    link.rel = 'shortcut icon';
-    link.href = './'+icon;
-    document.getElementsByTagName('head')[0].appendChild(link);
-}
+                  }
 
+
+
+};
+
+// ----------------------------------------------------------
+// ----------------------------------------------------------
 
 
 
  $(document).ready( function() {  
-  
-              loadMachine();
-              showMedia();
-              $("button:not(.navbar-toggle)").button();
-             
+
+              Data.common.read();
+              Data.machine.read();
+              Data.media.read();
+
+              Data.actions.attach();
+              
               $('.page-scroll a').bind('click', function(event) {
 
                     $("section.active")
@@ -486,40 +563,29 @@ var showPreview=function( mediaName ) {
                 });
 
 
-              $("#event-dialog").dialog( {autoOpen:false, title:"Scheduler"} );
-              
-                var date = new Date();
-                var d = date.getDate();
-                var m = date.getMonth();
-                var y = date.getFullYear();
-                 $("#event-calendar").fullCalendar( {  events : getEvents,
-                                                     header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaWeek,agendaDay'},
+                 $("#event-calendar").fullCalendar( {  
+
+                                                     header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaDay'},
                                                      eventColor : '#ABABAB',
                                                      contentHeight: 500,
                                                      handleWindowResize: true ,
                                                      selectable: true,
                                                      selectHelper: true,
-                                                    theme : true,
-                                                    year:  y,
-                                                    month: m,
-                                                    date:  d,                                                     
-                                                    defaultView : 'month',
-                                                    defaultEventMinutes : 15,
-                                                    slotMinutes : 15,
-                                                    firstHour : 7,
-                                                    allDaySlot : false,
-                                                    select : handleSelect,
-                                                    eventMouseover : handleHover,
-                                                    eventMouseout : handleHover
-                                                    } );
+                                                     theme : true,
+                                                     now:  moment(),
+                                                     defaultView : 'month',
+                                                     defaultEventMinutes : 15,
+                                                     slotMinutes : 15,
+                                                     firstHour : 7,
+                                                     allDaySlot : false,
 
-              /*
-              $("#content").tabs({
-                                   activate : function(e,ui) {
-                                      $("#event-calendar").fullCalendar( 'refetchEvents' );
-                                   }
-              });
-              */
+                                                     dayClick: Data.calendar.dayClick,
+                                                     select : Data.calendar.select,
+                                                     events : Data.calendar.events
+                                              });
+
+  
+
 
  });
 

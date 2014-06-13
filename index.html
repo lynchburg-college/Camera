@@ -14,10 +14,10 @@
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
   <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" rel="styleheet">
 
-  <link href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/themes/smoothness/jquery-ui.css" rel="stylesheet" class="theme-link" type="text/css" media="screen" />
+  <link href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css" rel="stylesheet" class="theme-link" type="text/css" media="screen" />
 
-  <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css" rel="stylesheet" />
-  <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.print.css" rel="stylesheet" />
+  <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.css" rel="stylesheet" />
+  <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.print.css" rel="stylesheet" />
 
   <style>
    label {  
@@ -29,7 +29,10 @@
    td.fc-today div.fc-day-number {
     font-weight:bold;
    }
-   
+   .honk {
+      background-color:red;
+      font-size:150%;
+   }
   </style>
   
 </head>
@@ -72,7 +75,7 @@
         <div id="event-dialog"></div>
         <div id="event-calendar"></div>
         <div class="pull-right">
-         <button onClick="goDialog(send( 'update schedule' ));reloadCalendar();">Reload Schedule</button>
+         <button data-action="reload-schedule">Reload Schedule</button>
        </div>
     </section>
 
@@ -93,10 +96,10 @@
               </div>
              </form>
              <br>
-             <button onClick="updateMachine()">Update Configuration</button>
+             <button data-action="machine-write">Save Configuration</button>
              <hr>
-             <button onClick="goDialog( send( 'update software' ) )">Update Software</button>
-             <button onClick="goDialog( send( 'control reboot' ) )">Reboot Machine</button>
+             <button data-action="update-software">Update Software</button>
+             <button data-action="reboot">Reboot Machine</button>
   </section>
 
     <section id="panel-video" class="hidden">
@@ -107,7 +110,9 @@
 
     <section id="panel-vlc" class="hidden">
     <h3>VLC Command</h3>
-         <div><input type="text" style="width:300px" id="command" name="command"><button onClick="goDialog( send( $('#command').val() ) )" value="Send">Send</button></div>
+         <div><input type="text" style="width:300px" id="command" name="command">
+              <button data-action="send-vlc">Send</button>
+         </div>
     </section>
     
 
@@ -115,11 +120,15 @@
  
  
 
- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
- <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
- <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js"></script>
- <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+ <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+ <script src="//code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
 
+ <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.js"></script>
+ <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.js"></script>
+ 
+ <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+ <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-growl/1.0.0/jquery.bootstrap-growl.js"></script>
+ 
  <script src="index.js"></script>
  
 </body>

@@ -128,8 +128,8 @@ if( string.starts ( command, "update" ) ) then
  elseif ( string.ends ( command, "schedule") ) then
 
    result = "Schedule Updated"
-   json["os_command"] = os.capture( './schedule' )
-   json["vlc_command"] = vlc.vlm():execute_command( "load config/schedule" )
+   os.capture( './schedule' )
+   vlc.vlm():execute_command( "load config/schedule" )
 
  end
  
