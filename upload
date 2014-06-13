@@ -64,7 +64,7 @@ find "$pathVideo/*.uploaded" -mtime +5 -exec rm {} \;
 
 # Alert if space is low
 spaceUsed=$(df $pathVideo | tail -1 | awk '{print $5}' | sed 's/%//g')
-[[ $spaceUsed > 70 ]] && $pathRoot/notify  "Storage Space Used : $spaceUsed%"
+[[ $spaceUsed -gt 70 ]] && $pathRoot/notify  "Storage Space Used : $spaceUsed%"
 
 
 } | tee -a $logFile
