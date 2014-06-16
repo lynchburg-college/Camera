@@ -43,6 +43,19 @@ String.prototype.toObjectArray=function() {
  return x;
 }
 
+moment.lang('en', {
+    calendar : {
+        lastDay : '[Yesterday at] LT',
+        sameDay : '[Today at] LT',
+        nextDay : '[Tomorrow at] LT',
+        lastWeek : '[last] dddd [at] LT',
+        nextWeek : 'LLL',
+        sameElse : 'LLL'
+    }
+});
+
+
+
 // ----------------------------------------------------------
 // ----------------------------------------------------------
 
@@ -135,7 +148,7 @@ var interface_media =  {
                  
 
                  if( v['instances'] ) { 
-                    if( output.indexOf('http') != -1 ) { showPreview(name) };
+                    if( output.indexOf('http') != -1 ) { UI.preview.show(name) };
                     name=name+' (active)';
                     currentClass='active';
                  }
@@ -260,6 +273,7 @@ var interface_calendar = {
                             }).responseText;
 
                          UI.alert ( response );
+                         interface_calendar.reload();
 
           },
           
@@ -354,7 +368,11 @@ var interface_preview = {
                                width: parseInt(width)+70,
                               height: parseInt(height)+70,
                             appendTo: "body",
-                               close : function() {  mediaName=$(this).attr('id').split('-')[1]; toggleMedia( $('#media-'+mediaName) ); $(this).dialog("destroy") }
+                               close : function() { 
+                                         mediaName=$(this).attr('id').split('-')[1]; 
+                                         interface_media.toggle( $('#media-'+mediaName) ); 
+                                         $(this).dialog("destroy")
+                                       }
                             });                             
               }
             }
@@ -368,9 +386,11 @@ var interface_actions = {
 
            "attach"          : function() {
 
+       
              $("button[data-action]")
                 .button()
-                .click( Handler.click ); 
+                .click( Handler.click );
+
             },
 
            "reload-schedule" : function() {
@@ -557,7 +577,6 @@ var Handler= {
                                                      handleWindowResize: true ,
                                                      selectable: true,
                                                      selectHelper: true,
-                                                     theme : true,
                                                      now:  moment(),
                                                      defaultView : 'month',
                                                      defaultEventMinutes : 15,

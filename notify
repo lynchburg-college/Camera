@@ -7,7 +7,7 @@ source "${0%/*}/config/common"
 host=$(hostname)
 ip=$(hostname -I)
 
-to="hudson.b@lynchburg.edu"
+to="hudson.b@lynchburg.edu;johnston.m@lynchburg.edu"
 
 subject="$1"
 body="$2"
