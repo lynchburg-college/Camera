@@ -6,6 +6,7 @@ source "${0%/*}/config/common"
 
 host=$(hostname)
 ip=$(hostname -I)
+test=1
 
 to="hudson.b@lynchburg.edu;johnston.m@lynchburg.edu"
 
