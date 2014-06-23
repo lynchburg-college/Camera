@@ -298,14 +298,18 @@ var interface_calendar = {
                      eventType=eventInfo[2];
                      eventLaunch=v['next launch'].substring(0,19);
 
+                     eventColor = eventName.indexOf('ADHOC') ? 'darkolivegreen' : 'darkseagreen' ;
+
                      event = ( events[eventID] );
 
                      if(!event) {
                         event={ eventID:eventID,
                                 courseID:eventName,
                                 title:eventName,
+                                durationEditable : false,
                                 allDay:false,
-                                start:eventLaunch // If creating, use the current time as the start 
+                                color:eventColor,
+                                start:eventLaunch
                                };
                      }
 
@@ -582,8 +586,7 @@ var Handler= {
 
                  $("#event-calendar").fullCalendar( {  
 
-                                                     header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaDay'},
-                                                     eventColor : '#ABABAB',
+                                                     header: {  left: 'today',  center: 'prev,title,next',  right: 'month,agendaDay'},
                                                      contentHeight: 500,
                                                      handleWindowResize: true ,
                                                      selectable: true,
