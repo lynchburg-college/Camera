@@ -27,7 +27,8 @@ pathVideo="$pathRoot/video"
 pathConfig="$pathRoot/config"
 
 # URLs
-urlInfo="http://apps.lynchburg.edu/campus/system/public/calendar/roominfo.asp"
+#urlInfo="http://apps.lynchburg.edu/campus/system/public/calendar/roominfo.asp"
+urlInfo="http://apps.lynchburg.edu/campus/system/data/captureschedule/"
 urlUpload="http://media.lynchburg.edu/upload.php"
 
 

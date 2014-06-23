@@ -21,22 +21,34 @@ touch $logFile
            log "Found $file"
 
            # If the filename is a date, use it as the start time
-           asOf=$(basename "$file")
+           #asOf=$(basename "$file")
 
-           asOf="${asOf%.*}"
-           date -d "$asOf" > /dev/null 2>&1
-           if [ $? -eq 1 ]
+           #asOf="${asOf%.*}"
+           #date -d "$asOf" > /dev/null 2>&1
+           #if [ $? -eq 1 ]
+           #then
+           #  #.. otherwise, use the last modified time of the file
+           #  asOf=$(date "+$formatISO" -d "$(stat -c "%y" $file)")
+           #fi
+           #url="$urlInfo?room=$roomID&asOf=$asOf&mode=meeting"
+           #log "Calling $url"
+           #info=$(curl -sL "$url")
+           #log "Got $info"
+           
+    
+           # Get the file modified date in UNIX format
+           fileModified=$(stat -c%Y  $file)
+
+           # Peek through the schedule to find the META with this date between the range of the schedule item
+           info=$(awk '$1=="#" && $2=="META" { if( d >= $3-1 &&  d <= $4+1 ) { print $0 } } ' d="$fileModified"  config/schedule | cut -d' ' -f 5-)
+
+           # Couldn't find anything?  That's OK.. use the default stuff
+           if [ "$info" == "" ]
            then
-             #.. otherwise, use the last modified time of the file
-             asOf=$(date "+$formatISO" -d "$(stat -c "%y" $file)")
+               info="-F \"userID=HUDSON_B\" -F \"public=1\" -F \"title=$roomID Recording\" "
            fi
-
-           # Ask the server for info about the class meeting at that time
-           url="$urlInfo?room=$roomID&asOf=$asOf&mode=meeting"
-           log "Calling $url"
-           info=$(curl -sL "$url")
-           log "Got $info"
-
+           
+           
            # Post to the media server
            cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file\" $urlUpload"
            log "$cmd"

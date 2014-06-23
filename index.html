@@ -12,7 +12,9 @@
   <link rel="icon" type="image/jpg" href="favicon.jpg?v=2" />
 
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+<!--
   <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" rel="styleheet">
+-->
 
   <link href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css" rel="stylesheet" class="theme-link" type="text/css" media="screen" />
 
@@ -44,7 +46,7 @@
 
       <div class="navbar-header">
 
-         <a class="navbar-brand" href="#"><span id="roomInfo"></span></a>
+         <a class="navbar-brand" href="#"><span class="glyphicon glyphicon-facetime-video glyphicon-lg"></span>  <span id="roomInfo"></span></a>
 
           <button id="navbar-button-toggle" type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
             <span class="sr-only">Toggle navigation</span>
@@ -98,6 +100,7 @@
              <br>
              <button data-action="machine-write">Save Configuration</button>
              <hr>
+             <button data-action="update-camera">Reset Camera</button>
              <button data-action="update-software">Update Software</button>
              <button data-action="reboot">Reboot Machine</button>
   </section>

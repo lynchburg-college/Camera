@@ -116,12 +116,15 @@ end
 
 if( string.starts ( command, "update" ) ) then
 
- if ( string.starts(  command, "update machine") ) then
+
+ if ( string.ends(  command, "machine") ) then
 
    updateMachine()
    result="Machine Config Written.  Remember to reload the schedule."
- 
    
+ elseif ( string.ends ( command, "camera") ) then
+   result="Got it"
+
  elseif     ( string.ends ( command, "software") ) then
    result = os.capture( 'git pull' )
 

@@ -217,7 +217,7 @@ var interface_calendar = {
                    if( view.name == 'agendaDay') {
            
                        interface_calendar.element.fullCalendar( 'unselect' );
-               
+
                        template='<form class="formAdd" onsubmit="return false">'+
                                 '<input type="hidden" name="add" value="1">'+
                                 '<input type="hidden" name="room" value="'+interface_machine.roomID+'">'+
@@ -227,7 +227,6 @@ var interface_calendar = {
                                 '<div><label>Ends</label>' + endMoment.calendar() + '</div>'+
                                 '<div><label>Title</label><input name="title"><small>*required</small></div>'+
                                 '<div><label>Owner</label><input name="owner"><small>*required, network username</small></div>'+
-                                '<div><label>Public?</label><select name="mode"><option value="1">Yes</option><option value="0">No</option></select></div>'+
                                 '<div><label>Description</label><textarea name="description"></textarea></div>'+
                                 '</form>';
                                
@@ -238,10 +237,10 @@ var interface_calendar = {
                                     modal : true,
                                  appendTo : "body",
                                    buttons: { 
-                                              'Never Mind': function() { $(this).dialog("destroy") } ,
+                                              'Never Mind': function() { $(this).dialog("destroy").remove() } ,
                                               'Create'    : function() { 
                                                               interface_calendar.add( $(".formAdd") ); 
-                                                              $(this).dialog("destroy");
+                                                              $(this).dialog("destroy").remove();
                                                             } 
                                              }
                                  })
@@ -405,6 +404,10 @@ var interface_actions = {
            
            "update-software" : function() {
                UI.alert( Data.send('update-software') );
+           },
+
+           "update-camera" : function() {
+               UI.alert( Data.send('update-camera') );
            },
 
            "send-vlc"        : function() {

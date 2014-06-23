@@ -8,7 +8,7 @@ host=$(hostname)
 ip=$(hostname -I)
 test=1
 
-to="hudson.b@lynchburg.edu;johnston.m@lynchburg.edu"
+to="hudson.b@lynchburg.edu"
 
 subject="$1"
 body="$2"
