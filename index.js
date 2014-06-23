@@ -258,6 +258,14 @@ var interface_calendar = {
                        command = 'del '+scheduleID+'-stop';
                        UI.alert(  Data.send(command) );
 
+                         response = $.ajax({
+                                type: "POST",
+                                url: interface_common.urlInfo,
+                                async: false,
+                                data : { "delete" : scheduleID }
+                            }).responseText;
+                       UI.alert(  response );
+
                        interface_calendar.reload();
                            
           },
@@ -582,8 +590,8 @@ var Handler= {
                                                      selectHelper: true,
                                                      now:  moment(),
                                                      defaultView : 'month',
-                                                     defaultEventMinutes : 15,
-                                                     slotMinutes : 15,
+                                                     defaultTimedEventDuration : '00:15:00',
+                                                     slotDuration : '00:15:00',
                                                      firstHour : 7,
                                                      allDaySlot : false,
 
