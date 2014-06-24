@@ -20,24 +20,10 @@ touch $logFile
         else
            log "Found $file"
 
-           # If the filename is a date, use it as the start time
-           #asOf=$(basename "$file")
-
-           #asOf="${asOf%.*}"
-           #date -d "$asOf" > /dev/null 2>&1
-           #if [ $? -eq 1 ]
-           #then
-           #  #.. otherwise, use the last modified time of the file
-           #  asOf=$(date "+$formatISO" -d "$(stat -c "%y" $file)")
-           #fi
-           #url="$urlInfo?room=$roomID&asOf=$asOf&mode=meeting"
-           #log "Calling $url"
-           #info=$(curl -sL "$url")
-           #log "Got $info"
            
     
            # Get the file modified date in UNIX format
-           fileModified=$(stat -c%Y  $file)
+           fileModified=$(date +%Y%m%d%H%M%S -r $file)
 
            # Peek through the schedule to find the META with this date between the range of the schedule item
            info=$(awk '$1=="#" && $2=="META" { if( d >= $3-1 &&  d <= $4+1 ) { print $0 } } ' d="$fileModified"  config/schedule | cut -d' ' -f 5-)

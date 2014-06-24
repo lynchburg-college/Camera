@@ -29,15 +29,15 @@
      text-decoration: underline;
    }
 
-   .fc-state-highlight { 
-       font-weight:bold;
-       background: burlywood;
+   #status-camera span {
+     height:120px; float:left; margin:15px
    }
-	
+    
    .honk {
       background-color:red;
       font-size:150%;
    }
+
   </style>
   
 </head>
@@ -115,7 +115,10 @@
     <section id="panel-video" class="hidden">
      <h3>Video Controls</h3>
         <div id="status-media"></div>
-        <div id="list-controls"></div>
+
+        <div id="status-camera">
+        </div>
+
     </section>
 
     <section id="panel-vlc" class="hidden">
@@ -129,7 +132,6 @@
  </div>
  
  
-
  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
  <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 

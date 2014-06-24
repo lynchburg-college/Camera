@@ -355,6 +355,39 @@ var interface_calendar = {
 
 var interface_preview = {
 
+          "controls" : function() {
+
+            response=eval('('+Data.send("show camera")+')');
+            controls=response.result.split('\n');
+
+            $(controls).each( function(k,v) {
+
+                     control={};
+                     items=v.split(/\s+/);
+
+                     $(items).each( function(kk,vv) {
+                       switch( true ) {
+
+                         case (kk==1) : control.name=vv;
+                                  break;
+
+                         case (kk==2) : control.type=(vv.replace('(','').replace(')',''));
+                                  break;
+
+                         case (vv.indexOf('=')) : tt=vv.split('=');
+                                                   control[tt[0]]=tt[1];
+
+                       }
+                     });
+
+                    console.log(control);
+                       
+            });
+
+            
+
+          },
+
           "show"  :  function( mediaName ) {
 
                previewID='media-'+mediaName+'-preview'
@@ -396,7 +429,6 @@ var interface_preview = {
 var interface_actions = {
 
            "attach"          : function() {
-
        
              $("button[data-action]")
                 .button()
@@ -410,16 +442,17 @@ var interface_actions = {
                UI.alert(x);
            },
            
+           "update-camera" : function() {
+               interface_preview.controls();
+           },
+
+
            "machine-write" : function() {
                Data.machine.write(); 
            },
            
            "update-software" : function() {
                UI.alert( Data.send('update-software') );
-           },
-
-           "update-camera" : function() {
-               UI.alert( Data.send('update-camera') );
            },
 
            "send-vlc"        : function() {
@@ -561,7 +594,7 @@ var Handler= {
 
               Data.actions.attach();
               
-              $('.page-scroll a').bind('click', function(event) {
+                    $('.page-scroll a').bind('click', function(event) {
 
                     $("section.active")
                      .fadeOut(100)
