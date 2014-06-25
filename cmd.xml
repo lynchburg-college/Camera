@@ -1,15 +1,63 @@
 <?vlc
+
+--
+-- Command handler for all web actions
+--
+
+
 require "httprequests"
 
+--
+-- Utility Functions
+--
 function string.starts(String,Start)
    return string.sub(String,1,string.len(Start))==Start
 end
-
+-- ----------------------
 function string.ends(String,End)
    return End=='' or string.sub(String,-string.len(End))==End
 end
+-- ----------------------
+function pairsByKeys (t, f)
+      local a = {}
+      for n in pairs(t) do table.insert(a, n) end
+      table.sort(a, f)
+      local i = 0      -- iterator variable
+      local iter = function ()   -- iterator function
+        i = i + 1
+        if a[i] == nil then return nil
+        else return a[i], t[a[i]]
+        end
+      end
+      return iter
+ end
+-- ----------------------
+function getProperties ( collection )
+   local o={}
+   for k,v in pairsByKeys(collection) do
+    if(type(v.children) == "table" ) then
+     o[v.name]=getProperties( v.children )
+    else
+     o[v.name]=v.value
+    end
+   end
+   return o
+end
+-- ----------------------
 
 
+
+--
+-- OS Functions
+-- ----------------------
+function os.capture(cmd, raw)
+  local f = assert(io.popen(cmd, 'r'))
+  local s = assert(f:read('*a'))
+  f:close()
+  if raw then return s end
+  return s
+end
+-- ----------------------
 function updateMachine()
 
    now = os.date("%a %b %d, %Y @ %I:%M:%S%p  ")
@@ -29,49 +77,12 @@ function updateMachine()
    file:close()
 
 end
-
-function os.capture(cmd, raw)
-  local f = assert(io.popen(cmd, 'r'))
-  local s = assert(f:read('*a'))
-  f:close()
-  if raw then return s end
-  return s
-end
+-- ----------------------
 
 
-function pairsByKeys (t, f)
-      local a = {}
-      for n in pairs(t) do table.insert(a, n) end
-      table.sort(a, f)
-      local i = 0      -- iterator variable
-      local iter = function ()   -- iterator function
-        i = i + 1
-        if a[i] == nil then return nil
-        else return a[i], t[a[i]]
-        end
-      end
-      return iter
- end
 
 
-function getProperties ( collection )
 
-   local o={}
-   
-   for k,v in pairsByKeys(collection) do
-
-    if(type(v.children) == "table" ) then
-     o[v.name]=getProperties( v.children )
-    else
-     o[v.name]=v.value
-    end
-
-   end
-
-   return o
-end
-
-json = {}
 
 command=_GET["command"]
 if(command == nil) then
@@ -80,8 +91,20 @@ end
 
 result = ""
 
+-- ----------------------
+-- Camera 
+-- ----------------------
+if( string.starts ( command, "camera" ) ) then
+
+   setting="/usr/bin/v4l2-ctl --verbose -c "..(string.sub( command, 8, string.len(command) ) )
+   result=os.capture(setting)
+  
+end
 
 
+-- ----------------------
+-- Machine 
+-- ----------------------
 if( string.starts ( command, "control" ) ) then
 
  if     ( string.ends ( command, "reboot") ) then
@@ -89,30 +112,41 @@ if( string.starts ( command, "control" ) ) then
  
  elseif ( string.ends ( command, "ifconfig") ) then
    result = os.capture( '/sbin/ifconfig' )
+
  end
 
 end
 
 
 
+-- ----------------------
+-- View
+-- ----------------------
 if( string.starts ( command, "show" ) ) then
 
  if     ( string.ends ( command, "videos") ) then
    result = vlc.net.opendir( 'video' )
 
+ elseif ( string.ends ( command, "recording") ) then
+   result = os.capture( 'lsof ./video/*' )
+
  elseif ( string.ends ( command, "camera") ) then
-   result = os.capture( 'v4l2-ctl -L' )
+   result = os.capture( 'v4l2-ctl -l' )
    
  elseif ( string.ends ( command, "space") ) then
    result = os.capture( 'df -h' )
 
  elseif ( string.ends( command, "ip") ) then
-   result = os.capture( "ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{print $1}'" )
+   result = os.capture( "/sbin/ifconfig" )
 
  end
 
 end
    
+
+-- ----------------------
+-- Update
+-- ----------------------
 
 if( string.starts ( command, "update" ) ) then
 
@@ -122,9 +156,6 @@ if( string.starts ( command, "update" ) ) then
    updateMachine()
    result="Machine Config Written.  Remember to reload the schedule."
    
- elseif ( string.ends ( command, "camera") ) then
-   result="Got it"
-
  elseif     ( string.ends ( command, "software") ) then
    result = os.capture( 'git pull' )
 
@@ -139,6 +170,9 @@ if( string.starts ( command, "update" ) ) then
 end
 
 
+
+
+
 if (result == "" ) then
 
    response = vlc.vlm():execute_command( command )
@@ -150,7 +184,7 @@ if (result == "" ) then
 
 end
 
-
+json = {}
 json["command"] = command
 json["timestamp"]=os.date("%Y-%m-%d %H:%M:%S (%a)")
 json["result"]=result

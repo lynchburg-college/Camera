@@ -29,8 +29,13 @@
      text-decoration: underline;
    }
 
-   #status-camera span {
-     height:120px; float:left; margin:15px
+   #preview-controls {
+      height:auto;
+      overflow-y: scroll;
+   }
+
+   #preview-controls div.row {
+      padding-bottom: 0.25m;
    }
     
    .honk {
@@ -107,25 +112,27 @@
              <br>
              <button data-action="machine-write">Save Configuration</button>
              <hr>
-             <button data-action="update-camera">Reset Camera</button>
              <button data-action="update-software">Update Software</button>
              <button data-action="reboot">Reboot Machine</button>
   </section>
 
     <section id="panel-video" class="hidden">
      <h3>Video Controls</h3>
-        <div id="status-media"></div>
-
-        <div id="status-camera">
+        <div><button id="preview-button" data-action="toggle-preview">preview (idle)</button> | <span id="status-media"></span></div>
+        <hr>
+        <div id="preview">
+            <div id="preview-controls" class="col-sm-4"></div>
+            <div id="preview-video" class="col-sm-8"></div>
         </div>
 
     </section>
 
     <section id="panel-vlc" class="hidden">
     <h3>VLC Command</h3>
-         <div><input type="text" style="width:300px" id="command" name="command">
+         <div><input type="text" style="width:300px" id="vlc-command" name="vlc-command">
               <button data-action="send-vlc">Send</button>
          </div>
+         <div id="vlc-receive"></div>
     </section>
     
 

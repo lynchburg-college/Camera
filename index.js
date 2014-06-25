@@ -133,8 +133,8 @@ var interface_media =  {
 
                   name=k;
                   output=v.output;
-                  isStream=(output.indexOf('http'));
-                  
+                  isStreaming=( output.indexOf('http') > 0 );
+
                   item=$('#media-'+name);
                   if( !item.exists() ) {
                     item=$('<button>'+name+'</button>', { id:'media-'+name })
@@ -148,7 +148,6 @@ var interface_media =  {
                  
 
                  if( v['instances'] ) { 
-                    if( output.indexOf('http') != -1 ) { UI.preview.show(name) };
                     name=name+' (active)';
                     currentClass='active';
                  }
@@ -173,6 +172,30 @@ var interface_calendar = {
 
           "element" : $("#event-calendar"),
           
+
+          "setup" : function() {
+
+                      this.element.fullCalendar( {  
+
+                                                     header: {  left: 'today',  center: 'prev,title,next',  right: 'month,agendaDay'},
+                                                     contentHeight: 500,
+                                                     handleWindowResize: true ,
+                                                     selectable: true,
+                                                     selectHelper: true,
+                                                     now:  moment(),
+                                                     defaultView : 'month',
+                                                     defaultTimedEventDuration : '00:15:00',
+                                                     slotDuration : '00:15:00',
+                                                     firstHour : 7,
+                                                     allDaySlot : false,
+
+                                                     eventClick: Data.calendar.eventClick,
+                                                     dayClick: Data.calendar.dayClick,
+                                                     select : Data.calendar.select,
+                                                     events : Data.calendar.events
+                                              });
+          },
+
           "reload" : function() {
                        interface_calendar.element.fullCalendar('changeView','month');
                        interface_calendar.element.fullCalendar( 'refetchEvents' );
@@ -355,71 +378,133 @@ var interface_calendar = {
 
 var interface_preview = {
 
-          "controls" : function() {
+           "active" : false,
 
-            response=eval('('+Data.send("show camera")+')');
-            controls=response.result.split('\n');
+          "toggle" : function() {
+            this.active ? this.hide() : this.show() ;
+          },
 
-            $(controls).each( function(k,v) {
+         "controls" : function() {
 
-                     control={};
-                     items=v.split(/\s+/);
+                    collection=[];
 
-                     $(items).each( function(kk,vv) {
-                       switch( true ) {
+                    response=eval('('+Data.send("show camera")+')');
+                    raw=response.result.split('\n');
+                    $(raw).each( function(k,v) {
+                             control={
+                                       orientation:'horizontal',
+                                       change : function(e) {
+                                                             n=$(this).data("control").name;
+                                                             v=$(this).slider("option","value");
+                                                             UI.alert( Data.send('camera '+n+'='+v) );
+                                       },
+                                       slide : function(e) {
+                                                             n=$(this).data("control").name;
+                                                             v=$(this).slider("option","value");
+                                                             $('#'+n+'_status').html(n + ' <span class="pull-right badge">' + v + '</span>');
+                                                           }
+                                     };
 
-                         case (kk==1) : control.name=vv;
-                                  break;
+                             items=v.split(/\s+/);
+                             $(items).each( function(kk,vv) {
 
-                         case (kk==2) : control.type=(vv.replace('(','').replace(')',''));
-                                  break;
+                               switch( true ) {
 
-                         case (vv.indexOf('=')) : tt=vv.split('=');
-                                                   control[tt[0]]=tt[1];
+                                 case (kk==1) : control.name=vv;
+                                                break;
 
-                       }
-                     });
+                                 case (kk==99) : control.type=(vv.replace('(','').replace(')',''));
+                                                break;
 
-                    console.log(control);
-                       
-            });
+                                 case (vv.indexOf('=')>0 ) : tt=vv.split('=');
+                                                             switch ( tt[0] ) {
 
-            
+                                                               case "step" :
+                                                               case "min" :
+                                                               case "max" :
+                                                               case "value": control[tt[0]]=Number(tt[1]);
+                                                                             break;
+                                                               default : break;
+                                                             }
+
+                               }
+                             });
+
+               if(control.name) { collection.push( control ) };
+             });
+
+             return (collection);
+          },
+          
+          
+          "clear" : function() {
+            $('#preview-controls').empty();
+            $('#preview-video').empty();
+          },
+
+          "hide" : function() {
+           console.log('hiding preview');
+           Data.send('del preview');
+           this.clear();
+           this.active=false;
+           $("#preview-button").button("option", "label", "preview (idle)");
 
           },
 
-          "show"  :  function( mediaName ) {
+          "show" : function() {
 
-               previewID='media-'+mediaName+'-preview'
+           console.log('showing preview');           
+           this.clear();
+           
+           var location=':8990/preview';
+           var url='http://'+window.location.hostname+location;
 
-               preview=$('#'+previewID);
-               if( !preview.exists() ) {
+           // -----------------
 
-                   var url='http://'+window.location.hostname+':8990/preview';
-                   var width='864';
-                   var height='480';
+           Data.send("del preview");
 
-                   template =  '<object type="application/x-vlc-plugin" data="'+url+'" width="'+width+'" height="'+height+'" id="'+previewID+'-content" controls="yes">' +
-                               ' <param name="movie" value="$url"/>' + 
-                               ' <embed type="application/x-vlc-plugin" name="'+previewID+'-content"  autoplay="yes"  loop="no" width="'+width+'" height="'+height+'"  target="'+url+'" />' + 
-                              '</object>';
+           config=Data.readconfig('media',true).split('\n');
+           $(config).each( function(k,v) {
+               line=v;
+               if(  line.indexOf('recorder') > 0 ) {
+                   line=line.replace('recorder','preview');
+                   spot=line.indexOf(':standard{');
+                   if( spot > 0 ) {
+                      line=line.substr(0,spot)+':standard{access=http,mux=ts,dst='+location+'}';
+                   }
+                 Data.send( line );
+               }
+           });
 
-                   // Create a modal dialog and throw the preview in it
-                   $("<div></div>", {id:previewID} )
-                   .html( template )
-                   .dialog ({  title : url,
-                              modal : true,
-                               width: parseInt(width)+70,
-                              height: parseInt(height)+70,
-                            appendTo: "body",
-                               close : function() { 
-                                         mediaName=$(this).attr('id').split('-')[1]; 
-                                         interface_media.toggle( $('#media-'+mediaName) ); 
-                                         $(this).dialog("destroy")
-                                       }
-                            });                             
-              }
-            }
+           Data.send("control preview play");
+
+           // -----------------
+           
+            cc=$('#preview-controls');
+
+            $(this.controls()).each( function(k,control) {
+
+                                    cc.append( '<div class="row"><b id="'+control.name+'_status">'+control.name+'</b>');
+                                    cc.append( 
+                                               $('<div></div>')
+                                               .data("control",control)
+                                               .slider(control)
+                                             );
+                                    cc.append( '</div>' );
+              }); 
+
+
+           vv=$("#preview-video");
+          
+           oo=$( '<object type="application/x-vlc-plugin" width="849" height="480" data="'+url+'" controls="yes">' +
+                     ' <param name="movie" value="'+url+'"/>' + 
+                     ' <embed type="application/x-vlc-plugin" autoplay="yes"  loop="no" target="'+url+'" />' + 
+                  '</object>' );
+            vv.append( $('<div></div>').append(oo).resizable() );
+                        
+          $("#preview-button").button("option", "label", "preview (active)");
+          this.active=true;
+        }
 
 };
 
@@ -434,7 +519,35 @@ var interface_actions = {
                 .button()
                 .click( Handler.click );
 
+            $('.page-scroll a').bind('click', function(event) {
+
+                    $("section.active")
+                     .fadeOut(100)
+                     .addClass("hidden")
+                     .removeClass("active");
+
+                    $("li.active")
+                     .removeClass("active");
+
+                    $(this).closest("li")
+                    .addClass("active");
+
+                    $($(this).attr("href"))
+                     .fadeIn(100)
+                     .addClass("active")
+                     .removeClass("hidden");
+
+                    event.preventDefault();
+
+                });
+
+
+
             },
+
+           "toggle-preview" : function() {
+               UI.preview.toggle();
+           },
 
            "reload-schedule" : function() {
                x=Data.send('update schedule');
@@ -442,10 +555,6 @@ var interface_actions = {
                UI.alert(x);
            },
            
-           "update-camera" : function() {
-               interface_preview.controls();
-           },
-
 
            "machine-write" : function() {
                Data.machine.write(); 
@@ -456,7 +565,8 @@ var interface_actions = {
            },
 
            "send-vlc"        : function() {
-               UI.alert( Data.send( $('#command').val() ) )               
+               result=eval( '('+Data.send( $("#vlc-command").val() )+')' );
+               $("#vlc-receive").html( Format.object.html(result) );
            },
 
            "reboot"        : function() {
@@ -476,7 +586,8 @@ var Data = {
                 "calendar" : interface_calendar,
                 "actions"  : interface_actions,
                                 
-                "readconfig" : function( file ) {
+
+                "readconfig" : function( file, returnRaw ) {
 
                       raw = $.ajax({
                             type: 'GET',
@@ -484,7 +595,8 @@ var Data = {
                             async: false,
                         }).responseText;
 
-                      return raw.toObjectArray();
+                      if (!returnRaw ) { raw=raw.toObjectArray() }; 
+                      return raw;
 
 
                 },
@@ -512,36 +624,12 @@ var UI = {
 
             "alert" : function( responseData ) {
 
-              json=(typeof responseData == "string") ? eval('('+responseData+')') : responseData;
-              
-              details='';
-              $.each( json , function(k,v) {
-                details+='<div><label>'+k+'</label>'+v+'</div>';
-              });
-
-              html='';
-              html='<div class="small">'+(json.timestamp || '')+'</div>'+
-                   '<hr>'+
-                   details;
-              
-              $.bootstrapGrowl( html, { 
+              details=Format.object.html( eval( '('+responseData+')' ) );
+                           
+              $.bootstrapGrowl( details, { 
                                         type:'warning',
-                                        width: "30%"
+                                        width: "40%"
                                        });
-
- /*
-              $('<div></div>')
-               .dialog({
-                         title : (json.command || "Command Result"),
-                         width:"30%",
-                         modal : true,
-                         buttons: {
-                                      Ok: function() { $( this ).dialog( "close" );    }
-                                  }
-                       })
-               .html( html );
-*/
-
             },
             
           "calendar" : interface_calendar,
@@ -558,6 +646,20 @@ var Format = {
                                f=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate() + ' ' + d.getHours+':'+d.getMinutes()+':'+d.getSeconds();
                               return f;
               }
+           },
+           
+           "object" : {
+
+               "html" : function(o) {
+                 var items='';
+                 $.each( o, function(k,v) {
+                   if( typeof v === 'object' ) { v=Format.object.html(v) };
+                   v=v.replace(/\n/g,'<br>');
+                   items=items+'<li><b>'+k+'</b>  '+v+'</li>';
+                 });
+
+                 return '<ul>'+items+'</ul>';               
+               }
            }
 }           
 
@@ -593,51 +695,10 @@ var Handler= {
               Data.media.read();
 
               Data.actions.attach();
-              
-                    $('.page-scroll a').bind('click', function(event) {
-
-                    $("section.active")
-                     .fadeOut(100)
-                     .addClass("hidden")
-                     .removeClass("active");
-
-                    $("li.active")
-                     .removeClass("active");
-
-                    $(this).closest("li")
-                    .addClass("active");
-
-                    $($(this).attr("href"))
-                     .fadeIn(100)
-                     .addClass("active")
-                     .removeClass("hidden");
-
-                    event.preventDefault();
-
-                });
-
-
-                 $("#event-calendar").fullCalendar( {  
-
-                                                     header: {  left: 'today',  center: 'prev,title,next',  right: 'month,agendaDay'},
-                                                     contentHeight: 500,
-                                                     handleWindowResize: true ,
-                                                     selectable: true,
-                                                     selectHelper: true,
-                                                     now:  moment(),
-                                                     defaultView : 'month',
-                                                     defaultTimedEventDuration : '00:15:00',
-                                                     slotDuration : '00:15:00',
-                                                     firstHour : 7,
-                                                     allDaySlot : false,
-
-                                                     eventClick: Data.calendar.eventClick,
-                                                     dayClick: Data.calendar.dayClick,
-                                                     select : Data.calendar.select,
-                                                     events : Data.calendar.events
-                                              });
-
+              UI.calendar.setup();
   
+              Data.send("del preview");
+
 
 
  });
