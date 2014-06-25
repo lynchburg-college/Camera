@@ -23,10 +23,13 @@ touch $logFile
            # If the filename is a date, use it as the start time
            asOf=$(basename "$file")
            asOf="${asOf%.*}"
-           asOf=$(date +%Y%m%d%H%M%S -d "$asOf" > /dev/null 2>&1)
-           if [ $? -eq 1 ]
+           date +%Y%m%d%H%M%S -d "$asOf" > /dev/null 2>&1
+           if [ ! $? -eq 1 ]
            then
-             #.. otherwise, use the last modified time of the file
+             log "Using filename as creation date  : $asOf"
+             asOf=$(date +%Y%m%d%H%M%S -d "$asOf" )
+           else
+             log "Using file modified date"
              asOf=$(date +%Y%m%d%H%M%S -d "$(stat -c "%y" $file)")
            fi
 
