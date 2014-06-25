@@ -24,14 +24,14 @@ touch $logFile
            # If the filename is a date, use it as the start time
            asOf=$(basename "$file")
            asOf="${asOf%.*}"
-           date +%Y%m%d%H%M%S -d "$asOf" > /dev/null 2>&1
+           date TZ=":US/Eastern" +%Y%m%d%H%M%S -d "$asOf" > /dev/null 2>&1
            if [ ! $? -eq 1 ]
            then
              log "Using filename as creation date  : $asOf"
-             asOf=$(date +%Y%m%d%H%M%S -d "$asOf" )
+             asOf=$(TZ=":US/Eastern" date +%Y%m%d%H%M%S -d "$asOf" )
            else
              log "Using file modified date"
-             asOf=$(date +%Y%m%d%H%M%S -d "$(stat -c "%y" $file)")
+             asOf=$(TZ=":US/Eastern" date +%Y%m%d%H%M%S -d "$(stat -c "%y" $file)")
            fi
 
            # Peek through the schedule to find the META with this date between the range of the schedule item
