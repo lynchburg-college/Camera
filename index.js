@@ -360,7 +360,7 @@ var interface_calendar = {
               eventStart=new Date(v.start);
               eventEnd=new Date(v.end);
 
-              if( !v.hasStart ) { v.title = v.title + ' (until '+moment(v.end).format("h:mmA")+')'; v.color='deeppink'; }
+              if( !v.hasStart ) { v.allDay=true; v.title = v.title + ' (until '+Format.time.compressed(v.end)+')'; v.color='deeppink'; }
               if( (calendarStart <= eventStart) && ( eventEnd <= calendarEnd ) ) {
                eventsArray.push(v) 
               }
@@ -642,7 +642,20 @@ var UI = {
 // ----------------------------------------------------------
 
 var Format = {
+           "time" : {
+              "compressed" : function(sourceDate) {
+
+                 mm=moment(sourceDate);
+                 switch (mm.minute()) {
+                     case 0: fmt="ha";
+                     default : fmt="h:mma";
+                 }                
+                 return mm.format(fmt);
+              }
+           },
+
            "date" : {
+        
               "schedule" : function(sourceDate) {
                               // Format = 2014/01/16-17:00:00
                               d = new Date(sourceDate);
