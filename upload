@@ -31,6 +31,7 @@ touch $logFile
            fi
 
            # Peek through the schedule to find the META with this date between the range of the schedule item
+           log "Metadata date : $asOf"
            info=$(awk '$1=="#" && $2=="META" { if( d >= $3-1 &&  d <= $4+1 ) { print $0 } }' d="$asOf"  config/schedule | cut -d' ' -f 5-)
 
            # Couldn't find anything?  That's OK.. use the default stuff
