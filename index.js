@@ -360,7 +360,7 @@ var interface_calendar = {
               eventStart=new Date(v.start);
               eventEnd=new Date(v.end);
 
-              if( !v.hasStart ) { v.allDay=true; v.title = v.title + ' (until '+v.end+')'; v.color='deeppink'; }
+              if( !v.hasStart ) { v.title = v.title + ' (until '+v.end+')'; v.color='deeppink'; }
               if( (calendarStart <= eventStart) && ( eventEnd <= calendarEnd ) ) {
                eventsArray.push(v) 
               }
