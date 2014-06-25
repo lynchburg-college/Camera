@@ -357,7 +357,7 @@ var interface_calendar = {
               eventStart=new Date(v.start);
               eventEnd=new Date(v.end);
 
-              if( !v.hasStart ) { v.title = v.title + ' (running)' }
+              if( !v.hasStart ) { v.title = v.title + ' (running)'; v.color='deeppink'; }
               if( (calendarStart <= eventStart) && ( eventEnd <= calendarEnd ) ) {
                eventsArray.push(v) 
               }
