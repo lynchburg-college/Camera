@@ -357,7 +357,7 @@ var interface_calendar = {
               eventStart=new Date(v.start);
               eventEnd=new Date(v.end);
 
-              if( !v.hasStart ) { v.title = v.title + ' <span class="glyphicon glyphicon-play-circle"></span>' }
+              if( !v.hasStart ) { v.title = v.title + ' (running)' }
               if( (calendarStart <= eventStart) && ( eventEnd <= calendarEnd ) ) {
                eventsArray.push(v) 
               }
