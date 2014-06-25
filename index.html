@@ -88,9 +88,13 @@
     <section id="panel-schedule" class="active" >
         <div id="event-dialog"></div>
         <div id="event-calendar"></div>
-        <div class="pull-right">
-         <button data-action="reload-schedule" data-icon="calendar">Reload Schedule From Server</button>
-       </div>
+        <div>
+          <span class="pull-left" id="calendar-drawn">
+          </span>
+          <span class="pull-right">
+           <button data-action="reload-schedule" data-icon="calendar">Reload Schedule From Server</button>
+         </span>
+        </div>
     </section>
 
     <section id="panel-machine" class="hidden">

@@ -200,8 +200,10 @@ var interface_calendar = {
                        interface_calendar.element.fullCalendar('changeView','month');
                        interface_calendar.element.fullCalendar( 'refetchEvents' );
                        interface_calendar.element.fullCalendar( 'rerenderEvents' );
+                       $("#calendar-drawn").html( 'Schedule as of '+(new Date($.now())).toLocaleString() );
           },
 
+          
           "eventClick" : function( event, jsEvent, view) {
 
                        interface_calendar.element.fullCalendar( 'unselect' );
@@ -308,6 +310,7 @@ var interface_calendar = {
           },
           
           "events"  : function( calendarStart, calendarEnd,  timezone, callback ) {
+
            response=Data.send('show schedule');
            vlcStatus = eval( "("+response+")" );
 
@@ -698,8 +701,7 @@ var Handler= {
               UI.calendar.setup();
   
               Data.send("del preview");
-
-
+              window.setInterval( function() {UI.calendar.reload()}, (1 * 60 * 1000) );
 
  });
 
