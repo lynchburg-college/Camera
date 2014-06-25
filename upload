@@ -20,6 +20,7 @@ touch $logFile
         else
            log "Found $file"
 
+
            # If the filename is a date, use it as the start time
            asOf=$(basename "$file")
            asOf="${asOf%.*}"
