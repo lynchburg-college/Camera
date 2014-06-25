@@ -22,21 +22,23 @@ touch $logFile
 
 
            # If the filename is a date, use it as the start time
-           asOf=$(basename "$file")
-           asOf="${asOf%.*}"
-           date TZ=":US/Eastern" +%Y%m%d%H%M%S -d "$asOf" > /dev/null 2>&1
+           baseName=$(basename "$file")
+           baseName="${baseName%.*}"
+           date -d "$baseName" > /dev/null 2>&1
            if [ ! $? -eq 1 ]
            then
-             log "Using filename as creation date  : $asOf"
-             asOf=$(TZ=":US/Eastern" date +%Y%m%d%H%M%S -d "$asOf" )
+             log "Using filename as creation date"
+             asOf=$(date -d "$baseName")
            else
              log "Using file modified date"
-             asOf=$(TZ=":US/Eastern" date +%Y%m%d%H%M%S -d "$(stat -c "%y" $file)")
+             asOf=$(stat -c "%y" $file)
            fi
 
+           asOf=$(TZ=UTC date +%Y%m%d%H%M%S -d "$asOf")
+           log "Metadata date is : $asOf"
+
            # Peek through the schedule to find the META with this date between the range of the schedule item
-           log "Metadata date : $asOf"
-           info=$(awk '$1=="#" && $2=="META" { if( d >= $3-1 &&  d <= $4+1 ) { print $0 } }' d="$asOf"  config/schedule | cut -d' ' -f 5-)
+           info=$(awk '$1=="#" && $2=="META" { if( d >= ($3-5) &&  d <= ($4+5) ) { print $0 } }' d="$asOf"  config/schedule | cut -d' ' -f 5-)
 
            # Couldn't find anything?  That's OK.. use the default stuff
            if [ "$info" == "" ]
