@@ -646,6 +646,7 @@ var Format = {
               "compressed" : function(sourceDate) {
 
                  mm=moment(sourceDate);
+console.log(mm);
                  switch (mm.minute()) {
                      case 0: fmt="ha";
                      default : fmt="h:mma";
