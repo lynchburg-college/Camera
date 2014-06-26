@@ -131,7 +131,7 @@ end
 if( string.starts ( command, "show" ) ) then
 
  if     ( string.ends ( command, "videos") ) then
-   result = os.capture( 'ls -a video/*.mp4 -lhr | awk \'{print $9"|"$6" "$7" "$8"|"$5}\' ')
+   result = os.capture( 'ls -a video/*mp4* -lhr | awk \'{print $9"|"$6" "$7" "$8"|"$5}\' ')
 
  elseif ( string.ends ( command, "recording") ) then
    result = os.capture( 'lsof ./video/*' )
