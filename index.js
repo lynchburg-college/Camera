@@ -100,7 +100,7 @@ var interface_machine = {
                            UI.alert( Data.send('update machine', p) );
 
                            interface_machine.read();
-                           interface_calendar.reload();
+                           window.setTimeout( function() { interface_calendar.reloadfromserver() }, 1000 );
                            
                         }
 }                
@@ -109,61 +109,75 @@ var interface_machine = {
 
 var interface_media =  { 
 
-        "toggle" : function (item) {
+        "refresh" : function( delay ) {
+            window.setTimeout(  function() { interface_media.read() }, (delay || 5) );
+         },
+         
+        "add" : function( name, settings ) {
 
-            mediaName=$(item).attr('id').replace('media-','');
-            status=Data.send('show '+mediaName);
+                    vlc=$.extend( { name:name }, settings );
 
-            action=( status.indexOf('instance') == -1 ) ? 'play' : 'stop';
-            status=Data.send('control '+mediaName+' '+action);
-
-            $(item).button("option", "label", mediaName+' (<i>stand by</i>)')
-                   .button("refresh");
-
-            window.setTimeout( 'interface_media.read()', 3000);
-
-        },
-        
-        "read" : function() {
-
-           response=Data.send('show media');
-           vlcStatus = eval( "("+response+")" );
-
-           $.each( ( vlcStatus.result.media || {} ), function(k,v) {
-
-                  name=k;
-                  output=v.output;
-                  isStreaming=( output.indexOf('http') > 0 );
-
-                  item=$('#media-'+name);
-                  if( !item.exists() ) {
                     item=$('<button>'+name+'</button>', { id:'media-'+name })
                          .attr("id", "media-"+name)
-                         .appendTo('#status-media')
-                         .button()
-                         .click( function() { interface_media.toggle(this) } );
-                 }
-                 item.removeClass('active');
-                 item.removeClass('idle');
-                 
+                         .data("vlc", vlc)
+                         .addClass("btn btn-media")
+                         .appendTo("#status-media")
+                         .click( function() {
 
-                 if( v['instances'] ) { 
-                    name=name+' (active)';
-                    currentClass='active';
-                 }
-                 else
-                 {
-                    name=name+' (idle)' ;
-                    currentClass='idle';
-                 };
-                  
-                 item.addClass( currentClass )
-                     .button("option","label", name)
-                     .button("refresh");
-               
-            });
+                              vlc=$(this).data('vlc');
+
+                              action=( Data.send('show '+(vlc.name)).indexOf('instance') == -1 ) ? 'play' : 'stop';
+                              UI.alert( Data.send('control '+vlc.name+' '+action) );
+
+                              $(this).removeClass("btn-success")
+                                     .addClass("btn-warning");
+
+                              $(this).data("timeout", function() {
+                                  setTimeout( function() { $(this).removeClass("btn-warning"); }, 10000 );
+                              });
+                              interface_media.refresh(3000);
+                          });
+
+                    return item;
+        },
+
+
+        "read" : function() {
+
+           var comeBack=false;
+
+           response=Data.send('show media');
+           items=( eval( "("+response+")" ).result.media || {} );
+
+           $.each( items, function( name, vlcCurrent ) {
+
+                  item=$('#media-'+name);
+                  if( !item.exists() ) { item=interface_media.add( name, vlcCurrent ) };
+
+                  vlc=$(item).data("vlc");
+
+                  if ( vlcCurrent['instances'] ) {
+
+                    clearTimeout( $(this).data("timeout") );
+                    $(item).removeClass('btn-warning')
+                           .addClass('btn-success')
+                           .text( name + ' (active)');
+                    comeBack=true;
+
+                  } else {
+                    $(item).removeClass('btn-warning')
+                           .removeClass('btn-success')
+                           .text( name );
+                  };
+
+          });
+
+          if(comeBack) {
+                   interface_media.refresh(1500);
+          };
 
         }
+
 };
 
 // ----------------------------------------------------------
@@ -196,11 +210,20 @@ var interface_calendar = {
                                               });
           },
 
-          "reload" : function() {
-                       interface_calendar.element.fullCalendar('changeView','month');
-                       interface_calendar.element.fullCalendar( 'refetchEvents' );
-                       interface_calendar.element.fullCalendar( 'rerenderEvents' );
-                       $("#calendar-drawn").html( 'Schedule as of '+(new Date($.now())).toLocaleString() );
+          "reloadfromserver" : function() {
+                interface_calendar.reload(true);
+          },
+          "reload" : function( fromServer ) {
+
+                      if( fromServer ) {
+                          x=Data.send('update schedule');
+                          Data.calendar.reload();
+                          UI.alert(x);
+                      }
+                      interface_calendar.element.fullCalendar('changeView','month');
+                      interface_calendar.element.fullCalendar( 'refetchEvents' );
+                      interface_calendar.element.fullCalendar( 'rerenderEvents' );
+                      $("#calendar-drawn").html( 'Schedule as of '+(new Date($.now())).toLocaleString() );
           },
 
           
@@ -378,28 +401,56 @@ var interface_calendar = {
 };
 
 // ----------------------------------------------------------
+var interface_camera = {
 
-var interface_preview = {
+         "defaults" : function() { 
 
-           "active" : false,
-
-          "toggle" : function() {
-            this.active ? this.hide() : this.show() ;
+                $.each( interface_camera.controls(), function(k,v) {
+                   if( v.hasOwnProperty('default') ) {
+                     $("#camera_"+v.name).slider( 'option', 'value', Number(v.default) );
+                   };
+                });
+                UI.alert("Camera defaults set");
           },
 
-         "controls" : function() {
 
-                    collection=[];
+         "setup" : function() {
 
+             cc=$('#camera-controls');
+             cc.empty();
+
+             $(this.controls()).each( function(k,control) {
+
+                                    cc.append( '<div class="row"><b class="small" id="'+control.name+'_status">'+control.name+'</b>');
+                                    cc.append( 
+                                               $('<div></div>', { id:'camera_'+control.name } )
+                                               .attr("id","camera_"+control.name)
+                                               .data("control",control)
+                                               .slider(control)
+                                             );
+                                    cc.append( '</div>' );
+              }); 
+
+          },
+          
+         "controls" : function( forceLoad ) {
+
+                    var controls=[];
+                    
                     response=eval('('+Data.send("show camera")+')');
                     raw=response.result.split('\n');
+
                     $(raw).each( function(k,v) {
+
                              control={
+                                       menu : {},
                                        orientation:'horizontal',
                                        change : function(e) {
                                                              n=$(this).data("control").name;
                                                              v=$(this).slider("option","value");
+                                                             $('#'+n+'_status').html(n + ' <span class="pull-right badge">' + v + '</span>');
                                                              UI.alert( Data.send('camera '+n+'='+v) );
+                                                             interface_camera.setup();
                                        },
                                        slide : function(e) {
                                                              n=$(this).data("control").name;
@@ -413,15 +464,32 @@ var interface_preview = {
 
                                switch( true ) {
 
-                                 case (kk==1) : control.name=vv;
+                                 case (kk==1) : if(vv.substring(vv.length-1)==':') {
+                                                  controls[controls.length-1].options[kk]=vv;
+                                                } else {
+                                                  control.name=vv;
+                                                }
                                                 break;
 
-                                 case (kk==99) : control.type=(vv.replace('(','').replace(')',''));
-                                                break;
+                                 case (kk==2) : switch (vv) {
+                                                     case '(menu)' : control.hasOptions=true; 
+                                                                     control.options={};
+                                                                     break;
+
+                                                     case '(bool)' : control['min']=0;
+                                                                     control['max']=1;
+                                                };
+                                                control.controlType=vv.replace('(','').replace(')','');
+
 
                                  case (vv.indexOf('=')>0 ) : tt=vv.split('=');
                                                              switch ( tt[0] ) {
 
+                                                               case "flags" : if(tt[1]=='inactive') {
+                                                                                control.disabled=true;
+                                                                              }
+
+                                                               case "default" :
                                                                case "step" :
                                                                case "min" :
                                                                case "max" :
@@ -433,82 +501,124 @@ var interface_preview = {
                                }
                              });
 
-               if(control.name) { collection.push( control ) };
-             });
+                   if(control.name  && (!control.disabled) ) { 
+                      controls.push( control );
+                   };
+               });
 
-             return (collection);
+             return (controls);
           },
           
+};
+
+// ----------------------------------------------------------
+
+var interface_videos = {
+
+          "setup"   : function() {
+             interface_videos.refresh();
+          },
+
+          "delete"  : function(filename) {
+          },
           
-          "clear" : function() {
-            $('#preview-controls').empty();
-            $('#preview-video').empty();
+          "refresh" : function() {
+ 
+             ff=$('#video-files table tbody');
+             ff.empty();
+         
+             files=eval( '(' + Data.send('show videos') + ')' ).result;
+             if(files) {
+                 $.each( files.split(/\n/), function(k,v) {
+                    tt=v.split('|');
+                    if(tt[0]!='') {
+                      ff.append( '<tr><td><button class="delete"></button><td><td class="file">'+tt[0]+'</td><td>'+tt[1]+'</td><td>'+tt[2]+'</td></tr>' );
+                    };
+                 });
+
+                 ff.find("button.delete")
+                   .addClass("btn btn-xs btn-danger")
+                   .text("del")
+                   .click( function(e) {
+                      file=$(this).closest("tr").find("td.file").text();
+                      UI.alert( Data.send('delete '+file) );
+                      interface_videos.refresh();
+                   });
+              };
+            },
+
+
+};
+
+// ----------------------------------------------------------
+
+var interface_preview = {
+
+          "show" : function() {
+              var setup=[];
+
+              // Make a preview media object
+              var location=':8889/camera';
+              var url='http://'+window.location.hostname+location;
+
+              setup.push('del preview');
+
+              config=Data.readconfig('media',true).split('\n');
+              $(config).each( function(k,v) {
+                  line=v;
+                   if(  line.indexOf('recorder') > 0 ) {
+                       line=line.replace('recorder','preview');
+                       spot=line.indexOf(':standard{');
+                       if( spot > 0 ) {
+                          line=line.substr(0,spot)+':standard{access=http,mux=ts,dst='+location+'}';
+                       }
+                   setup.push(line);
+                   }
+              });
+
+              // Set a safety timer
+              setup.push('new s0-preview-stop schedule');
+              setup.push('setup s0-preview-stop date '+Format.date.schedule( moment().add(5,'minutes').toDate() ) );
+              setup.push('setup s0-preview-stop append control preview play');
+              setup.push('setup s0-preview-stop enabled');
+
+              // Send commands to the engine
+              $(setup).each( function(k,v) { UI.log(v); Data.send(v) } );
+            
+              oo = $('<div style="text-align:center;z-index:99;">' +
+                         '<object style="width:99%;height:90%;" id="preview-video-object" type="application/x-vlc-plugin" data="'+url+'" controls="yes">' +
+                         ' <param name="movie" value="'+url+'"/>' + 
+                         ' <embed type="application/x-vlc-plugin" autoplay="yes"  loop="no" target="'+url+'" />' + 
+                    '</object></div>');
+             
+             // Make a dialog with the preview window
+             interface_preview.dialog=oo.dialog({
+                                 title: url,
+                                 width: 640,
+                                 height: 480,
+                              appendTo : "body",
+                              resizable: true,
+                         closeOnEscape : true, 
+                                 close : function() { interface_preview.hide(); }
+                       });
+              
+             Data.send('control preview play');
+              
           },
 
           "hide" : function() {
-           console.log('hiding preview');
-           Data.send('del preview');
-           this.clear();
-           this.active=false;
-           $("#preview-button").button("option", "label", "preview (idle)");
 
-          },
+             UI.log( Data.send('control preview stop') );
+             UI.log( Data.send('del s0-preview-stop') );
+             UI.log( Data.send('del preview') );
 
-          "show" : function() {
-
-           console.log('showing preview');           
-           this.clear();
+             d=interface_preview['dialog'];
+             if(d) {
+               d.dialog("close");
+               d.dialog("destroy");
+             };
+          }
            
-           var location=':8990/preview';
-           var url='http://'+window.location.hostname+location;
-
-           // -----------------
-
-           Data.send("del preview");
-
-           config=Data.readconfig('media',true).split('\n');
-           $(config).each( function(k,v) {
-               line=v;
-               if(  line.indexOf('recorder') > 0 ) {
-                   line=line.replace('recorder','preview');
-                   spot=line.indexOf(':standard{');
-                   if( spot > 0 ) {
-                      line=line.substr(0,spot)+':standard{access=http,mux=ts,dst='+location+'}';
-                   }
-                 Data.send( line );
-               }
-           });
-
-           Data.send("control preview play");
-
-           // -----------------
-           
-            cc=$('#preview-controls');
-
-            $(this.controls()).each( function(k,control) {
-
-                                    cc.append( '<div class="row"><b id="'+control.name+'_status">'+control.name+'</b>');
-                                    cc.append( 
-                                               $('<div></div>')
-                                               .data("control",control)
-                                               .slider(control)
-                                             );
-                                    cc.append( '</div>' );
-              }); 
-
-
-           vv=$("#preview-video");
-          
-           oo=$( '<object type="application/x-vlc-plugin" width="849" height="480" data="'+url+'" controls="yes">' +
-                     ' <param name="movie" value="'+url+'"/>' + 
-                     ' <embed type="application/x-vlc-plugin" autoplay="yes"  loop="no" target="'+url+'" />' + 
-                  '</object>' );
-            vv.append( $('<div></div>').append(oo).resizable() );
-                        
-          $("#preview-button").button("option", "label", "preview (active)");
-          this.active=true;
-        }
-
 };
 
 // ----------------------------------------------------------
@@ -517,10 +627,11 @@ var interface_preview = {
 var interface_actions = {
 
            "attach"          : function() {
+
+             $("button").addClass("btn btn-default");
        
-             $("button[data-action]")
-                .button()
-                .click( Handler.click );
+             $("*[data-action]")
+                .click( function() { a=$(this).attr("data-action"); eval(a+'()'); }  );
 
             $('.page-scroll a').bind('click', function(event) {
 
@@ -544,37 +655,21 @@ var interface_actions = {
 
                 });
 
-
-
             },
-
-           "toggle-preview" : function() {
-               UI.preview.toggle();
-           },
-
-           "reload-schedule" : function() {
-               x=Data.send('update schedule');
-               Data.calendar.reload();
-               UI.alert(x);
-           },
-           
-
-           "machine-write" : function() {
-               Data.machine.write(); 
-           },
-           
-           "update-software" : function() {
-               UI.alert( Data.send('update-software') );
-           },
-
-           "send-vlc"        : function() {
-               result=eval( '('+Data.send( $("#vlc-command").val() )+')' );
-               $("#vlc-receive").html( Format.object.html(result) );
-           },
 
            "reboot"        : function() {
                UI.alert( Data.send( 'control reboot' ) )          
+           },
+
+           "update" : function() {
+               UI.alert( Data.send('update-software') );
+           },
+
+           "vlc"        : function() {
+               result=eval( '('+Data.send( $("#vlc-command").val() )+')' );
+               $("#vlc-receive").html( Format.object.html(result) );
            }
+
 
 }
 
@@ -588,8 +683,13 @@ var Data = {
                 "media"    : interface_media,
                 "calendar" : interface_calendar,
                 "actions"  : interface_actions,
-                                
 
+                "setup"    : function() {
+                      Data.common.read();
+                      Data.machine.read();
+                      Data.actions.attach();
+                      Data.media.read();
+                },                                
                 "readconfig" : function( file, returnRaw ) {
 
                       raw = $.ajax({
@@ -605,7 +705,7 @@ var Data = {
                 },
 
                 "send" : function(cmd,parms) {
-
+                        
                         url="cmd.xml?command="+encodeURIComponent(cmd)+'&'+(parms||'')
 
                          response = $.ajax({
@@ -617,24 +717,37 @@ var Data = {
                          return (response);
 
                 }
-           
-                
+
 };
 
 // ----------------------------------------------------------
 
 var UI = {
 
-            "alert" : function( responseData ) {
-
-              details=Format.object.html( eval( '('+responseData+')' ) );
-                           
-              $.bootstrapGrowl( details, { 
-                                        type:'warning',
-                                        width: "40%"
-                                       });
+            "log"   : function(responseData) {
+               console.log(responseData);
             },
             
+            "alert" : function( responseData, displayOptions) {
+
+              dd=eval('('+responseData+')');
+
+              details=Format.object.html( dd );
+
+              defaultOptions= { offset: { from:'bottom', amount: 20 }, align:'right', type:'info', width:400 };
+              
+              $.bootstrapGrowl( details, ( displayOptions || defaultOptions ) );
+
+            },
+
+          "setup"    : function() {
+              UI.preview.hide();
+              UI.calendar.setup();
+              UI.camera.setup();
+              UI.videos.setup();
+          },
+          "camera"   : interface_camera,  
+          "videos"   : interface_videos,  
           "calendar" : interface_calendar,
           "preview"  : interface_preview
 };
@@ -659,15 +772,21 @@ var Format = {
         
               "schedule" : function(sourceDate) {
                               // Format = 2014/01/16-17:00:00
-                              d = new Date(sourceDate);
-                               f=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate() + ' ' + d.getHours+':'+d.getMinutes()+':'+d.getSeconds();
-                              return f;
+                              //d = new Date(sourceDate);
+                              //f=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate() + ' ' + d.getHours+':'+d.getMinutes()+':'+d.getSeconds();
+                              //return f;
+                             return moment(sourceDate).format("YYYY/MM/DD-HH:mm:ss");
               }
            },
            
            "object" : {
 
                "html" : function(o) {
+
+                 if(typeof o == 'string') {
+                   return o;
+                 };
+                 
                  var items='';
                  $.each( o, function(k,v) {
                    if( typeof v === 'object' ) { v=Format.object.html(v) };
@@ -684,13 +803,13 @@ var Format = {
 
 var Handler= {
 
+
                 "click" : function(event) {
 
                     source=event.currentTarget;
                     action=$(source).attr("data-action");
-
                     if(action) {
-                       interface_actions[ action ]();
+                       action();
                        event.preventDefault();
                     }
         
@@ -707,15 +826,11 @@ var Handler= {
 
  $(document).ready( function() {  
 
-              Data.common.read();
-              Data.machine.read();
-              Data.media.read();
-
-              Data.actions.attach();
-              UI.calendar.setup();
-  
-              Data.send("del preview");
-              window.setInterval( function() {UI.calendar.reload()}, (1 * 60 * 1000) );
+ 
+              Data.setup();
+              UI.setup();
+              
+              window.setInterval( function() { UI.calendar.reload(); }, (1 * 60 * 1000) );
 
  });
 

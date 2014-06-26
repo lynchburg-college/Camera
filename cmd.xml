@@ -4,7 +4,6 @@
 -- Command handler for all web actions
 --
 
-
 require "httprequests"
 
 --
@@ -118,6 +117,13 @@ if( string.starts ( command, "control" ) ) then
 end
 
 
+if (string.starts (command, "delete") ) then
+
+   cmd="rm --verbose "..(string.sub( command, 8, string.len(command) ) )
+   result = os.capture( cmd )
+ 
+end
+
 
 -- ----------------------
 -- View
@@ -125,13 +131,13 @@ end
 if( string.starts ( command, "show" ) ) then
 
  if     ( string.ends ( command, "videos") ) then
-   result = vlc.net.opendir( 'video' )
+   result = os.capture( 'ls -a video/*.mp4 -lhr | awk \'{print $9"|"$6" "$7" "$8"|"$5}\' ')
 
  elseif ( string.ends ( command, "recording") ) then
    result = os.capture( 'lsof ./video/*' )
 
  elseif ( string.ends ( command, "camera") ) then
-   result = os.capture( 'v4l2-ctl -l' )
+   result = os.capture( 'v4l2-ctl -L' )
    
  elseif ( string.ends ( command, "space") ) then
    result = os.capture( 'df -h' )
@@ -154,7 +160,7 @@ if( string.starts ( command, "update" ) ) then
  if ( string.ends(  command, "machine") ) then
 
    updateMachine()
-   result="Machine Config Written.  Remember to reload the schedule."
+   result="Machine configuration saved."
    
  elseif     ( string.ends ( command, "software") ) then
    result = os.capture( 'git pull' )
@@ -168,6 +174,8 @@ if( string.starts ( command, "update" ) ) then
  end
  
 end
+
+
 
 
 

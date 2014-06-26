@@ -21,28 +21,12 @@
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.css" rel="stylesheet" />
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.print.css" rel="stylesheet" media="print"/>
 
+  <link href="//vjs.zencdn.net/4.6/video-js.css" rel="stylesheet">
+
   <style>
    label {  
      width: 10em;
    }
-   section h3 {
-     text-decoration: underline;
-   }
-
-   #preview-controls {
-      height:auto;
-      overflow-y: scroll;
-   }
-
-   #preview-controls div.row {
-      padding-bottom: 0.25m;
-   }
-    
-   .honk {
-      background-color:red;
-      font-size:150%;
-   }
-
   </style>
   
 </head>
@@ -74,7 +58,6 @@
                 <li class="page-scroll active"><a href="#panel-schedule"><span class="glyphicon glyphicon-calendar"></span>  Schedule</a></li>
                 <li class="page-scroll"><a href="#panel-machine"><span class="glyphicon glyphicon-cog"></span>  Machine</a></li>
                 <li class="page-scroll"><a href="#panel-video"><span class="glyphicon glyphicon-facetime-video"></span>  Video</a></li>
-                <li class="page-scroll"><a href="#panel-vlc"><span class="glyphicon glyphicon-film"></span>  VLC</a></li>
              </ul>
        </div>
 
@@ -89,60 +72,148 @@
         <div id="event-dialog"></div>
         <div id="event-calendar"></div>
         <div>
+          <span class="pull-left" id="calendar-refresh">
+            <a href="#" data-action="UI.calendar.refresh">refresh</a>
+          </span>
           <span class="pull-left" id="calendar-drawn">
           </span>
           <span class="pull-right">
-           <button data-action="reload-schedule" data-icon="calendar">Reload Schedule From Server</button>
+           <a href="#" data-action="UI.calendar.reloadfromserver" data-icon="calendar">reload from server</a>
          </span>
         </div>
     </section>
 
+
     <section id="panel-machine" class="hidden">
-     <h3>Machine Configuration</h3>
-             <form id="config-form" onSubmit="return false">
-              <div><label class="control-label">Room ID</label><input name="roomID" id="config-roomID" /></div>
-              <div><label class="control-label">Room Name</label><input name="roomName" id="config-roomName" /></div>
-              <div class="clearall"><label class="control-label">Exclude Courses</label><input name="exclude" id="config-exclude" /></div>
-              <div><label class="control-label">Include Courses</label><input name="include" id="config-include" /></div>
-              <div><label class="control-label">Recording Split</label>
-                   <select name="splitMinutes" id="config-splitMinutes" />
-                     <option value="00">Don't Split</option>
-                     <option value="30">30 Minute blocks</option>
-                     <option value="60">1 Hour blocks</option>
-                     <option value="90">90 Minute blocks</option>
-                   </select>
+
+       <div class="row">
+          <div class="col-lg-6">        
+
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  Machine Configuration
+                </div>
+               <div class="panel-body">
+                 <form id="config-form" onSubmit="return false">
+                  <div><label class="control-label">Room ID</label><input name="roomID" id="config-roomID" /></div>
+                  <div><label class="control-label">Room Name</label><input name="roomName" id="config-roomName" /></div>
+                  <div class="clearall"><label class="control-label">Exclude Courses</label><input name="exclude" id="config-exclude" /></div>
+                  <div><label class="control-label">Include Courses</label><input name="include" id="config-include" /></div>
+                  <div><label class="control-label">Recording Split</label>
+                       <select name="splitMinutes" id="config-splitMinutes" />
+                         <option value="00">Don't Split</option>
+                         <option value="30">30 Minute blocks</option>
+                         <option value="60">1 Hour blocks</option>
+                         <option value="90">90 Minute blocks</option>
+                       </select>
+                  </div>
+                 </form>
+               <button data-action="Data.machine.write">Save Configuration</button>
+             </div>
+            </div> 
+
+        </div>
+        
+        <div class="col-lg-6">
+
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  Quick Commands
+                </div>
+               <div class="panel-body">
+                <div class="list-group">
+                 <a href="#" class="list-group-item" data-action="Data.actions.update">Update Software</a>
+                 <a href="#" class="list-group-item" data-action="Data.actions.reboot">Reboot Machine</a>
+                </div>
+               </div>
+            </div>
+        
+       </div>
+ 
+    </div>
+    
+    <div class="row">
+     <div class="col-lg-12">
+     
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  VLC Command
+                </div>
+               <div class="panel-body">
+                 <div class="input-group">
+                    <input type="text" class="form-control" id="vlc-command" name="vlc-command">
+                    <span class="input-group-btn">
+                      <button data-action="Data.actions.vlc">send command</button>
+                    </span>
+                 </div>
+               <div id="vlc-receive"></div>
               </div>
-             </form>
-             <br>
-             <button data-action="machine-write">Save Configuration</button>
-             <hr>
-             <button data-action="update-software">Update Software</button>
-             <button data-action="reboot">Reboot Machine</button>
+             </div>
+    </div>
+   </div>
+   
+   
   </section>
 
     <section id="panel-video" class="hidden">
-     <h3>Video Controls</h3>
-        <div><button id="preview-button" data-action="toggle-preview">preview (idle)</button> | <span id="status-media"></span></div>
-        <hr>
-        <div id="preview">
-            <div id="preview-controls" class="col-sm-4"></div>
-            <div id="preview-video" class="col-sm-8"></div>
+
+        <div class="row">
+           <div class="col-lg-12">
+
+              <div class="panel panel-default">
+
+                <div class="panel-heading">
+                  Media Devices
+                  <span class="pull-right"><button class="btn btn-xs" data-action="Data.media.refresh">refresh</button></span>
+                </div>
+
+               <div class="panel-body">
+                <button class="btn btn-media btn-primary" data-action="UI.preview.show">preview</button>
+                <span id="status-media"></span>
+               </div>
+
+             </div>
+         </div>             
+       </div>
+
+        <div class="row">
+
+           <div class="col-lg-4">
+
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  Camera Controls
+                  <span class="pull-right"><button class="btn btn-xs" data-action="UI.camera.defaults">reset to defaults</button></span>
+                </div>
+               <div class="panel-body">
+                 <div id="camera-controls" class="col-lg-10"></div>
+               </div>
+             </div>
+             
+           </div>
+
+           <div class="col-lg-8">
+
+            <div id="video-files" class="panel panel-default">
+               <div class="panel-heading">
+                Video Files
+                <span class="pull-right"><button class="btn btn-xs" data-action="UI.videos.refresh">refresh</button></span>
+               </div>
+               <div class="panel-body">
+                 <table class="table table-stripe table-hover">
+                 <tbody></tbody>
+                </table>
+               </div>
+             </div>
+
         </div>
 
     </section>
 
-    <section id="panel-vlc" class="hidden">
-    <h3>VLC Command</h3>
-         <div><input type="text" style="width:300px" id="vlc-command" name="vlc-command">
-              <button data-action="send-vlc">Send</button>
-         </div>
-         <div id="vlc-receive"></div>
-    </section>
     
 
  </div>
- 
- 
+  
  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
  <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 
@@ -151,6 +222,8 @@
  
  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
  <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-growl/1.0.0/jquery.bootstrap-growl.js"></script>
+ 
+ <script src="//vjs.zencdn.net/4.6/video.js"></script>
  
  <script src="index.js"></script>
  
