@@ -27,11 +27,11 @@ touch $logFile
            date -d "$baseName" > /dev/null 2>&1
            if [ ! $? -eq 1 ]
            then
-             log "Using filename as creation date"
              asOf=$(date -d "$baseName")
+             log "Using filename ($baseName) as creation date"
            else
-             log "Using file modified date"
              asOf=$(stat -c "%y" $file)
+             log "Using file modified date ($asOf)"
            fi
 
            asOf=$(TZ=UTC date +%s -d "$asOf")
