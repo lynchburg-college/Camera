@@ -743,7 +743,7 @@ var interface_video = {
                                                              n=$(this).data("control").name;
                                                              v=$(this).slider("option","value");
                                                              $('#'+n+'_status').html(n + ' <span class="pull-right badge">' + v + '</span>');
-                                                             UI.alert( Data.send('video '+n+'='+v) );
+                                                             UI.alert( Data.send('video-set '+n+'='+v) );
                                                              interface_video.setup();
                                        },
                                        slide : function(e) {
@@ -822,6 +822,8 @@ var interface_files = {
              ff.empty();
          
              files=eval( '(' + Data.send('show videos') + ')' ).result;
+             console.log(files);
+
              if(files) {
    
                  $.each( files.split(/\n/), function(k,v) {

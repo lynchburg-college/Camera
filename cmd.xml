@@ -91,9 +91,9 @@ end
 result = ""
 
 -- ----------------------
--- Camera 
+-- Video 
 -- ----------------------
-if( string.starts ( command, "camera" ) ) then
+if( string.starts ( command, "video-set" ) ) then
 
    setting="/usr/bin/v4l2-ctl --verbose -c "..(string.sub( command, 8, string.len(command) ) )
    result=os.capture(setting)
@@ -102,7 +102,7 @@ end
 
 
 -- ----------------------
--- Machine 
+-- Control
 -- ----------------------
 if( string.starts ( command, "control" ) ) then
 
@@ -126,14 +126,14 @@ end
 
 
 -- ----------------------
--- View
+-- Show
 -- ----------------------
 if( string.starts ( command, "show" ) ) then
 
- if     ( string.ends ( command, "files") ) then
+ if     ( string.ends ( command, "videos") ) then
    result = os.capture( 'ls -a video/*mp4* -lhr | awk \'{print $9"|"$6" "$7" "$8"|"$5}\' ')
 
- elseif ( string.ends ( command, "recording") ) then
+ elseif ( string.ends ( command, "inprogress") ) then
    result = os.capture( 'lsof ./video/*mp4*' )
   
  elseif ( string.ends ( command, "space") ) then
@@ -162,7 +162,6 @@ end
 -- ----------------------
 
 if( string.starts ( command, "update" ) ) then
-
 
  if ( string.ends(  command, "machine") ) then
 
