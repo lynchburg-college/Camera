@@ -46,6 +46,12 @@ touch $logFile
                info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\" "
            fi
            
+           if [ "$1" == "debug" ] 
+           then
+             log "Matched : $info"
+             exit 0
+           fi
+           
            
            # Post to the media server
            cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file\" $urlUpload"
