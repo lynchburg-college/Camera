@@ -38,7 +38,7 @@ touch $logFile
            log "Metadata date is : $asOf"
 
            # Peek through the schedule to find the META with this date between the range of the schedule item
-           info=$(awk '$1=="#" && $2=="META" { if( d >= ($3-5) &&  d <= ($4+5) ) { print $0 } }' d="$asOf"  config/schedule | cut -d' ' -f 5-)
+           info=$(awk '$1=="#" && $2=="META" { if( d+10 >= ($3) &&  d-10 <= ($4) ) { print $0 } }' d="$asOf"  config/schedule | cut -d' ' -f 5-)
 
            # Couldn't find anything?  That's OK.. use the default stuff
            if [ "$info" == "" ]
