@@ -34,10 +34,12 @@ touch $logFile
              asOf=$(stat -c "%y" $file)
            fi
 
-           asOf=$(TZ=UTC date +%Y%m%d%H%M%S -d "$asOf")
+           # Use "serialshort" format.. yymmddhhmm (no century or seconds) to keep it within small int boundaries
+           asOf=$(TZ=UTC date +%y%m%d%H%M -d "$asOf")
            log "Metadata date is : $asOf"
 
            # Peek through the schedule to find the META with this date between the range of the schedule item
+           $(awk '$1=="#" && $2=="META" { print d+10 } ' d="$asOf"  config/schedule | cut -d' ' -f 5-)
            info=$(awk '$1=="#" && $2=="META" { if( d+10 >= ($3) &&  d-10 <= ($4) ) { print $0 } }' d="$asOf"  config/schedule | cut -d' ' -f 5-)
 
            # Couldn't find anything?  That's OK.. use the default stuff
