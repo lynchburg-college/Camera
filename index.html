@@ -21,8 +21,6 @@
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.css" rel="stylesheet" />
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.print.css" rel="stylesheet" media="print"/>
 
-  <link href="//vjs.zencdn.net/4.6/video-js.css" rel="stylesheet">
-
   <style>
    label {  
      width: 10em;
@@ -57,7 +55,7 @@
              <ul id="nav-list" class="nav navbar-nav">
                 <li class="page-scroll active"><a href="#panel-schedule"><span class="glyphicon glyphicon-calendar"></span>  Schedule</a></li>
                 <li class="page-scroll"><a href="#panel-machine"><span class="glyphicon glyphicon-cog"></span>  Machine</a></li>
-                <li class="page-scroll"><a href="#panel-video"><span class="glyphicon glyphicon-facetime-video"></span>  Video</a></li>
+                <li class="page-scroll"><a href="#panel-recording"><span class="glyphicon glyphicon-facetime-video"></span>  Recording</a></li>
              </ul>
        </div>
 
@@ -66,20 +64,25 @@
 
   <br><br><br>
 
+
   <div class="container">
 
     <section id="panel-schedule" class="active" >
         <div id="event-dialog"></div>
         <div id="event-calendar"></div>
-        <div>
-          <span class="pull-left" id="calendar-refresh">
+        <div class="row">
+          <div class="col-lg-3" id="calendar-refresh">
+           <span class="pull-left">
             <a href="#" data-action="UI.calendar.refresh">refresh</a>
-          </span>
-          <span class="pull-left" id="calendar-drawn">
-          </span>
-          <span class="pull-right">
-           <a href="#" data-action="UI.calendar.reloadfromserver" data-icon="calendar">reload from server</a>
-         </span>
+           </span>
+          </div>
+          <div class="col-lg-6 text-center" id="calendar-drawn">
+          </div>
+          <div class="col-lg-3">
+           <span class="pull-right">
+            <a href="#" data-action="UI.calendar.reload" data-icon="calendar">reload from server</a>
+           </span>
+         </div>
         </div>
     </section>
 
@@ -87,7 +90,7 @@
     <section id="panel-machine" class="hidden">
 
        <div class="row">
-          <div class="col-lg-6">        
+          <div class="col-lg-4">        
 
               <div class="panel panel-default">
                 <div class="panel-heading">
@@ -108,13 +111,34 @@
                        </select>
                   </div>
                  </form>
-               <button data-action="Data.machine.write">Save Configuration</button>
-             </div>
+                </div>
+                <div class="panel-footer">
+                 <div class="row">
+                  <div class="text-center">
+                   <button class="btn btn-primary" data-action="Data.machine.write">Save Configuration</button>
+                  </div>
+                 </div>
+               </div>
             </div> 
 
         </div>
         
-        <div class="col-lg-6">
+        <div class="col-lg-5">
+
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  System Status
+                 <span class="pull-right">
+                      <a href="#" data-action="Data.machine.status" data-icon="refresh">refresh</a>
+                 </span>
+                </div>
+               <div id="machine-status" class="panel-body" >
+               </div>
+             </div>
+
+        </div>
+        
+        <div class="col-lg-3">
 
               <div class="panel panel-default">
                 <div class="panel-heading">
@@ -122,7 +146,7 @@
                 </div>
                <div class="panel-body">
                 <div class="list-group">
-                 <a href="#" class="list-group-item" data-action="Data.actions.update">Update Software</a>
+                 <a href="#" class="list-group-item" data-action="Data.actions.update">Update Camera Software</a>
                  <a href="#" class="list-group-item" data-action="Data.actions.reboot">Reboot Machine</a>
                 </div>
                </div>
@@ -155,7 +179,7 @@
    
   </section>
 
-    <section id="panel-video" class="hidden">
+    <section id="panel-recording" class="hidden">
 
         <div class="row">
            <div class="col-lg-12">
@@ -164,7 +188,7 @@
 
                 <div class="panel-heading">
                   Media Devices
-                  <span class="pull-right"><button class="btn btn-xs" data-action="Data.media.refresh">refresh</button></span>
+                  <span class="pull-right"><a href="#" data-action="Data.media.refresh">refresh</a></span>
                 </div>
 
                <div class="panel-body">
@@ -182,11 +206,13 @@
 
               <div class="panel panel-default">
                 <div class="panel-heading">
-                  Camera Controls
-                  <span class="pull-right"><button class="btn btn-xs" data-action="UI.camera.defaults">reset to defaults</button></span>
+                  Video Controls
+                  <span class="pull-right">
+                    <a href="#" data-action="UI.video.defaults">reset to defaults</a>
+                  </span>
                 </div>
                <div class="panel-body">
-                 <div id="camera-controls" class="col-lg-10"></div>
+                 <div id="video-controls" class="col-lg-10"></div>
                </div>
              </div>
              
@@ -194,10 +220,30 @@
 
            <div class="col-lg-8">
 
-            <div id="video-files" class="panel panel-default">
+<!--
+            <div class="panel panel-default">
+               <div class="panel-heading">
+                Video Devices
+               </div>
+               <div class="panel-body">
+                 <div id="video-devices" class="col-lg-10"></div>
+               </div>
+               <div class="panel-heading">
+                Audio Devices
+               </div>
+               <div class="panel-body">
+                 <div id="audio-devices" class="col-lg-10"></div>
+               </div>
+           </div>
+-->
+
+
+           <div id="video-files" class="panel panel-default">
                <div class="panel-heading">
                 Video Files
-                <span class="pull-right"><button class="btn btn-xs" data-action="UI.videos.refresh">refresh</button></span>
+                <span class="pull-right">
+                 <a href="#" data-action="UI.videos.refresh">refresh</a>
+                </span>
                </div>
                <div class="panel-body">
                  <table class="table table-stripe table-hover">
@@ -222,8 +268,6 @@
  
  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
  <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-growl/1.0.0/jquery.bootstrap-growl.js"></script>
- 
- <script src="//vjs.zencdn.net/4.6/video.js"></script>
  
  <script src="index.js"></script>
  

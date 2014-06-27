@@ -130,20 +130,27 @@ end
 -- ----------------------
 if( string.starts ( command, "show" ) ) then
 
- if     ( string.ends ( command, "videos") ) then
+ if     ( string.ends ( command, "files") ) then
    result = os.capture( 'ls -a video/*mp4* -lhr | awk \'{print $9"|"$6" "$7" "$8"|"$5}\' ')
 
  elseif ( string.ends ( command, "recording") ) then
-   result = os.capture( 'lsof ./video/*' )
-
- elseif ( string.ends ( command, "camera") ) then
-   result = os.capture( 'v4l2-ctl -L' )
-   
+   result = os.capture( 'lsof ./video/*mp4*' )
+  
  elseif ( string.ends ( command, "space") ) then
    result = os.capture( 'df -h' )
 
  elseif ( string.ends( command, "ip") ) then
    result = os.capture( "/sbin/ifconfig" )
+
+ elseif ( string.ends ( command, "video-devices") ) then
+   result = os.capture( 'v4l2-ctl --list-devices' )
+
+ elseif ( string.ends ( command, "video-controls") ) then
+   result = os.capture( 'v4l2-ctl -L' )
+
+ elseif ( string.ends( command, "audio-devices") ) then
+   result = os.capture( "/usr/bin/arecord -l | grep \"^card\" ")
+
 
  end
 
@@ -166,9 +173,7 @@ if( string.starts ( command, "update" ) ) then
    result = os.capture( 'git pull' )
 
  elseif ( string.ends ( command, "schedule") ) then
-
-   result = "Schedule Updated"
-   os.capture( './schedule' )
+   result = os.capture( './schedule' )
    vlc.vlm():execute_command( "load config/schedule" )
 
  end

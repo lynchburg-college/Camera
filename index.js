@@ -1,4 +1,15 @@
 
+ $(document).ready( function() {  
+
+              Data.setup();
+              UI.setup();
+              window.setInterval( function() { UI.calendar.refresh(); }, (1 * 60 * 1000) );
+
+
+ });
+
+
+
 // ----------------------------------------------------------
 // ----------------------------------------------------------
 
@@ -53,11 +64,236 @@ moment.lang('en', {
         sameElse : 'LLL'
     }
 });
+/* ========================================================================
+ * bootstrap3-confirmation.js v1.0.1
+ * Adaptation of bootstrap-confirmation.js 
+ * from Nimit Suwannagate <ethaizone@hotmail.com>
+ * http://ethaizone.github.io/Bootstrap-Confirmation/
+ * ========================================================================
+ * Copyright 2013 Thomas Jacquart <thomas.jacquart@gmail.com>.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ======================================================================== */
 
 
++function ($) { "use strict";
 
-// ----------------------------------------------------------
-// ----------------------------------------------------------
+  // COMFIRMATION PUBLIC CLASS DEFINITION
+  // ====================================
+  var Confirmation = function (element, options) {
+    // First init from popover
+    this.init('confirmation', element, options)
+    
+    var options = this.options
+    
+    if (options.singleton) {
+      // remove others when I show me
+    }
+    var that = this;
+    if (options.popout) {
+      // close when I click outside the box
+      var $tip = this.tip()
+//      $('html').on('click', function(){
+//	  that.leave(that)
+//      })
+    }
+  }
+
+  if (!$.fn.popover || !$.fn.tooltip) throw new Error('Confirmation requires popover.js and tooltip.js')
+
+  Confirmation.DEFAULTS = $.extend({} , $.fn.popover.Constructor.DEFAULTS, {
+    placement	    : 'top'
+    , title	    : 'Are you sure ?'
+    , btnOkClass    : 'btn btn-primary'
+    , btnOkLabel    : 'Yes'
+    , btnOkIcon	    : 'glyphicon glyphicon-ok' 
+    , btnCancelClass: 'btn btn-default'
+    , btnCancelLabel: 'No'
+    , btnCancelIcon : 'glyphicon glyphicon-remove' 
+    , singleton	    : false
+    , popout	    : false
+    , href	    : '#'
+    , target	    : '_self'
+    , onConfirm	    : function(){}
+    , onCancel	    : function(){}
+    , template	    :   '<div class="popover">'
+		      + '<div class="arrow"></div>'
+		      + '<h3 class="popover-title"></h3>'
+		      + '<div class="popover-content">'
+		      + '<a data-apply="confirmation">Yes</a>'
+		      + ' <a data-dismiss="confirmation">No</a>'
+		      + '</div>'
+		      + '</div>'
+  })
+
+
+  // NOTE: CONFIRMATION EXTENDS popover.js
+  // ================================
+
+  Confirmation.prototype = $.extend({}, $.fn.popover.Constructor.prototype)
+
+  Confirmation.prototype.constructor = Confirmation
+
+  Confirmation.prototype.getDefaults = function () {
+    return Confirmation.DEFAULTS
+  }
+  
+  Confirmation.prototype.setContent = function () {
+    var that	    = this;
+    var $tip	    = this.tip()
+    var title	    = this.getTitle()
+    var $btnOk	    = $tip.find('[data-apply="confirmation"]');
+    var $btnCancel  = $tip.find('[data-dismiss="confirmation"]');
+    var options	    = that.options
+    
+    $btnOk.addClass(this.getBtnOkClass())
+      .html(this.getBtnOkLabel())
+      .prepend($('<i></i>').addClass(this.getBtnOkIcon()), " ")
+      .attr('href', this.getHref())
+      .attr('target', this.getTarget())
+      .one('click', function() {
+        options.onConfirm()
+        that.leave(that)
+	  })
+    
+    $btnCancel.addClass(this.getBtnCancelClass())
+	      .html(this.getBtnCancelLabel())
+	      .prepend($('<i></i>').addClass(this.getBtnCancelIcon()), " ")      
+	      .one('click', function(){
+          options.onCancel()
+          that.leave(that)
+	      })
+    
+    $tip.find('.popover-title')[this.options.html ? 'html' : 'text'](title)
+
+    $tip.removeClass('fade top bottom left right in')
+
+    // IE8 doesn't accept hiding via the `:empty` pseudo selector, we have to do
+    // this manually by checking the contents.
+    if (!$tip.find('.popover-title').html()) $tip.find('.popover-title').hide()
+  }
+
+  Confirmation.prototype.getBtnOkClass = function () {
+    var $e = this.$element
+    var o  = this.options
+
+    return $e.attr('data-btnOkClass')
+      || (typeof o.btnOkClass == 'function' ? 
+	    o.btnOkClass.call($e[0]) : 
+	    o.btnOkClass)
+  }
+  
+  Confirmation.prototype.getBtnOkLabel = function () {
+    var $e = this.$element
+    var o  = this.options
+
+    return $e.attr('data-btnOkLabel')
+      || (typeof o.btnOkLabel == 'function' ?
+            o.btnOkLabel.call($e[0]) :
+            o.btnOkLabel)
+  }
+  
+  Confirmation.prototype.getBtnOkIcon = function () {
+    var $e = this.$element
+    var o  = this.options
+
+    return $e.attr('data-btnOkIcon')
+      || (typeof o.btnOkIcon == 'function' ?
+            o.btnOkIcon.call($e[0]) :
+            o.btnOkIcon)
+  }
+
+  Confirmation.prototype.getBtnCancelClass = function () {
+    var $e = this.$element
+    var o  = this.options
+
+    return $e.attr('data-btnCancelClass')
+      || (typeof o.btnCancelClass == 'function' ? 
+	    o.btnCancelClass.call($e[0]) : 
+	    o.btnCancelClass)
+  }
+  
+  Confirmation.prototype.getBtnCancelLabel = function () {
+    var $e = this.$element
+    var o  = this.options
+
+    return $e.attr('data-btnCancelLabel')
+      || (typeof o.btnCancelLabel == 'function' ?
+            o.btnCancelLabel.call($e[0]) :
+            o.btnCancelLabel)
+  }
+  
+  Confirmation.prototype.getBtnCancelIcon = function () {
+    var $e = this.$element
+    var o  = this.options
+
+    return $e.attr('data-btnCancelIcon')
+      || (typeof o.btnCancelIcon == 'function' ?
+            o.btnCancelIcon.call($e[0]) :
+            o.btnCancelIcon)
+  }
+  
+  Confirmation.prototype.getHref = function () {
+    var $e = this.$element
+    var o  = this.options
+
+    return $e.attr('data-href')
+      || (typeof o.href == 'function' ?
+            o.href.call($e[0]) :
+            o.href)
+  }
+
+  Confirmation.prototype.getTarget = function () {
+    var $e = this.$element
+    var o  = this.options
+
+    return $e.attr('data-target')
+      || (typeof o.target == 'function' ?
+            o.target.call($e[0]) :
+            o.target)
+  }
+
+  // CONFIRMATION PLUGIN DEFINITION
+  // ==============================
+
+  var old = $.fn.confirmation
+
+  $.fn.confirmation = function (option) {
+    var that = this
+    return this.each(function () {
+      var $this   = $(this)
+      var data    = $this.data('bs.confirmation')
+      var options = typeof option == 'object' && option
+
+      if (!data) $this.data('bs.confirmation', (data = new Confirmation(this, options)))
+      if (typeof option == 'string') data[option]()
+    })
+  }
+
+  $.fn.confirmation.Constructor = Confirmation
+
+
+  // CONFIRMATION NO CONFLICT
+  // ===================
+
+  $.fn.confirmation.noConflict = function () {
+    $.fn.confirmation = old
+    return this
+  }
+
+}(jQuery);
+
+
 
 // ----------------------------------------------------------
 var interface_common = {
@@ -77,6 +313,19 @@ var interface_common = {
 // ----------------------------------------------------------
 var interface_machine = {
 
+                      "status" : function() {
+
+                         cc=$("#machine-status");
+                         cc.empty();
+
+                         info=eval('('+Data.send("show space")+')');
+                         cc.append('<pre>'+Format.object.html(info.result)+'</pre>' );
+                         
+                         info=eval('('+Data.send("show recording")+')');
+                         if(info['result']) {
+                            cc.append('<pre>'+Format.object.html(info.result)+'</pre>' );
+                         };
+                      },
                       "read" : function() {
 
                                   config=Data.readconfig('machine');
@@ -100,7 +349,7 @@ var interface_machine = {
                            UI.alert( Data.send('update machine', p) );
 
                            interface_machine.read();
-                           window.setTimeout( function() { interface_calendar.reloadfromserver() }, 1000 );
+                           window.setTimeout( function() { interface_calendar.reload() }, 1500 );
                            
                         }
 }                
@@ -210,18 +459,18 @@ var interface_calendar = {
                                               });
           },
 
-          "reloadfromserver" : function() {
-                interface_calendar.reload(true);
-          },
-          "reload" : function( fromServer ) {
+          "reload" : function() {
 
-                      if( fromServer ) {
-                          x=Data.send('update schedule');
-                          Data.calendar.reload();
-                          UI.alert(x);
-                      }
+                   interface_calendar.element.fullCalendar( 'removeEvents' );
+                   x=Data.send('update schedule');
+                   interface_calendar.element.fullCalendar( 'refetchEvents' );
+                   UI.alert(x);
+                   interface_calendar.refresh();
+
+          },
+
+          "refresh" : function( ) {
                       interface_calendar.element.fullCalendar('changeView','month');
-                      interface_calendar.element.fullCalendar( 'refetchEvents' );
                       interface_calendar.element.fullCalendar( 'rerenderEvents' );
                       $("#calendar-drawn").html( 'Schedule as of '+(new Date($.now())).toLocaleString() );
           },
@@ -401,30 +650,53 @@ var interface_calendar = {
 };
 
 // ----------------------------------------------------------
-var interface_camera = {
+
+var interface_audio = {
+
+         "setup" : function() {
+         },
+
+         "devices" : function() {
+         },
+
+         "defaults" : function() {
+         }
+};
+
+// ----------------------------------------------------------
+
+var interface_video = {
 
          "defaults" : function() { 
 
-                $.each( interface_camera.controls(), function(k,v) {
+                $.each( interface_video.controls(), function(k,v) {
                    if( v.hasOwnProperty('default') ) {
-                     $("#camera_"+v.name).slider( 'option', 'value', Number(v.default) );
+                     $("#video_"+v.name).slider( 'option', 'value', Number(v.default) );
                    };
                 });
-                UI.alert("Camera defaults set");
+                UI.alert("Video defaults set");
           },
 
 
          "setup" : function() {
 
-             cc=$('#camera-controls');
+/*
+             cc=$('#video-devices');
+             cc.empty
+             $(this.devices()).each( function(k,device) {
+                cc.append( device.name );
+             });
+*/
+
+             cc=$('#video-controls');
              cc.empty();
 
              $(this.controls()).each( function(k,control) {
 
                                     cc.append( '<div class="row"><b class="small" id="'+control.name+'_status">'+control.name+'</b>');
                                     cc.append( 
-                                               $('<div></div>', { id:'camera_'+control.name } )
-                                               .attr("id","camera_"+control.name)
+                                               $('<div></div>', { id:'video_'+control.name } )
+                                               .attr("id","video_"+control.name)
                                                .data("control",control)
                                                .slider(control)
                                              );
@@ -432,12 +704,34 @@ var interface_camera = {
               }); 
 
           },
+
+         "devices" : function() {
+
+                    var devices=[];
+                    
+                    response=eval('('+Data.send("show video-devices")+')');
+
+                    raw=response.result.replace(/:\n/g,'|').split('\n');
+                    $(raw).each( function(k,v) {
+                        if(v) {
+                         items=v.split('|');
+                         device = {
+                                    name : items[0],
+                                    device: items[1].trim()
+                                 };
+                          devices.push( device );
+                        };
+                    });
+
+                    return devices;
+                                                    
+         },
           
          "controls" : function( forceLoad ) {
 
                     var controls=[];
                     
-                    response=eval('('+Data.send("show camera")+')');
+                    response=eval('('+Data.send("show video-controls")+')');
                     raw=response.result.split('\n');
 
                     $(raw).each( function(k,v) {
@@ -449,8 +743,8 @@ var interface_camera = {
                                                              n=$(this).data("control").name;
                                                              v=$(this).slider("option","value");
                                                              $('#'+n+'_status').html(n + ' <span class="pull-right badge">' + v + '</span>');
-                                                             UI.alert( Data.send('camera '+n+'='+v) );
-                                                             interface_camera.setup();
+                                                             UI.alert( Data.send('video '+n+'='+v) );
+                                                             interface_video.setup();
                                        },
                                        slide : function(e) {
                                                              n=$(this).data("control").name;
@@ -513,10 +807,10 @@ var interface_camera = {
 
 // ----------------------------------------------------------
 
-var interface_videos = {
+var interface_files = {
 
           "setup"   : function() {
-             interface_videos.refresh();
+             interface_files.refresh();
           },
 
           "delete"  : function(filename) {
@@ -529,22 +823,30 @@ var interface_videos = {
          
              files=eval( '(' + Data.send('show videos') + ')' ).result;
              if(files) {
+   
                  $.each( files.split(/\n/), function(k,v) {
                     tt=v.split('|');
                     if(tt[0]!='') {
-                      ff.append( '<tr><td><button class="delete"></button><td><td class="file">'+tt[0]+'</td><td>'+tt[1]+'</td><td>'+tt[2]+'</td></tr>' );
+                      ff.append( '<tr><td><button class="delete-video" data-file="'+tt[0]+'"></button><td><td class="file">'+tt[0]+'</td><td>'+tt[1]+'</td><td>'+tt[2]+'</td></tr>' );
                     };
                  });
 
-                 ff.find("button.delete")
+                 $("button.delete-video")
                    .addClass("btn btn-xs btn-danger")
-                   .text("del")
-                   .click( function(e) {
-                      file=$(this).closest("tr").find("td.file").text();
-                      UI.alert( Data.send('delete '+file) );
-                      interface_videos.refresh();
-                   });
+                   .text('del')
+                   .confirmation({
+                           file : $(this).attr("data-file"),
+                           title : 'Delete this video file?',
+                           placement : 'right',
+                           onConfirm : function(e) {
+                                                 file=$(this)[0].file;
+                                                 UI.alert( Data.send('delete '+file) );
+                                                 interface_files.refresh();
+                                       }
+                    });
+
               };
+
             },
 
 
@@ -583,7 +885,7 @@ var interface_preview = {
               setup.push('setup s0-preview-stop enabled');
 
               // Send commands to the engine
-              $(setup).each( function(k,v) { UI.log(v); Data.send(v) } );
+              $(setup).each( function(k,v) { console.log(v); Data.send(v) } );
             
               oo = $('<div style="text-align:center;z-index:99;">' +
                          '<object style="width:99%;height:90%;" id="preview-video-object" type="application/x-vlc-plugin" data="'+url+'" controls="yes">' +
@@ -608,9 +910,9 @@ var interface_preview = {
 
           "hide" : function() {
 
-             UI.log( Data.send('control preview stop') );
-             UI.log( Data.send('del s0-preview-stop') );
-             UI.log( Data.send('del preview') );
+             Data.send('control preview stop');
+             Data.send('del s0-preview-stop');
+             Data.send('del preview');
 
              d=interface_preview['dialog'];
              if(d) {
@@ -652,6 +954,7 @@ var interface_actions = {
                      .removeClass("hidden");
 
                     event.preventDefault();
+                    interface_calendar.refresh();
 
                 });
 
@@ -687,6 +990,7 @@ var Data = {
                 "setup"    : function() {
                       Data.common.read();
                       Data.machine.read();
+                      Data.machine.status();
                       Data.actions.attach();
                       Data.media.read();
                 },                                
@@ -734,7 +1038,7 @@ var UI = {
 
               details=Format.object.html( dd );
 
-              defaultOptions= { offset: { from:'bottom', amount: 20 }, align:'right', type:'info', width:400 };
+              defaultOptions= { offset: { from:'bottom', amount: 20 }, align:'right', type:'info', width:500, delay:2500 };
               
               $.bootstrapGrowl( details, ( displayOptions || defaultOptions ) );
 
@@ -743,11 +1047,12 @@ var UI = {
           "setup"    : function() {
               UI.preview.hide();
               UI.calendar.setup();
-              UI.camera.setup();
-              UI.videos.setup();
+              UI.video.setup();
+              UI.files.setup();
           },
-          "camera"   : interface_camera,  
-          "videos"   : interface_videos,  
+          "files"   : interface_files,  
+          "video"   : interface_video,  
+          "audio"   : interface_audio,  
           "calendar" : interface_calendar,
           "preview"  : interface_preview
 };
@@ -821,19 +1126,6 @@ var Handler= {
 
 // ----------------------------------------------------------
 // ----------------------------------------------------------
-
-
-
- $(document).ready( function() {  
-
- 
-              Data.setup();
-              UI.setup();
-              
-              window.setInterval( function() { UI.calendar.reload(); }, (1 * 60 * 1000) );
-
- });
-
 
 
 
