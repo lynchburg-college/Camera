@@ -133,14 +133,23 @@ if( string.starts ( command, "show" ) ) then
  if     ( string.ends ( command, "videos") ) then
    result = os.capture( 'ls -a video/*mp4* -lhr | awk \'{print $9"|"$6" "$7" "$8"|"$5}\' ')
 
+ elseif ( string.ends( command, "host") ) then
+   result = os.capture( "/bin/uname -ro" )
+
+ elseif ( string.ends( command, "version") ) then
+   result = os.capture( "git describe --tags --long" )
+
+ elseif ( string.ends( command, "ip") ) then
+   result = os.capture( "/sbin/ifconfig" )
+
  elseif ( string.ends ( command, "inprogress") ) then
    result = os.capture( 'lsof ./video/*mp4*' )
   
  elseif ( string.ends ( command, "space") ) then
    result = os.capture( 'df -h' )
 
- elseif ( string.ends( command, "ip") ) then
-   result = os.capture( "/sbin/ifconfig" )
+ elseif ( string.ends( command, "v4l") ) then
+   result = os.capture( "v4l2-ctl -D" )
 
  elseif ( string.ends ( command, "video-devices") ) then
    result = os.capture( 'v4l2-ctl --list-devices' )

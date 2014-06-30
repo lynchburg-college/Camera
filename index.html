@@ -1,19 +1,18 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
 
-  <meta name="viewport" content="initial-scale=1, maximum-scale=1">
-
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1"  />
 
   <title>Camera</title>
 
   <link rel="icon" type="image/jpg" href="favicon.jpg?v=2" />
 
-  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" />
 <!--
-  <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" rel="styleheet">
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" rel="styleheet" />
 -->
 
   <link href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css" rel="stylesheet" class="theme-link" type="text/css" media="screen" />
@@ -21,9 +20,12 @@
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.css" rel="stylesheet" />
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.print.css" rel="stylesheet" media="print"/>
 
-  <style>
+  <style type="text/css">
    label {  
      width: 10em;
+   }
+   .panel-heading {
+     font-weight: bold;
    }
   </style>
   
@@ -31,14 +33,15 @@
 
 <body> 
 
- <div class="container-fluid">
-  <nav class="navbar navbar-inverse navbar-fixed-top navbar-default" role="navigation">
-
+  <nav class="navbar navbar-default navbar-inverse navbar-fixed-top" >
+   <div class="container-fluid">
+       
       <div class="navbar-header">
+
          <a class="navbar-brand" href="#">
            <span class="glyphicon glyphicon-facetime-video glyphicon-lg"></span>
            <span id="roomInfo"></span>
-           <div id="versionInfo"></div>
+           <span id="versionInfo"></span>
          </a>
 
           <button id="navbar-button-toggle" type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -47,13 +50,16 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
+
        </div>
 
-      <div class="collapse navbar-collapse collapse pull-right">
+
+      <div class="collapse navbar-collapse collapse navbar-right">
+         <p id="software-version" class="navbar-text"></p>
       </div>
 
-  </nav>  
- </div>
+   </div>
+  </nav>
 
   <br><br><br>
 
@@ -74,27 +80,33 @@
     <!-- Schedule Panel -->
     <div id="panel-schedule" class="tab-pane fade in active">
  
-        <div id="event-dialog"></div>
-        <div class="row">
-         <div class="container">
-           <div id="event-calendar"></div>
-         </div>
-        </div>
+       <div id="event-dialog"></div>
+       <div class="row">
+           <div class="text-center" style="padding:1em;">
+              <div id="event-calendar"></div>
+           </div>
+       </div>
 
-        <div class="row">
+
+        <div class="row calendar-controls hidden">
+ 
           <div class="col-lg-3" id="calendar-refresh">
            <span class="pull-left">
-            <a href="#" data-action="UI.calendar.refresh">refresh</a>
+             <a href="#" data-action="UI.calendar.refresh">refresh</a>
            </span>
           </div>
+ 
           <div class="col-lg-6 text-center" id="calendar-drawn">
           </div>
+ 
           <div class="col-lg-3">
            <span class="pull-right">
             <a href="#" class="confirm" data-confirm-placement="top" data-action="UI.calendar.reload" data-icon="calendar">reload from server</a>
            </span>
-         </div>
+          </div>
+  
         </div>
+  
     </div>
     <!-- Schedule Panel -->
 
@@ -115,7 +127,7 @@
                   <div class="clearall"><label class="control-label">Exclude Courses</label><input name="exclude" id="config-exclude" /></div>
                   <div><label class="control-label">Include Courses</label><input name="include" id="config-include" /></div>
                   <div><label class="control-label">Recording Split</label>
-                       <select name="splitMinutes" id="config-splitMinutes" />
+                       <select name="splitMinutes" id="config-splitMinutes">
                          <option value="00">Don't Split</option>
                          <option value="30">30 Minute blocks</option>
                          <option value="60">1 Hour blocks</option>
@@ -133,22 +145,6 @@
                </div>
             </div> 
 
-        </div>
-        
-        <div class="col-md-6">
-
-              <div class="panel panel-default">
-                <div class="panel-heading">System Status<span class="pull-right"><a href="#" data-action="Data.machine.status" data-icon="refresh">refresh</a></span></div>
-                <div id="machine-status" class="panel-body" ></div>
-             </div>
-
-        </div>
-
-    </div>
-   
-    <div class="row">
-        <div class="col-md-3">
-
               <div class="panel panel-default">
                 <div class="panel-heading">
                   Quick Commands
@@ -160,10 +156,23 @@
                 </div>
                </div>
             </div>
-       
-       </div>
 
-        <div class="col-md-9">
+          </div>
+        
+          <div class="col-md-6">
+
+              <div class="panel panel-default">
+                <div class="panel-heading">System Status<span class="pull-right"><a href="#" data-action="Data.machine.status" data-icon="refresh">refresh</a></span></div>
+                <div id="machine-status" class="panel-body" ></div>
+             </div>
+
+         </div>
+
+    </div>
+   
+    <div class="row">
+
+        <div class="col-sm-12">
      
               <div class="panel panel-default">
                 <div class="panel-heading">VLC Command</div>
@@ -278,7 +287,7 @@
 
            <table class="table table-stripe table-hover">
             <thead><tr>
-              <th width="33%">Timestamp</th>
+              <th style="width:33%">Timestamp</th>
               <th>Event</th>
             </tr></thead>
             <tbody></tbody>
@@ -287,7 +296,6 @@
          </div>        
 
       </div>
-
 
    </div>
    <!-- tab-content --> 

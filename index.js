@@ -1,5 +1,4 @@
-
- $(document).ready( function() {  
+$(document).ready( function() {  
 
               Data.setup();
               UI.setup();
@@ -90,13 +89,20 @@ var interface_machine = {
                          cc=$("#machine-status");
                          cc.empty();
 
-                         info=eval('('+Data.send("show space")+')');
-                         cc.append('<pre>'+Format.object.html(info.result)+'</pre>' );
-                         
-                         info=eval('('+Data.send("show recording")+')');
-                         if(info['result']) {
-                            cc.append('<pre>'+Format.object.html(info.result)+'</pre>' );
-                         };
+                         items=[
+                                   'show host',
+                                   'show v4l',
+                                   'show space',
+                                   'show recording'
+                               ];
+
+                         $.each( items, function(k,v) {
+                           info=eval('('+Data.send( v )+')');
+                           if(info.result) { 
+                             cc.append('<pre>'+Format.object.html(info.result)+'</pre>' );
+                           };
+                         });
+
                       },
                       "read" : function() {
 
@@ -232,6 +238,8 @@ var interface_calendar = {
                                                      select : Data.calendar.select,
                                                      events : Data.calendar.events
                                               });
+
+                      $(".calendar-controls").removeClass("hidden");                 
           },
 
           "reload" : function() {
@@ -857,9 +865,11 @@ var UI = {
               UI.calendar.setup();
               UI.video.setup();
               UI.files.setup();
+              $("#software-version").html(   eval('('+Data.send("show version")+')').result  );
               UI.log("Launched management interface");
               
           },
+
           "files"   : interface_files,  
           "video"   : interface_video,  
           "audio"   : interface_audio,  
