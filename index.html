@@ -31,11 +31,10 @@
 
 <body> 
 
+ <div class="container-fluid">
   <nav class="navbar navbar-inverse navbar-fixed-top navbar-default" role="navigation">
-     <div class="container-fluid">
 
       <div class="navbar-header">
-
          <a class="navbar-brand" href="#">
            <span class="glyphicon glyphicon-facetime-video glyphicon-lg"></span>
            <span id="roomInfo"></span>
@@ -48,28 +47,40 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-
        </div>
 
-       <div class="collapse navbar-collapse collapse pull-right">
-             <ul id="nav-list" class="nav navbar-nav">
-                <li class="page-scroll active"><a href="#panel-schedule"><span class="glyphicon glyphicon-calendar"></span>  Schedule</a></li>
-                <li class="page-scroll"><a href="#panel-machine"><span class="glyphicon glyphicon-cog"></span>  Machine</a></li>
-                <li class="page-scroll"><a href="#panel-recording"><span class="glyphicon glyphicon-facetime-video"></span>  Recording</a></li>
-             </ul>
-       </div>
+      <div class="collapse navbar-collapse collapse pull-right">
+      </div>
 
-    </div>
   </nav>  
+ </div>
 
   <br><br><br>
 
-
   <div class="container">
 
-    <section id="panel-schedule" class="active" >
+    <ul class="nav nav-pills" role="tablist">
+      <li class="active"><a href="#panel-schedule" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-calendar"></span> Schedule</a></li>
+      <li><a href="#panel-machine" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-wrench"></span> Machine</a></li>
+      <li><a href="#panel-recording" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-facetime-video"></span> Recording</a></li>
+      <li><a href="#panel-preview" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-eye-open"></span> Preview</a></li>
+      <li><a href="#panel-log" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list-alt"></span> Log</a></li>
+    </ul>
+
+   <div class="clearfix"><hr></div>
+    
+   <div class="tab-content">
+
+    <!-- Schedule Panel -->
+    <div id="panel-schedule" class="tab-pane fade in active">
+ 
         <div id="event-dialog"></div>
-        <div id="event-calendar"></div>
+        <div class="row">
+         <div class="container">
+           <div id="event-calendar"></div>
+         </div>
+        </div>
+
         <div class="row">
           <div class="col-lg-3" id="calendar-refresh">
            <span class="pull-left">
@@ -80,24 +91,25 @@
           </div>
           <div class="col-lg-3">
            <span class="pull-right">
-            <a href="#" data-action="UI.calendar.reload" data-icon="calendar">reload from server</a>
+            <a href="#" class="confirm" data-confirm-placement="top" data-action="UI.calendar.reload" data-icon="calendar">reload from server</a>
            </span>
          </div>
         </div>
-    </section>
+    </div>
+    <!-- Schedule Panel -->
 
 
-    <section id="panel-machine" class="hidden">
+    <!-- Machine Panel -->
+    <div id="panel-machine" class="tab-pane fade">
 
        <div class="row">
-          <div class="col-lg-4">        
+
+          <div class="col-md-6">        
 
               <div class="panel panel-default">
-                <div class="panel-heading">
-                  Machine Configuration
-                </div>
-               <div class="panel-body">
-                 <form id="config-form" onSubmit="return false">
+                <div class="panel-heading">Machine Configuration</div>
+                <div class="panel-body">
+                  <form id="config-form" onSubmit="return false">
                   <div><label class="control-label">Room ID</label><input name="roomID" id="config-roomID" /></div>
                   <div><label class="control-label">Room Name</label><input name="roomName" id="config-roomName" /></div>
                   <div class="clearall"><label class="control-label">Exclude Courses</label><input name="exclude" id="config-exclude" /></div>
@@ -123,22 +135,19 @@
 
         </div>
         
-        <div class="col-lg-5">
+        <div class="col-md-6">
 
               <div class="panel panel-default">
-                <div class="panel-heading">
-                  System Status
-                 <span class="pull-right">
-                      <a href="#" data-action="Data.machine.status" data-icon="refresh">refresh</a>
-                 </span>
-                </div>
-               <div id="machine-status" class="panel-body" >
-               </div>
+                <div class="panel-heading">System Status<span class="pull-right"><a href="#" data-action="Data.machine.status" data-icon="refresh">refresh</a></span></div>
+                <div id="machine-status" class="panel-body" ></div>
              </div>
 
         </div>
-        
-        <div class="col-lg-3">
+
+    </div>
+   
+    <div class="row">
+        <div class="col-md-3">
 
               <div class="panel panel-default">
                 <div class="panel-heading">
@@ -146,70 +155,92 @@
                 </div>
                <div class="panel-body">
                 <div class="list-group">
-                 <a href="#" class="list-group-item" data-action="Data.actions.update">Update Camera Software</a>
-                 <a href="#" class="list-group-item" data-action="Data.actions.reboot">Reboot Machine</a>
+                 <a href="#" class="list-group-item confirm" data-action="Data.actions.update"><span class="badge"><span class="glyphicon glyphicon-cloud-download"></span></span> Update Camera Software</a>
+                 <a href="#" class="list-group-item confirm" data-action="Data.actions.reboot"><span class="badge"><span class="glyphicon glyphicon-off"></span></span> Reboot Machine</a>
                 </div>
                </div>
             </div>
-        
+       
        </div>
- 
-    </div>
-    
-    <div class="row">
-     <div class="col-lg-12">
+
+        <div class="col-md-9">
      
               <div class="panel panel-default">
-                <div class="panel-heading">
-                  VLC Command
-                </div>
-               <div class="panel-body">
+                <div class="panel-heading">VLC Command</div>
+                <div class="panel-body">
                  <div class="input-group">
                     <input type="text" class="form-control" id="vlc-command" name="vlc-command">
                     <span class="input-group-btn">
                       <button data-action="Data.actions.vlc">send command</button>
                     </span>
                  </div>
-               <div id="vlc-receive"></div>
+                 <div id="vlc-receive"></div>
               </div>
              </div>
-    </div>
+
+        </div>
+
+
    </div>
    
-   
-  </section>
+   </div>
+    <!-- Machine Panel -->
 
-    <section id="panel-recording" class="hidden">
+
+    <!-- Recording Panel -->
+    <div id="panel-recording" class="tab-pane fade">
 
         <div class="row">
-           <div class="col-lg-12">
+
+           <div class="col-md-3">
 
               <div class="panel panel-default">
+                <div class="panel-heading">Recording Devices<span class="pull-right"><a href="#" data-action="Data.media.refresh">refresh</a></span></div>
+                <div class="panel-body">
+                  <span id="status-media"></span>
+               </div>
+             </div>
+ 
+           </div>
+           
+           <div class="col-md-9">
 
-                <div class="panel-heading">
-                  Media Devices
-                  <span class="pull-right"><a href="#" data-action="Data.media.refresh">refresh</a></span>
-                </div>
-
-               <div class="panel-body">
-                <button class="btn btn-media btn-primary" data-action="UI.preview.show">preview</button>
-                <span id="status-media"></span>
+               <div id="video-files" class="panel panel-default">
+                   <div class="panel-heading">
+                    Video Files
+                    <span class="pull-right">
+                     <a href="#" data-action="UI.files.refresh">refresh</a>
+                    </span>
+                   </div>
+                   <div class="panel-body">
+                     <table class="table table-stripe table-hover">
+                     <tbody></tbody>
+                    </table>
+                   </div>
                </div>
 
-             </div>
-         </div>             
-       </div>
+          </div>
 
-        <div class="row">
+         </div>
+          
+        </div>
+        <!-- Recording Panel -->
 
-           <div class="col-lg-4">
+        <!-- Preview Panel -->
+        <div id="panel-preview" class="tab-pane fade">
+
+           <div class="row">
+           
+            <div class="col-md-5">
 
               <div class="panel panel-default">
                 <div class="panel-heading">
                   Video Controls
                   <span class="pull-right">
-                    <a href="#" data-action="UI.video.defaults">reset to defaults</a>
+                    <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.video.defaults">reset to defaults</a>
+                    <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.show">preview</a>
                   </span>
+
                 </div>
                <div class="panel-body">
                  <div id="video-controls" class="col-lg-10"></div>
@@ -218,47 +249,51 @@
              
            </div>
 
-           <div class="col-lg-8">
+            <div class="col-md-7">
 
-<!--
-            <div class="panel panel-default">
-               <div class="panel-heading">
-                Video Devices
-               </div>
-               <div class="panel-body">
-                 <div id="video-devices" class="col-lg-10"></div>
-               </div>
-               <div class="panel-heading">
-                Audio Devices
-               </div>
-               <div class="panel-body">
-                 <div id="audio-devices" class="col-lg-10"></div>
-               </div>
-           </div>
--->
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  Audio Controls
+                  <span class="pull-right">
+                    <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="top" data-action="UI.audio.defaults">reset to defaults</a>
+                  </span>
 
-
-           <div id="video-files" class="panel panel-default">
-               <div class="panel-heading">
-                Video Files
-                <span class="pull-right">
-                 <a href="#" data-action="UI.files.refresh">refresh</a>
-                </span>
-               </div>
+                </div>
                <div class="panel-body">
-                 <table class="table table-stripe table-hover">
-                 <tbody></tbody>
-                </table>
+                 <div id="audio-controls" class="col-lg-10">(not yet implemented)</div>
                </div>
              </div>
+             
+           </div>
+  
+         </div>
 
-        </div>
+       </div>
+       <!-- Preview Panel -->
+       
+       <!-- Log Panel -->
+       <div id="panel-log" class="tab-pane fade">
 
-    </section>
+         <div class="row">
 
-    
+           <table class="table table-stripe table-hover">
+            <thead><tr>
+              <th width="33%">Timestamp</th>
+              <th>Event</th>
+            </tr></thead>
+            <tbody></tbody>
+           </table>
+
+         </div>        
+
+      </div>
+
+
+   </div>
+   <!-- tab-content --> 
 
  </div>
+ <!-- container --> 
   
  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
  <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>

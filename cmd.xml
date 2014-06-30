@@ -95,7 +95,7 @@ result = ""
 -- ----------------------
 if( string.starts ( command, "video-set" ) ) then
 
-   setting="/usr/bin/v4l2-ctl --verbose -c "..(string.sub( command, 8, string.len(command) ) )
+   setting="/usr/bin/v4l2-ctl --verbose -c "..(string.sub( command, 11, string.len(command) ) )
    result=os.capture(setting)
   
 end
