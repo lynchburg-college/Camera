@@ -43,6 +43,7 @@ touch $logFile
            # Couldn't find anything?  That's OK.. use the default stuff
            if [ "$info" == "" ]
            then
+               log "Couldn't match $asOf"
                info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\" "
            fi
            
