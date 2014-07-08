@@ -45,18 +45,21 @@ touch $logFile
            then
                log "Couldn't match $asOf"
                info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\" "
+           else
+               log "Matched : $info"
            fi
            
-           if [ "$1" == "debug" ] 
-           then
-             log "Matched : $info"
-             exit 0
-           fi
            
            
            # Post to the media server
            cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file\" $urlUpload"
            log "$cmd"
+
+           if [ "$1" == "debug" ] 
+           then
+             exit 0
+           fi
+
            info=$(eval "$cmd")
 
            # Archive the original file
