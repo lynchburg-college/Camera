@@ -3,6 +3,13 @@
 # Common
 source "${0%/*}/config/common"
 
+# Apply camera settings 
+if [ -e "config/camera" ] 
+then
+ source "config/camera"
+fi
+
+
 # If an upload is already in progress, skip this pass.
 pidCurl=$(ps -A | grep curl)
 if [ ! "$pidCurl" == "" ]

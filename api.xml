@@ -1,0 +1,265 @@
+<?vlc
+
+--
+-- API / handler for all web actions
+--
+
+require "httprequests"
+
+--
+-- Utility Functions
+--
+function string.starts(String,Start)
+   return string.sub(String,1,string.len(Start))==Start
+end
+-- ----------------------
+function string.ends(String,End)
+   return End=='' or string.sub(String,-string.len(End))==End
+end
+-- ----------------------
+function pairsByKeys (t, f)
+      local a = {}
+      for n in pairs(t) do table.insert(a, n) end
+      table.sort(a, f)
+      local i = 0      -- iterator variable
+      local iter = function ()   -- iterator function
+        i = i + 1
+        if a[i] == nil then return nil
+        else return a[i], t[a[i]]
+        end
+      end
+      return iter
+ end
+-- ----------------------
+function getProperties ( collection )
+   local o={}
+   for k,v in pairsByKeys(collection) do
+    if(type(v.children) == "table" ) then
+     o[v.name]=getProperties( v.children )
+    else
+     o[v.name]=v.value
+    end
+   end
+   return o
+end
+-- ----------------------
+function api_execute(cmd, raw)
+  local f = assert(io.popen(cmd, 'r'))
+  local s = assert(f:read('*a'))
+  f:close()
+  if raw then return s end
+  return s
+end
+-- ----------------------
+function api_now()
+   return os.date("%a %b %d, %Y @ %I:%M:%S%p  ")
+end
+
+function updateMachine()
+
+   local now = api_now()
+
+   local file = io.open("config/machine", "w")
+
+   file:write('# Configuration written from web : '..now..'\n')
+   file:write('\n')
+
+   file:write('roomID='.._GET["roomID"]..'\n')
+   file:write('roomName="'.._GET["roomName"]..'"\n')
+   file:write('splitMinutes='.._GET["splitMinutes"]..'\n')
+   file:write('include="'.._GET["include"]..'"\n')
+   file:write('exclude="'.._GET["exclude"]..'"\n')
+   
+   file:flush()
+   file:close()
+
+end
+-- ----------------------
+function api_writefile( configFile, configContents )
+
+   local result=""
+
+   if( configFile == nil ) then
+      result="No filename specified."
+
+   elseif ( configContents == nil ) then
+      result="No contents provided."
+
+   else
+
+       local now = api_now()
+       local ff="config/"..configFile
+       local cc=string.gsub( configContents, "+"," ")
+
+       local file = io.open( ff, "w")
+
+	   file:write('# Saved : '..now..'\n')
+	   file:write('\n')
+
+	   file:write(cc )
+	   file:flush()
+	   file:close()
+
+	   result = ff.." configuration saved"
+	 
+   end
+
+   return result
+
+end
+
+
+
+
+
+
+
+local command=_GET["command"]
+local result = ""
+
+
+
+-- --------------------------------------------------------------------------
+if ( command == "vlm" ) then
+
+  item=_GET["item"]
+
+  if ( item == nil ) then
+   result = "Missing ITEM (for VLM command)"
+ 
+  else
+
+   item=string.gsub( item, "+", " ") 
+   response = vlc.vlm():execute_command( item )
+ 
+   if( type(response.children) == "table" ) then
+       result = getProperties( response.children )
+   else
+      result = response.value
+   end
+
+  end 
+
+
+-- --------------------------------------------------------------------------
+elseif ( command == "control" ) then
+
+  action=_GET["action"]
+
+  if  ( action == "reboot"  ) then
+   result = api_execute( '/sbin/reboot' )
+
+  elseif ( action == "ifconfig" ) then
+   result = api_execute( '/sbin/ifconfig' )
+
+  elseif ( action == "delete" ) then
+   cmd="rm --verbose ".._GET["file"]
+   result = api_execute( cmd )
+
+  elseif ( action == nil ) then
+    result = "Missing ACTION"
+  else
+    result = "Unknown ACTION : "..action
+  end
+
+
+-- --------------------------------------------------------------------------
+elseif ( command == "show" ) then
+
+ item=_GET["item"]
+
+ if ( item == "host" ) then
+   result = api_execute( "/bin/uname -ro" )
+
+ elseif ( item == "version"  ) then
+   result = api_execute( "git describe --tags --long" )
+
+ elseif ( item == "ip" ) then
+   result = api_execute( "/sbin/ifconfig" )
+
+ elseif ( item == "recording" ) then
+   result = api_execute( 'lsof ./video/*mp4*' )
+  
+ elseif ( item == "videos" ) then
+   result = api_execute( 'ls -a video/*mp4* -lhr | awk \'{print $9"|"$6" "$7" "$8"|"$5}\' ')
+
+ elseif ( item == "space" ) then
+   result = api_execute( 'df -h' )
+
+ elseif ( item == "v4l" ) then
+   result = api_execute( "v4l2-ctl -D" )
+
+ elseif ( item == "video-devices" ) then
+   result = api_execute( 'v4l2-ctl --list-devices')
+
+ elseif ( item == "video-controls" ) then
+   result = api_execute( 'v4l2-ctl -L' )
+
+ elseif ( item == "audio-devices" ) then
+   result = api_execute( "/usr/bin/arecord -l | grep \"^card\" ")
+
+ elseif ( item == "audio-controls" ) then
+   result = api_execute( "/usr/bin/arecord -l | grep \"^card\" ")
+
+ elseif ( item == nil ) then
+    result = "Missing ITEM"
+ else
+    result = "Unknown ITEM : "..item
+ end
+
+
+-- --------------------------------------------------------------------------
+elseif ( command == "update" ) then
+
+ item = _GET["item"]
+
+   
+ if ( item == "config" ) then
+   local configFile=_GET["file"]
+   local configContents=_GET["contents"]
+
+   result = api_writefile( configFile, configContents )
+ 
+ elseif ( item == "software" ) then
+   result = api_execute( 'git pull' )
+
+ elseif ( item == "schedule" ) then
+   result = api_execute( './schedule' )
+   vlc.vlm():execute_command( "load config/schedule" )
+
+ elseif ( item == "video-control" ) then
+
+   local control=_GET["control"]
+   local value=_GET["value"]
+   setting="/usr/bin/v4l2-ctl --verbose -c "..control.."="..value 
+   result=api_execute( setting )
+
+ elseif ( item == nil ) then
+    result = "Missing ITEM"
+ else
+    result = "Unknown ITEM : "..item
+ end
+ 
+
+
+-- --------------------------------------------------------------------------
+elseif ( command ==  nil ) then
+ result = "No COMMAND to process"
+
+else
+ result = "Unknown COMMAND "..command
+
+end
+
+
+
+
+
+json = {}
+json["command"] = command
+json["timestamp"]=os.date("%Y-%m-%d %H:%M:%S (%a)")
+json["result"]=result
+
+httprequests.printTableAsJson(json)
+
+?>

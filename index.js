@@ -71,7 +71,7 @@ var interface_common = {
 
                 "read" : function(setting) {
                 
-                      common=Data.readconfig('common');
+                      common=Data.config.read('common');
 
                       $.each( common, function(k,v) {
                          interface_common[v.name] = v.value;
@@ -90,15 +90,16 @@ var interface_machine = {
                          cc.empty();
 
                          items=[
-                                   'show host',
-                                   'show v4l',
-                                   'show space',
-                                   'show recording'
+                                   { command:'show', item: 'host' },
+                                   { command:'show', item: 'v4l'} ,
+                                   { command:'show', item: 'space'} ,
+                                   { command:'show', item: 'recording'}
                                ];
 
                          $.each( items, function(k,v) {
-                           info=eval('('+Data.send( v )+')');
-                           if(info.result) { 
+
+                           info=Data.send(v);
+                           if( info['result'] ) { 
                              cc.append('<pre>'+Format.object.html(info.result)+'</pre>' );
                            };
                          });
@@ -106,10 +107,10 @@ var interface_machine = {
                       },
                       "read" : function() {
 
-                                  config=Data.readconfig('machine');
+                                  config=Data.config.read('machine');
                                   $.each( config, function(i,v) {
                                     interface_machine[ v['name'] ] = v['value'];
-                                    $("#config-"+v['name'] ).val( v['value'] );
+                                    $("#config-form *[name="+v['name']+']' ).val( v['value'] );
                                   });
                                  
                                   // Update the screen display
@@ -118,16 +119,15 @@ var interface_machine = {
                         },
 
                         "write" : function() {
+
                            config=$("#config-form").serializeArray();
-                           p='';
+                           contents='';
                            $.each( config, function(i,v) { 
-                               p=p+v['name']+'='+v['value']+'&';
+                               contents += v['name']+'='+v['value']+'\n';
                            });
 
-                           result=Data.send('update machine', p);
-                           result.log=true;
-                           UI.alert( result );
-
+                           Data.send({ command:'update', item:'config', file:'machine', contents: contents, alert:true } );
+                           
                            interface_machine.read();
                            window.setTimeout( function() { interface_calendar.reload() }, 1500 );
                            
@@ -155,8 +155,9 @@ var interface_media =  {
 
                               vlc=$(this).data('vlc');
 
-                              action=( Data.send('show '+(vlc.name)).indexOf('instance') == -1 ) ? 'play' : 'stop';
-                              UI.alert( Data.send('control '+vlc.name+' '+action) );
+                              peek='show '+( (vlc.name).indexOf('instance') == -1 ) ? 'play' : 'stop';
+                              action=Data.send( { command:'vlm', item:peek } );
+                              Data.send( { command:'vlm', item: 'control '+vlc.name+' '+action, alert:true } ) ;
 
                               $(this).removeClass("btn-success")
                                      .addClass("btn-warning");
@@ -175,8 +176,8 @@ var interface_media =  {
 
            var comeBack=false;
 
-           response=Data.send('show media');
-           items=( eval( "("+response+")" ).result.media || {} );
+           response=Data.send( { command:'vlm', item:'show media' } );
+           items=( response['result']['media'] || {} );
 
            $.each( items, function( name, vlcCurrent ) {
 
@@ -245,9 +246,9 @@ var interface_calendar = {
           "reload" : function() {
 
                    interface_calendar.element.fullCalendar( 'removeEvents' );
-                   x=Data.send('update schedule');
+                   Data.send( {command:'update', item:'schedule', alert:true } );
+
                    interface_calendar.element.fullCalendar( 'refetchEvents' );
-                   UI.alert(x, true);
                    interface_calendar.refresh();
 
           },
@@ -333,10 +334,10 @@ var interface_calendar = {
                        scheduleID=calendarEvent.eventID+'-'+calendarEvent.courseID;
 
                        command = 'del '+scheduleID+'-start';
-                       UI.alert(  Data.send(command) );
+                       Data.send( { command:'vlm', item:command, alert:true } );
 
                        command = 'del '+scheduleID+'-stop';
-                       UI.alert(  Data.send(command) );
+                       Data.send( { command:'vlm', item:command, alert:true } );
 
                          response = $.ajax({
                                 type: "POST",
@@ -366,8 +367,7 @@ var interface_calendar = {
           
           "events"  : function( calendarStart, calendarEnd,  timezone, callback ) {
 
-           response=Data.send('show schedule');
-           vlcStatus = eval( "("+response+")" );
+           vlcStatus=Data.send( { command:'vlm', item:'show schedule'} );
 
            var events={};
            $.each( (vlcStatus.result.schedule || {}), function(k,v) {
@@ -450,7 +450,8 @@ var interface_audio = {
 
 var interface_video = {
 
-         "defaults" : function() { 
+
+         "reset" : function() { 
 
                 $.each( interface_video.controls(), function(k,v) {
                    if( v.hasOwnProperty('default') ) {
@@ -461,15 +462,27 @@ var interface_video = {
           },
 
 
+         "write" : function() { 
+
+                settings='# Camera configuration for ' + Data.machine.roomID+'\n# -------------------\n\n';
+                $.each( interface_video.controls(), function(k,v) {
+                     if( !v['disabled'] ) {
+                       settings = settings + 'v4l2-ctl -c '+v.name+'='+v.value+'\n';
+                     };   
+                });
+
+                Data.send( { command:"update", item:"config", file:"camera", contents:settings, alert:true } );
+
+          },
+
+
          "setup" : function() {
 
-/*
              cc=$('#video-devices');
              cc.empty
              $(this.devices()).each( function(k,device) {
-                cc.append( device.name );
+                cc.append( '<option value="'+device.device+'">'+device.name+'</option>' );
              });
-*/
 
              cc=$('#video-controls');
              cc.empty();
@@ -491,11 +504,15 @@ var interface_video = {
          "devices" : function() {
 
                     var devices=[];
-                    
-                    response=eval('('+Data.send("show video-devices")+')');
+                    response=Data.send({ command:'show', item:'video-devices'});
+                    if(!response['result']) {
+                     UI.alert('Found no cameras attached!');
+                     return;
+                    }
 
-                    raw=response.result.replace(/:\n/g,'|').split('\n');
-                    $(raw).each( function(k,v) {
+                    items=response.result.replace(/:\n/g,'|').split('\n');
+
+                    $(items).each( function(k,v) {
                         if(v) {
                          items=v.split('|');
                          device = {
@@ -514,8 +531,8 @@ var interface_video = {
 
                     var controls=[];
                     
-                    response=eval('('+Data.send("show video-controls")+')');
-                    raw=response.result.split('\n');
+                    response=Data.send({command:'show', item:'video-controls'});
+                    raw=response['result'].split('\n');
 
                     $(raw).each( function(k,v) {
 
@@ -526,7 +543,7 @@ var interface_video = {
                                                              n=$(this).data("control").name;
                                                              v=$(this).slider("option","value");
                                                              $('#'+n+'_status').html(n + ' <span class="pull-right badge">' + v + '</span>');
-                                                             UI.alert( Data.send('video-set '+n+'='+v) );
+                                                             Data.send({command:'update', item:'video-control', control:n, value:v, alert:true } ) ;
                                                              interface_video.setup();
                                        },
                                        slide : function(e) {
@@ -609,7 +626,7 @@ var interface_files = {
              ff=$('#video-files table tbody');
              ff.empty();
          
-             files=eval( '(' + Data.send('show videos') + ')' ).result;
+             files=Data.send( { command:'show', item:'videos'} )['result'];
 
              if(!files) {
                ff.append( '<tr class="danger"><td>None</td></tr>' );
@@ -632,7 +649,7 @@ var interface_files = {
                            placement : 'right',
                            onConfirm : function(e) {
                                                  file=$(this)[0].file;
-                                                 UI.alert( Data.send('delete '+file) );
+                                                 Data.send({command:'delete', file:file, alert:true} );
                                                  interface_files.refresh();
                                        }
               });
@@ -652,9 +669,9 @@ var interface_preview = {
               var location=':8889/camera';
               var url='http://'+window.location.hostname+location;
 
-              Data.queue.add('del preview');
+              Data.queue.add( { command:'vlm', item:'del preview'} );
 
-              config=Data.readconfig('media',true).split('\n');
+              config=Data.config.read('media',true).split('\n');
               $(config).each( function(k,v) {
                   line=v;
                    if(  line.indexOf('recorder') > 0 ) {
@@ -663,15 +680,15 @@ var interface_preview = {
                        if( spot > 0 ) {
                           line=line.substr(0,spot)+':standard{access=http,mux=ts,dst='+location+'}';
                        }
-                   Data.queue.add(line);
+                   Data.queue.add( { command:'vlm', item:line } );
                    }
               });
 
               // Set a safety timer
-              Data.queue.add('new s0-preview-stop schedule');
-              Data.queue.add('setup s0-preview-stop date '+Format.date.schedule( moment().add(5,'minutes').toDate() ) );
-              Data.queue.add('setup s0-preview-stop append control preview play');
-              Data.queue.add('setup s0-preview-stop enabled');
+              Data.queue.add( { command:'vlm', item:'new s0-preview-stop schedule' } );
+              Data.queue.add( { command:'vlm', item:'setup s0-preview-stop date '+Format.date.schedule( moment().add(5,'minutes').toDate() ) } );
+              Data.queue.add( { command:'vlm', item:'setup s0-preview-stop append control preview stop' } );
+              Data.queue.add( { command:'vlm', item:'setup s0-preview-stop enabled' } );
 
               // Send commands to the engine
               Data.queue.send();
@@ -687,7 +704,8 @@ var interface_preview = {
              pWindow=window.open();
              $(pWindow).unload(  function() { interface_preview.hide(); } );
              $(pWindow.document.body).html( oo );
-             
+             $(pWindow.document.body).onClose=function() { parent.interface_preview.hide(); };
+
 /*
              interface_preview.dialog=oo.dialog({
                                  title: url,
@@ -699,16 +717,15 @@ var interface_preview = {
                                  close : function() { interface_preview.hide(); }
                        });
 */
-              
-             Data.send('control preview play');
+             Data.send({command:'vlm', item:'control preview play'} );
               
           },
 
           "hide" : function() {
 
-             Data.queue.add('control preview stop');
-             Data.queue.add('del s0-preview-stop');
-             Data.queue.add('del preview');
+             Data.queue.add( { command:'vlm', item:'control preview stop'} );
+             Data.queue.add( { command:'vlm', item:'del s0-preview-stop' } );
+             Data.queue.add( { command:'vlm', item:'del preview' } );
              Data.queue.send();
 
              d=interface_preview['dialog'];
@@ -751,16 +768,19 @@ var interface_actions = {
              },
 
            "reboot"        : function() {
-               UI.alert( Data.send( 'control reboot' ) )          
+               Data.send( { command:'control', item:'reboot', alert:true } );          
            },
 
            "update" : function() {
-               UI.alert( Data.send('update-software') );
+               Data.send({ command:'update', item:'software', alert:true } );         
            },
 
-           "vlc"        : function() {
-               result=eval( '('+Data.send( $("#vlc-command").val() )+')' );
-               $("#vlc-receive").html( Format.object.html(result) );
+           "debug"        : function() {
+               
+               debugObject=eval('('+$("#debug-object").val()+')');
+               result=Data.send( debugObject );
+               console.log( result );
+               $("#debug-console").html( Format.object.html(result) );
            }
 
 
@@ -784,49 +804,74 @@ var Data = {
                       Data.actions.attach();
                       Data.media.read();
                 },                                
-                "readconfig" : function( file, returnRaw ) {
 
-                      raw = $.ajax({
-                            type: 'GET',
-                            url: 'config/'+file,
-                            async: false,
-                        }).responseText;
+                "config" : {
+                                "read" : function( file, returnRaw ) {
 
-                      if (!returnRaw ) { raw=raw.toObjectArray() }; 
-                      return raw;
+						          raw = $.ajax({
+						                type: 'GET',
+						                url: 'config/'+file,
+						                async: false,
+						            }).responseText;
 
+						          if (!returnRaw ) { raw=raw.toObjectArray() }; 
+						          return raw;
+                                },
+                        
+
+
+								"write" : function( file, contents ) {
+                                   Data.send( { command:"update", item:"config", "file": file, "contents":contents , alert:true } );
+								}
 
                 },
 
                 "queue" : { 
                              "commands_" : [],
                 
-                             "add" : function( cmd, parms ) {
-                                 Data.queue.commands_.push( { cmd:cmd, parms:parms } );
+                             "add" : function( commandObject ) {
+                                 Data.queue.commands_.push(commandObject);
                              },
 
                              "send" : function() {
-
                                  while( Data.queue.commands_.length > 0 ) {
                                      v=Data.queue.commands_.shift();
-                                     console.log('Send : ' + v.cmd);
-                                     Data.send( v.cmd, v.parms );
+                                     Data.send(v);
                                  }
                              }
                 },
 
-                "send" : function(cmd,parms) {
+                "send" : function( commandObject ) {
                         
-                        url="cmd.xml?command="+encodeURIComponent(cmd)+'&'+(parms||'')
-
-                         response = $.ajax({
+                      response = $.ajax({
                                 type: "GET",
-                                url: url,
+                                url: "api.xml",
                                 async: false,
+                                data : commandObject
                             }).responseText;
 
-                         return (response);
+                         // If we get back JSON, evaluate it
+                         if( response.indexOf('{') > -1 ) {
+                           response=eval('('+response+')');
 
+                         } else {
+                           UI.alert('Error: '+ response );
+                           response={ result:[] }
+                         };
+
+
+                       if( commandObject.alert ) {
+                            UI.alert( response );
+                       }
+
+/*
+                       console.log("--- Data Send");
+                       console.log( commandObject );
+                       console.log( response );
+                       console.log("--------------------------");
+*/
+
+                     return(response);
                 }
 
 };
@@ -847,9 +892,7 @@ var UI = {
             
             "alert" : function( responseData, displayOptions) {
 
-              dd=eval('('+responseData+')');
-
-              details=Format.object.html( dd );
+              details=Format.object.html( responseData );
 
               defaultOptions= { offset: { from:'bottom', amount: 20 }, align:'right', type:'info', width:500, delay:2500 };
               
@@ -865,7 +908,7 @@ var UI = {
               UI.calendar.setup();
               UI.video.setup();
               UI.files.setup();
-              $("#software-version").html(   eval('('+Data.send("show version")+')').result  );
+              $("#software-version").html(   Data.send( { command:'show', item :'version'} ).result  );
               UI.log("Launched management interface");
               
           },
@@ -916,10 +959,10 @@ var Format = {
                  $.each( o, function(k,v) {
                    if( typeof v === 'object' ) { v=Format.object.html(v) };
                    v=v.replace(/\n/g,'<br>');
-                   items=items+'<li><b>'+k+'</b>  '+v+'</li>';
+                   items=items+'<li class="list-group-item"><b class="label label-primary">'+k+'</b>  '+v+'</li>';
                  });
 
-                 return '<ul>'+items+'</ul>';               
+                 return '<ul class="list-group">'+items+'</ul>';               
                }
            }
 }           

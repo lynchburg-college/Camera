@@ -27,11 +27,26 @@
    .panel-heading {
      font-weight: bold;
    }
+  #ajaxBusy {
+		background: black;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 100;
+		opacity: 0.75;
+		filter: alpha(opacity = 75);
+		zoom:1;
+  }
   </style>
   
 </head>
 
 <body> 
+
+  <div id="ajaxBusy" class="hidden">
+  </div>
 
   <nav class="navbar navbar-default navbar-inverse navbar-fixed-top" >
    <div class="container-fluid">
@@ -68,8 +83,9 @@
     <ul class="nav nav-pills" role="tablist">
       <li class="active"><a href="#panel-schedule" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-calendar"></span> Schedule</a></li>
       <li><a href="#panel-machine" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-wrench"></span> Machine</a></li>
+      <li><a href="#panel-devices" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-eye-open"></span> Devices</a></li>
       <li><a href="#panel-recording" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-facetime-video"></span> Recording</a></li>
-      <li><a href="#panel-preview" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-eye-open"></span> Preview</a></li>
+      <li><a href="#panel-debug" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-tasks"></span> Debug</a></li>
       <li><a href="#panel-log" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list-alt"></span> Log</a></li>
     </ul>
 
@@ -122,12 +138,12 @@
                 <div class="panel-heading">Machine Configuration</div>
                 <div class="panel-body">
                   <form id="config-form" onSubmit="return false">
-                  <div><label class="control-label">Room ID</label><input name="roomID" id="config-roomID" /></div>
-                  <div><label class="control-label">Room Name</label><input name="roomName" id="config-roomName" /></div>
-                  <div class="clearall"><label class="control-label">Exclude Courses</label><input name="exclude" id="config-exclude" /></div>
-                  <div><label class="control-label">Include Courses</label><input name="include" id="config-include" /></div>
+                  <div><label class="control-label">Room ID</label><input name="roomID" /></div>
+                  <div><label class="control-label">Room Name</label><input name="roomName" /></div>
+                  <hr>
+                  <div><label class="control-label">Schedule Control</label><input name="scheduleControl"  /></div>
                   <div><label class="control-label">Recording Split</label>
-                       <select name="splitMinutes" id="config-splitMinutes">
+                       <select name="splitMinutes">
                          <option value="00">Don't Split</option>
                          <option value="30">30 Minute blocks</option>
                          <option value="60">1 Hour blocks</option>
@@ -170,28 +186,6 @@
 
     </div>
    
-    <div class="row">
-
-        <div class="col-sm-12">
-     
-              <div class="panel panel-default">
-                <div class="panel-heading">VLC Command</div>
-                <div class="panel-body">
-                 <div class="input-group">
-                    <input type="text" class="form-control" id="vlc-command" name="vlc-command">
-                    <span class="input-group-btn">
-                      <button data-action="Data.actions.vlc">send command</button>
-                    </span>
-                 </div>
-                 <div id="vlc-receive"></div>
-              </div>
-             </div>
-
-        </div>
-
-
-   </div>
-   
    </div>
     <!-- Machine Panel -->
 
@@ -204,10 +198,11 @@
            <div class="col-md-3">
 
               <div class="panel panel-default">
-                <div class="panel-heading">Recording Devices<span class="pull-right"><a href="#" data-action="Data.media.refresh">refresh</a></span></div>
+                <div class="panel-heading">Recorder Devices<span class="pull-right"><a href="#" data-action="Data.media.refresh">refresh</a></span></div>
                 <div class="panel-body">
                   <span id="status-media"></span>
                </div>
+
              </div>
  
            </div>
@@ -235,21 +230,23 @@
         </div>
         <!-- Recording Panel -->
 
-        <!-- Preview Panel -->
-        <div id="panel-preview" class="tab-pane fade">
+
+        <!-- Devices Panel -->
+        <div id="panel-devices" class="tab-pane fade">
 
            <div class="row">
            
-            <div class="col-md-5">
+            <div class="col-md-6">
 
               <div class="panel panel-default">
                 <div class="panel-heading">
                   Video Controls
                   <span class="pull-right">
-                    <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.video.defaults">reset to defaults</a>
                     <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.show">preview</a>
+                    |  
+                    <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.video.reset">reset</a>
+                    <a href="#" class="btn btn-success btn-xs confirm" data-confirm-placement="left" data-action="UI.video.write">save</a>
                   </span>
-
                 </div>
                <div class="panel-body">
                  <div id="video-controls" class="col-lg-10"></div>
@@ -258,17 +255,21 @@
              
            </div>
 
-            <div class="col-md-7">
+            <div class="col-md-6">
 
               <div class="panel panel-default">
                 <div class="panel-heading">
                   Audio Controls
                   <span class="pull-right">
-                    <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="top" data-action="UI.audio.defaults">reset to defaults</a>
+                    <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.reset">reset</a>
+                    <a href="#" class="btn btn-success btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.write">save</a>
                   </span>
 
                 </div>
                <div class="panel-body">
+                 <div>
+                   <label class="label label-default">Device</label>  <select id="audio-devices"></select>
+                 </div>
                  <div id="audio-controls" class="col-lg-10">(not yet implemented)</div>
                </div>
              </div>
@@ -278,7 +279,8 @@
          </div>
 
        </div>
-       <!-- Preview Panel -->
+       <!-- Devices Panel -->
+
        
        <!-- Log Panel -->
        <div id="panel-log" class="tab-pane fade">
@@ -296,6 +298,41 @@
          </div>        
 
       </div>
+
+
+       <!-- Debug Panel -->
+     <div id="panel-debug" class="tab-pane fade">
+
+      <div class="row">
+
+        <div class="col-sm-12">
+     
+              <div class="panel panel-default">
+                <div class="panel-heading">Command Interface Debugger</div>
+                <div class="panel-body">
+
+                    <div class="row" >
+                      <div class="col-sm-6">
+                      <textarea id="debug-object" style="width:100%;height:200px;">
+{
+   command : "vlm",
+   item : "show"
+}
+                      </textarea>
+                      <button class="btn btn-primary" data-action="Data.actions.debug">Send Command Object</button>
+                      </div>
+
+                      <div class="col-sm-6">
+                         <div id="debug-console"></div>
+                    </div>        
+              </div>
+             </div>
+
+        </div>
+
+    </div>
+
+
 
    </div>
    <!-- tab-content --> 
