@@ -3,6 +3,13 @@
 # Common
 source "${0%/*}/config/common"
 
+# If an upload is already in progress, skip this pass.
+if [ $(ps -A | grep curl) ]
+then
+ log "Upload already in progress."
+ exit 1
+fi
+
 touch $logFile
 {
    #  Find all the files
@@ -15,7 +22,7 @@ touch $logFile
         isBusy=$(lsof $file)
         if [ ! -z "$isBusy" ]
         then
-          log "Ignoring $file"
+          log "Ignoring (file is open) $file"
 
         else
            log "Found $file"
@@ -49,7 +56,7 @@ touch $logFile
                log "Matched : $info"
            fi
            
-           
+          
            
            # Post to the media server
            cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file\" $urlUpload"
