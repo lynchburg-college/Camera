@@ -4,7 +4,8 @@
 source "${0%/*}/config/common"
 
 # If an upload is already in progress, skip this pass.
-if [ $(ps -A | grep curl) ]
+pidCurl=$(ps -A | grep curl)
+if [ ! "$pidCurl" == "" ]
 then
  log "Upload already in progress."
  exit 1
