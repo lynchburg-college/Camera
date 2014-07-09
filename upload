@@ -3,6 +3,7 @@
 # Common
 source "${0%/*}/config/common"
 
+
 # Apply camera settings 
 if [ -e "config/camera" ] 
 then
@@ -10,17 +11,20 @@ then
 fi
 
 
-# If an upload is already in progress, skip this pass.
-pidCurl=$(ps -A | grep curl)
-if [ ! "$pidCurl" == "" ]
-then
- log "Upload already in progress."
- exit 1
-fi
-
 touch $logFile
 {
-   #  Find all the files
+
+
+   # If an upload is already in progress, skip this pass.
+   pidCurl=$(ps -A | grep curl)
+   if [ ! "$pidCurl" == "" ]
+   then
+	 log "Upload already in progress."
+     exit 1
+   fi
+
+
+   #  Find all the files that should be uploaded
    for file in $(ls $pathVideo/*.mp4)
    do
 
@@ -35,7 +39,6 @@ touch $logFile
         else
            log "Found $file"
 
-
            # If the filename is a date, use it as the start time
            baseName=$(basename "$file")
            baseName="${baseName%.*}"
@@ -49,23 +52,26 @@ touch $logFile
              log "Using file modified date ($asOf)"
            fi
 
-           asOf=$(TZ=UTC date +%s -d "$asOf")
-           log "Metadata date is : $asOf"
+           # #Use the local schedule file to look up metadata
+           # asOf=$(TZ=UTC date +%s -d "$asOf")
+           # log "Metadata date is : $asOf"
+           # info=$(awk '$1=="#" && $2=="META" { if( d+20 >= ($3) &&  d-10 <= ($4) ) { print $0 } }' d="$asOf"  config/schedule | cut -d' ' -f 5-)
 
-           # Peek through the schedule to find the META with this date between the range of the schedule item
-           info=$(awk '$1=="#" && $2=="META" { if( d+20 >= ($3) &&  d-10 <= ($4) ) { print $0 } }' d="$asOf"  config/schedule | cut -d' ' -f 5-)
+           # Make a call back to the mothership to get the metadata
+           cmd="curl $urlInfo?roomID=$roomID&meta=$baseName"
+           log "$cmd"
+           info=$(eval "$cmd")
 
            # Couldn't find anything?  That's OK.. use the default stuff
            if [ "$info" == "" ]
            then
-               log "Couldn't match $asOf"
-               info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\" "
+               log "Couldn't find metadata : $roomID / $asOf"
+               info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\" -F \"keywords=$roomID $baseName\""
            else
                log "Matched : $info"
            fi
            
-          
-           
+                     
            # Post to the media server
            cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file\" $urlUpload"
            log "$cmd"

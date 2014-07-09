@@ -123,6 +123,7 @@ var interface_machine = {
                            config=$("#config-form").serializeArray();
                            contents='';
                            $.each( config, function(i,v) { 
+                               v=v.replace("'","");
                                contents += v['name']+'='+v['value']+'\n';
                            });
 
