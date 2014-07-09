@@ -58,7 +58,7 @@ touch $logFile
            # info=$(awk '$1=="#" && $2=="META" { if( d+20 >= ($3) &&  d-10 <= ($4) ) { print $0 } }' d="$asOf"  config/schedule | cut -d' ' -f 5-)
 
            # Make a call back to the mothership to get the metadata
-           cmd="curl $urlInfo -F \"roomID=$roomID\" -F \"meta=$baseName\" "
+           cmd="curl $urlInfo?roomID=$roomID\&meta=$baseName"
            log "$cmd"
            info=$(eval "$cmd")
 
