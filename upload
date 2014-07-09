@@ -58,7 +58,7 @@ touch $logFile
            # info=$(awk '$1=="#" && $2=="META" { if( d+20 >= ($3) &&  d-10 <= ($4) ) { print $0 } }' d="$asOf"  config/schedule | cut -d' ' -f 5-)
 
            # Make a call back to the mothership to get the metadata
-           cmd="curl $urlInfo?roomID=$roomID&meta=$baseName"
+           cmd="curl $urlInfo -F \"roomID=$roomID\" -F \"meta=$baseName\" "
            log "$cmd"
            info=$(eval "$cmd")
 
@@ -71,7 +71,7 @@ touch $logFile
                log "Matched : $info"
            fi
            
-                     
+                    
            # Post to the media server
            cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file\" $urlUpload"
            log "$cmd"
@@ -82,6 +82,7 @@ touch $logFile
            fi
 
            info=$(eval "$cmd")
+           log $info
 
            # Archive the original file
            if [[ "$info" == *Success* ]]
@@ -89,9 +90,7 @@ touch $logFile
                 log "$file was sucessfully uploaded"
                 mv "$file" "$file.uploaded"
            else
-                log "$info"
                 $pathRoot/notify "Upload Error" "$file\n$info"
-                mv "$file" "$file.error"
            fi
 
         fi
