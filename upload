@@ -69,6 +69,7 @@ touch $logFile
                info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\" -F \"keywords=$roomID $baseName\""
            else
                log "Matched : $info"
+               echo "$info" > $file.meta
            fi
            
                     
