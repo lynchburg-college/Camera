@@ -110,22 +110,28 @@ end
 
 
 
-
-
-
-
+-- Get the input object
 local command=_GET["command"]
-local result = ""
+local action=_GET["action"]
+local item=_GET["item"]
 
+
+-- Create the output object
+local json = {}
+
+json["timestamp"]=os.date("%Y-%m-%d %H:%M:%S (%a)")
+json["command"]=command
+json["action"]=action
+json["item"]=item
+json["result"] = ""
 
 
 -- --------------------------------------------------------------------------
 if ( command == "vlm" ) then
 
-  item=_GET["item"]
-
   if ( item == nil ) then
-   result = "Missing ITEM (for VLM command)"
+   json["error"] = true
+   json["result"] = "Missing ITEM (for VLM command)"
  
   else
 
@@ -133,133 +139,192 @@ if ( command == "vlm" ) then
    response = vlc.vlm():execute_command( item )
  
    if( type(response.children) == "table" ) then
-       result = getProperties( response.children )
+       json["result"] = getProperties( response.children )
    else
-      result = response.value
+       json["result"] = response.value
    end
 
   end 
 
 
 -- --------------------------------------------------------------------------
-elseif ( command == "control" ) then
-
-  action=_GET["action"]
+elseif ( command == "machine" ) then
 
   if  ( action == "reboot"  ) then
-   result = api_execute( '/sbin/reboot' )
+   json["result"] = api_execute( '/sbin/reboot' )
 
   elseif ( action == "ifconfig" ) then
-   result = api_execute( '/sbin/ifconfig' )
+   json["result"] = api_execute( '/sbin/ifconfig' )
 
-  elseif ( action == "delete" ) then
-   cmd="rm --verbose ".._GET["file"]
-   result = api_execute( cmd )
+  elseif ( item == "host" ) then
+   json["result"] = api_execute( "/bin/uname -ro" )
 
-  elseif ( action == nil ) then
-    result = "Missing ACTION"
+  elseif ( item == "version"  ) then
+   json["result"] = api_execute( "git describe --tags --long" )
+
+  elseif ( item == "ip" ) then
+   json["result"] = api_execute( "/sbin/ifconfig" )
+
+  elseif ( item == "recording" ) then
+   json["result"] = api_execute( 'lsof ./video/*mp4*' )
+  
+  elseif ( item == "space" ) then
+   json["result"] = api_execute( 'df -h' )
+
   else
-    result = "Unknown ACTION : "..action
+    json["result"] = "Unknown ITEM : "..item
+
+ end
+
+
+-- --------------------------------------------------------------------------
+elseif ( command == "recordings" ) then
+
+
+   if (action == "get") then
+     json["result"] = api_execute( 'ls -a video/*mp4* -lhr | awk \'{print $9"|"$6" "$7" "$8"|"$5}\' ')
+   else
+     json["error"]=true
+     json["result"]="Invalid ACTION"
+   end
+
+
+   if (action == "delete" ) then
+     file = _GET["file"]
+     json["file"]=file
+
+     if ( file == nil ) then
+        json["error"] = true
+        json["result"] = "Missing FILE"
+     else
+        cmd="rm --verbose "..file
+        json["result"] = api_execute( cmd )
+     end
+
   end
 
 
 -- --------------------------------------------------------------------------
-elseif ( command == "show" ) then
+elseif ( command == "video" ) then
 
- item=_GET["item"]
+     local device = _GET["device"]
+     json["device"] = device
 
- if ( item == "host" ) then
-   result = api_execute( "/bin/uname -ro" )
+	 if (device == nil ) then
+       json["error"] = true
+	   json["result"] = "Missing DEVICE"
 
- elseif ( item == "version"  ) then
-   result = api_execute( "git describe --tags --long" )
+	 elseif (action == "set") then
 
- elseif ( item == "ip" ) then
-   result = api_execute( "/sbin/ifconfig" )
+       local value=_GET["value"]
+       json["value"]=value
 
- elseif ( item == "recording" ) then
-   result = api_execute( 'lsof ./video/*mp4*' )
-  
- elseif ( item == "videos" ) then
-   result = api_execute( 'ls -a video/*mp4* -lhr | awk \'{print $9"|"$6" "$7" "$8"|"$5}\' ')
+       setting="/usr/bin/v4l2-ctl --verbose -d "..device.." -c "..item.."="..value 
+       json["result"]=api_execute( setting )
 
- elseif ( item == "space" ) then
-   result = api_execute( 'df -h' )
 
- elseif ( item == "v4l" ) then
-   result = api_execute( "v4l2-ctl -D" )
+	 elseif (action == "get") then
 
- elseif ( item == "video-devices" ) then
-   result = api_execute( 'v4l2-ctl --list-devices')
+	   if ( item == "devices" ) then
+		 json["result"] = api_execute( 'v4l2-ctl --list-devices')
 
- elseif ( item == "video-controls" ) then
-   result = api_execute( 'v4l2-ctl -L' )
+	   elseif ( item == "formats" ) then
+		 json["result"] = api_execute( 'v4l2-ctl -d '..device..' --list-formats-ext')
 
- elseif ( item == "audio-devices" ) then
-   result = api_execute( "/usr/bin/arecord -l | grep \"^card\" ")
+	   elseif ( item == "controls" ) then
+		  json["result"] = api_execute( 'v4l2-ctl -d '..device..' -L' )
 
- elseif ( item == "audio-controls" ) then
-   result = api_execute( "/usr/bin/arecord -l | grep \"^card\" ")
+	   end
 
- elseif ( item == nil ) then
-    result = "Missing ITEM"
- else
-    result = "Unknown ITEM : "..item
- end
+    elseif (action == "store" ) then
+
+    else
+       json["result"] = "Bad command parameters"
+
+    end
+
+
+
+-- --------------------------------------------------------------------------
+elseif ( command == "audio" ) then
+
+   device = _GET["device"]
+
+   json["action"] = action
+   json["item"] = string.gsub(item, "+"," " )
+   json["device"] = string.gsub(device, "+"," ")
+
+	 if (device == nil ) then
+	   json["result"] = "Missing DEVICE"
+
+
+	 elseif ( action == "get" ) then
+
+	  if ( item == "devices" ) then
+	   json["result"] = api_execute( "/usr/bin/arecord -l | grep \"^card\" ")
+
+	  elseif ( item == "controls" ) then
+	   json["result"] = api_execute( "/usr/bin/amixer --device "..device.." scontents")
+
+	  end
+
+	 elseif ( action == "set" ) then
+       local value=string.gsub( _GET["value"], "+", " ")
+       json["value"]=value
+	   json["result"] = api_execute( "/usr/bin/amixer --device "..json["device"].." sset \""..json["item"].."\" \""..json["value"].."\"")
+
+	 elseif ( action == "store" ) then
+       json["result"] = api_execute("/usr/bin/alsactl --file config/audio" )
+
+     else
+
+ 	  json["result"] = "Bad command parameters"
+
+	 end
+
 
 
 -- --------------------------------------------------------------------------
 elseif ( command == "update" ) then
 
- item = _GET["item"]
 
-   
  if ( item == "config" ) then
    local configFile=_GET["file"]
    local configContents=_GET["contents"]
 
-   result = api_writefile( configFile, configContents )
+   json["result"] = api_writefile( configFile, configContents )
  
  elseif ( item == "software" ) then
-   result = api_execute( 'git pull' )
+   json["result"] = api_execute( 'git pull' )
 
  elseif ( item == "schedule" ) then
-   result = api_execute( './schedule' )
+   json["result"] = api_execute( './schedule' )
    vlc.vlm():execute_command( "load config/schedule" )
 
- elseif ( item == "video-control" ) then
-
-   local control=_GET["control"]
-   local value=_GET["value"]
-   setting="/usr/bin/v4l2-ctl --verbose -c "..control.."="..value 
-   result=api_execute( setting )
-
  elseif ( item == nil ) then
-    result = "Missing ITEM"
+    json["result"] = "Missing ITEM"
  else
-    result = "Unknown ITEM : "..item
+    json["result"] = "Unknown ITEM : "..item
  end
  
 
 
 -- --------------------------------------------------------------------------
 elseif ( command ==  nil ) then
- result = "No COMMAND to process"
+ json["result"] = "No COMMAND to process"
 
 else
- result = "Unknown COMMAND "..command
+ json["result"] = "Unknown COMMAND "..command
 
 end
 
+-- --------------------------------------------------------------------------
+-- --------------------------------------------------------------------------
 
 
-
-
-json = {}
-json["command"] = command
-json["timestamp"]=os.date("%Y-%m-%d %H:%M:%S (%a)")
-json["result"]=result
+-- All done.  Send back the results
 
 httprequests.printTableAsJson(json)
+
 
 ?>

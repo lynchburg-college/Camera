@@ -9,23 +9,20 @@ then
  shift
 fi
 
-# Read the media file to get the output-template 
-template=$(sed -n 's/#template=//p' config/media ) 
-
 # Get the schedule
 url="$urlInfo"
 
 log "Obtaining Schedule for $roomID"
 log "From : $url"
 
-curl --silent "$url" --data "room=$roomID&days=30&template=$template" > config/schedule
+curl --silent "$url" --data "room=$roomID&days=30&template=$template" > config/init-schedule
 # wget --post-data="$post" --quiet -O $pathRoot/config/schedule "$url"
 
 # Update VLM if asked
 if [ "$1" == "update" ]
 then
  log "Appying schedule to current session"
- curl --silent http://localhost:8888/api.xml?command=load%20config/schedule > "$logFile"
+ curl --silent http://localhost:8888/api.xml?command=load%20config/init-schedule > "$logFile"
 fi
 
 log "Done."

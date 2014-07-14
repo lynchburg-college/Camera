@@ -11,44 +11,20 @@
   <link rel="icon" type="image/jpg" href="favicon.jpg?v=2" />
 
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" />
-<!--
-  <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css" rel="styleheet" />
--->
 
   <link href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css" rel="stylesheet" class="theme-link" type="text/css" media="screen" />
 
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.css" rel="stylesheet" />
-  <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.print.css" rel="stylesheet" media="print"/>
 
-  <style type="text/css">
-   label {  
-     width: 10em;
-   }
-   .panel-heading {
-     font-weight: bold;
-   }
-  #ajaxBusy {
-		background: black;
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		z-index: 100;
-		opacity: 0.75;
-		filter: alpha(opacity = 75);
-		zoom:1;
-  }
-  </style>
+  <link href="index.css" rel="stylesheet" type="text/css" />
   
 </head>
 
 <body> 
 
-  <div id="ajaxBusy" class="hidden">
-  </div>
+  <div id="ajaxBusy" class="hidden"></div>
 
-  <nav class="navbar navbar-default navbar-inverse navbar-fixed-top" >
+  <nav class="navbar navbar-default navbar-inverse " >
    <div class="container-fluid">
        
       <div class="navbar-header">
@@ -66,7 +42,7 @@
             <span class="icon-bar"></span>
           </button>
 
-       </div>
+      </div>
 
 
       <div class="collapse navbar-collapse collapse navbar-right">
@@ -76,7 +52,6 @@
    </div>
   </nav>
 
-  <br><br><br>
 
   <div class="container">
 
@@ -86,12 +61,14 @@
       <li><a href="#panel-devices" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-eye-open"></span> Devices</a></li>
       <li><a href="#panel-recording" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-facetime-video"></span> Recording</a></li>
       <li><a href="#panel-debug" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-tasks"></span> Debug</a></li>
-      <li><a href="#panel-log" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list-alt"></span> Log</a></li>
+      <!-- <li><a href="#panel-log" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list-alt"></span> Log</a></li> -->
     </ul>
 
    <div class="clearfix"><hr></div>
-    
+   
    <div class="tab-content">
+
+
 
     <!-- Schedule Panel -->
     <div id="panel-schedule" class="tab-pane fade in active">
@@ -124,7 +101,7 @@
         </div>
   
     </div>
-    <!-- Schedule Panel -->
+
 
 
     <!-- Machine Panel -->
@@ -138,18 +115,23 @@
                 <div class="panel-heading">Machine Configuration</div>
                 <div class="panel-body">
                   <form id="config-form" onSubmit="return false">
-                  <div><label class="control-label">Room ID</label><input name="roomID" /></div>
-                  <div><label class="control-label">Room Name</label><input name="roomName" /></div>
-                  <hr>
-                  <div><label class="control-label">Schedule Control</label><input name="scheduleControl"  /></div>
-                  <div><label class="control-label">Recording Split</label>
+                  <table class="table table-hover table-condensed" >
+                    <tr><th width="30%">Room ID</td><td><input class="form-control" name="roomID" /></td></tr>
+                    <tr><th>Room Name</th><td><input class="form-control" name="roomName" /></tr></tr>
+                    <tr><th>Schedule Control</th><td><input class="form-control" name="scheduleControl"  /></td></tr>
+                    <tr><th>Recording Split</th><td>
                        <select name="splitMinutes">
                          <option value="00">Don't Split</option>
                          <option value="30">30 Minute blocks</option>
                          <option value="60">1 Hour blocks</option>
                          <option value="90">90 Minute blocks</option>
                        </select>
-                  </div>
+                      </td></tr>
+                  <tr><th>Audio Device</th><td><select name="audioDevice"></select></td></tr>
+                  <tr><th>Video Device</th><td><select name="videoDevice"></select></td></tr>
+                  <tr><th>Video Format</th><td><select name="videoFormat"></select></td></tr>
+                  <tr><th>Transcode</th><td><input class="form-control" name="transcode"  /></td></tr>
+                 </table>
                  </form>
                 </div>
                 <div class="panel-footer">
@@ -160,6 +142,10 @@
                  </div>
                </div>
             </div> 
+
+          </div>
+        
+          <div class="col-md-6">
 
               <div class="panel panel-default">
                 <div class="panel-heading">
@@ -173,9 +159,6 @@
                </div>
             </div>
 
-          </div>
-        
-          <div class="col-md-6">
 
               <div class="panel panel-default">
                 <div class="panel-heading">System Status<span class="pull-right"><a href="#" data-action="Data.machine.status" data-icon="refresh">refresh</a></span></div>
@@ -187,7 +170,9 @@
     </div>
    
    </div>
-    <!-- Machine Panel -->
+
+
+
 
 
     <!-- Recording Panel -->
@@ -209,11 +194,11 @@
            
            <div class="col-md-9">
 
-               <div id="video-files" class="panel panel-default">
+               <div id="video-recordings" class="panel panel-default">
                    <div class="panel-heading">
-                    Video Files
+                    Video Recordings
                     <span class="pull-right">
-                     <a href="#" data-action="UI.files.refresh">refresh</a>
+                     <a href="#" data-action="UI.recordings.refresh">refresh</a>
                     </span>
                    </div>
                    <div class="panel-body">
@@ -228,10 +213,11 @@
          </div>
           
         </div>
-        <!-- Recording Panel -->
 
 
-        <!-- Devices Panel -->
+
+
+    <!-- Devices Panel -->
         <div id="panel-devices" class="tab-pane fade">
 
            <div class="row">
@@ -240,16 +226,15 @@
 
               <div class="panel panel-default">
                 <div class="panel-heading">
-                  Video Controls
+                  Video
                   <span class="pull-right">
                     <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.show">preview</a>
-                    |  
                     <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.video.reset">reset</a>
                     <a href="#" class="btn btn-success btn-xs confirm" data-confirm-placement="left" data-action="UI.video.write">save</a>
                   </span>
                 </div>
                <div class="panel-body">
-                 <div id="video-controls" class="col-lg-10"></div>
+                 <div id="video-controls"></div>
                </div>
              </div>
              
@@ -259,30 +244,61 @@
 
               <div class="panel panel-default">
                 <div class="panel-heading">
-                  Audio Controls
+                  Audio
                   <span class="pull-right">
-                    <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.reset">reset</a>
+                    <!-- <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.reset">reset</a> -->
                     <a href="#" class="btn btn-success btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.write">save</a>
                   </span>
-
                 </div>
                <div class="panel-body">
-                 <div>
-                   <label class="label label-default">Device</label>  <select id="audio-devices"></select>
-                 </div>
-                 <div id="audio-controls" class="col-lg-10">(not yet implemented)</div>
+                 <div id="audio-controls"></div>
                </div>
              </div>
-             
+
            </div>
   
          </div>
 
        </div>
-       <!-- Devices Panel -->
+
+
+
+
+
+       <!-- Debug Panel -->
+     <div id="panel-debug" class="tab-pane fade">
+
+              <div class="panel panel-default">
+
+                <div class="panel-heading">Command Interface Debugger</div>
+                <div class="panel-body">
+
+                      <div class="row">
+                       <div class="col-sm-5">
+                        <textarea id="debug-object" style="width:100%;height:200px;">
+{
+   command : "vlm",
+   item : "show"
+}
+                        </textarea>
+                        <button class="btn btn-primary" data-action="Data.actions.debug">Send Command Object</button>
+                        </div>
+
+                        <div class="col-sm-7">
+                           <div id="debug-console"></div>
+                        </div>
+  
+                    </div>
+
+                </div>
+               </div>
+
+    </div>
+
+
 
        
-       <!-- Log Panel -->
+    <!-- Log Panel -->
        <div id="panel-log" class="tab-pane fade">
 
          <div class="row">
@@ -300,45 +316,12 @@
       </div>
 
 
-       <!-- Debug Panel -->
-     <div id="panel-debug" class="tab-pane fade">
-
-      <div class="row">
-
-        <div class="col-sm-12">
-     
-              <div class="panel panel-default">
-                <div class="panel-heading">Command Interface Debugger</div>
-                <div class="panel-body">
-
-                    <div class="row" >
-                      <div class="col-sm-6">
-                      <textarea id="debug-object" style="width:100%;height:200px;">
-{
-   command : "vlm",
-   item : "show"
-}
-                      </textarea>
-                      <button class="btn btn-primary" data-action="Data.actions.debug">Send Command Object</button>
-                      </div>
-
-                      <div class="col-sm-6">
-                         <div id="debug-console"></div>
-                    </div>        
-              </div>
-             </div>
-
-        </div>
-
-    </div>
 
 
 
-   </div>
-   <!-- tab-content --> 
+   </div> <!-- tab-content-->
+ </div><!-- container-->
 
- </div>
- <!-- container --> 
   
  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
  <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
@@ -347,7 +330,6 @@
  <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.js"></script>
  
  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
- <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-growl/1.0.0/jquery.bootstrap-growl.js"></script>
  
  <script src="index.js"></script>
  

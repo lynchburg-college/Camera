@@ -5,9 +5,9 @@ source "${0%/*}/config/common"
 
 
 # Apply camera settings 
-if [ -e "config/camera" ] 
+if [ -e "config/init-video" ] 
 then
- source "config/camera"
+ source "config/init-video"
 fi
 
 

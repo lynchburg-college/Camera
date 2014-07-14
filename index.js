@@ -1,10 +1,6 @@
 $(document).ready( function() {  
-
-              Data.setup();
-              UI.setup();
-              window.setInterval( function() { UI.calendar.refresh(); }, (1 * 60 * 1000) );
-
-
+              Data.init();
+              UI.init();
  });
 
 
@@ -24,6 +20,50 @@ jQuery.fn.redraw = function() {
 };
 
 
+
+String.prototype.parseAsObject = function( controlObject  ) {
+
+   var returnObject={};
+
+   var oo=$.extend( { itemSep:',', valueSep:'=', forceLower:true }, controlObject );     
+
+   var aa=this.split( oo.itemSep );
+
+   $.each(aa, function( kk, vv ) {
+           var items=vv.split( oo.valueSep );
+           returnObject[ (oo.forceLower) ? items[0].toLowerCase() : items[0] ]=items[1];
+   });                                  
+  return returnObject;
+}
+
+String.prototype.parseAsPairs=function() {
+ var x=[];
+ $.each( this.split("\n"), function(i,v) {
+
+   v = v.ltrim();
+   if( v.length > 1 && v.charAt(0) != "#" && (v.indexOf("=")>0) ) {
+
+     var name='';
+     var value='';
+
+     var pair=v.split( /=(.+)/ );
+
+     var name=pair[0].replace('=','');
+
+     if( pair[1] ) {
+          value=pair[1]
+           .replace(/\+/g," ")
+           .replace(/"/g,'');
+     }
+
+     x.push( { "name" : name, "value" : value } );
+   }
+
+ })
+ return x;
+}
+
+
 String.prototype.trim = function() {
 	return this.replace(/^\s+|\s+$/g,"");
 }
@@ -34,24 +74,6 @@ String.prototype.rtrim = function() {
 	return this.replace(/\s+$/,"");
 }
 
-String.prototype.toObjectArray=function() {
- x=[];
- $.each( this.split("\n"), function(i,v) {
-
-   v = v.ltrim();
-   if( v.length > 1 && v.charAt(0) != "#" && (v.indexOf("=")>0) ) {
-     vv=v.split("=");
-     name=vv[0];
-     value=vv[1]
-           .replace(/\+/g," ")
-           .replace(/"/g,'');
-
-     x.push( { "name" : name, "value" : value } );
-   }
-
- })
- return x;
-}
 
 moment.lang('en', {
     calendar : {
@@ -65,13 +87,12 @@ moment.lang('en', {
 });
 
 
-
 // ----------------------------------------------------------
 var interface_common = {
 
                 "read" : function(setting) {
                 
-                      common=Data.config.read('common');
+                      var common=Data.config.read('common');
 
                       $.each( common, function(k,v) {
                          interface_common[v.name] = v.value;
@@ -84,53 +105,87 @@ var interface_common = {
 // ----------------------------------------------------------
 var interface_machine = {
 
+                      "defaults" : {
+                                          transcode : '{acodec=mpga,ab=128,channels=2,samplerate=48000,audio-sync}'
+                       },
+
                       "status" : function() {
 
-                         cc=$("#machine-status");
+                         var cc=$("#machine-status");
                          cc.empty();
 
-                         items=[
-                                   { command:'show', item: 'host' },
-                                   { command:'show', item: 'v4l'} ,
-                                   { command:'show', item: 'space'} ,
-                                   { command:'show', item: 'recording'}
+                         var items=[
+                                   { command:'machine', item: 'host' },
+                                   { command:'machine', item: 'space'} ,
                                ];
 
                          $.each( items, function(k,v) {
 
-                           info=Data.send(v);
+                           var info=Data.send(v);
                            if( info['result'] ) { 
                              cc.append('<pre>'+Format.object.html(info.result)+'</pre>' );
                            };
                          });
 
                       },
+
                       "read" : function() {
 
-                                  config=Data.config.read('machine');
+                                  var config=Data.config.read('machine');
                                   $.each( config, function(i,v) {
-                                    interface_machine[ v['name'] ] = v['value'];
-                                    $("#config-form *[name="+v['name']+']' ).val( v['value'] );
-                                  });
+                                    interface_machine[ v['name'].trim() ] = v['value'];
+                                    cc=$("#config-form *[name="+v['name']+']').val( v['value'] );
+                                 });
                                  
-                                  // Update the screen display
+                                  // Update the browser title
                                   $("#roomInfo").text( interface_machine.roomID + ' / ' + interface_machine.roomName )
                                   document.title=interface_machine.roomID;
+
+                                  // Safety checks:
+                                  if( (''+interface_machine['videoDevice']) == '' ) {
+                                      UI.alert( { alert:'No video device selected!' }, { type:'danger' } );
+                                  };
+                                  if ( (''+interface_machine['audioDevice']) == '' ) {
+                                      UI.alert( { alert:'No audio device selected!' }, { type:'danger' } );
+                                  };
+
+                           
+
                         },
 
                         "write" : function() {
 
                            config=$("#config-form").serializeArray();
                            contents='';
-                           $.each( config, function(i,v) { 
-                               v=v.replace("'","");
-                               contents += v['name']+'='+v['value']+'\n';
+
+                           $.each( config, function(i,item) { 
+                               v=item.value;
+                               if (v.indexOf("'") > -1 ) { v=v.replace("'","") };
+                               if (v.indexOf(' ') > -1 ) { v='"'+v+'"'  };
+                               contents += item.name+'='+v+'\n';
+
                            });
 
                            Data.send({ command:'update', item:'config', file:'machine', contents: contents, alert:true } );
-                           
                            interface_machine.read();
-                           window.setTimeout( function() { interface_calendar.reload() }, 1500 );
+
+                           // Build a new media init file
+                           contents = '# Media init file for ' + interface_machine.roomID + '\n\n' + 
+                                      'new recorder broadcast \n'+
+                                      'setup recorder input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
+                                      'setup recorder option input-slave=alsa://'+interface_machine.audioDevice+' \n' +
+                                      'setup recorder output #transcode{'+interface_machine.transcode+'}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4} \n' +
+                                      'setup recorder enabled';
+                   
+                           Data.send({ command:'update', item:'config', file:'init-media', contents: contents, alert:true } );
+
+                           Data.send({ command:'vlm', item:'load config/init' });
+
+                           window.setTimeout( function() { 
+                               interface_audio.setup.controls(); 
+                               interface_video.setup.controls(); 
+                               interface_calendar.reload() }
+                           , 500 );
                            
                         }
 }                
@@ -142,71 +197,85 @@ var interface_media =  {
         "refresh" : function( delay ) {
             window.setTimeout(  function() { interface_media.read() }, (delay || 5) );
          },
-         
+        
+        "handler" : {
+				             "click" : function(event) {
+
+                                  control=$(event.target);
+
+                                  item=control.parents(".media-item");
+
+			                      vlc=$(item).data('vlc');
+
+				                  action=( vlc.instances ) ? 'stop' : 'play';
+
+				                  Data.send( { command:'vlm', item: 'control '+vlc.name+' '+action, alert:true } ) ;
+
+   		                          interface_media.refresh(3000);
+
+                     }
+        },
+
+
         "add" : function( name, settings ) {
 
-                    vlc=$.extend( { name:name }, settings );
+                    var vlc=$.extend( { name:name }, settings );
 
-                    item=$('<button>'+name+'</button>', { id:'media-'+name })
-                         .attr("id", "media-"+name)
+                    var label=$('<b></b>')
+                          .addClass('label label-default')
+                          .html(name);
+ 
+                    var control=$('<a href="#"></a>')
+                            .addClass("link control glyphicon glyphicon-play")
+                            .click( interface_media.handler.click );
+
+                    var widget=$('<h4></h4>', { id:'media-'+name })
                          .data("vlc", vlc)
-                         .addClass("btn btn-media")
-                         .appendTo("#status-media")
-                         .click( function() {
+                         .addClass("media-item")
+                         .append( label )
+                         .append( '   ' )
+                         .append( control )
+                         .appendTo("#status-media");
 
-                              vlc=$(this).data('vlc');
-
-                              peek='show '+( (vlc.name).indexOf('instance') == -1 ) ? 'play' : 'stop';
-                              action=Data.send( { command:'vlm', item:peek } );
-                              Data.send( { command:'vlm', item: 'control '+vlc.name+' '+action, alert:true } ) ;
-
-                              $(this).removeClass("btn-success")
-                                     .addClass("btn-warning");
-
-                              $(this).data("timeout", function() {
-                                  setTimeout( function() { $(this).removeClass("btn-warning"); }, 10000 );
-                              });
-                              interface_media.refresh(3000);
-                          });
-
-                    return item;
+                    return widget;
         },
 
 
         "read" : function() {
 
-           var comeBack=false;
 
-           response=Data.send( { command:'vlm', item:'show media' } );
-           items=( response['result']['media'] || {} );
+           var response=Data.send( { command:'vlm', item:'show media' } );
 
-           $.each( items, function( name, vlcCurrent ) {
+           var items=( response['result']['media'] || {} );
 
-                  item=$('#media-'+name);
-                  if( !item.exists() ) { item=interface_media.add( name, vlcCurrent ) };
+           $.each( items, function( name, vlc ) {
 
-                  vlc=$(item).data("vlc");
+                  var item=$('#media-'+name);
+                  if( !item.exists() ) { item=interface_media.add( name, vlc ) };
 
-                  if ( vlcCurrent['instances'] ) {
+                  var vlc=$(item).data("vlc");
 
-                    clearTimeout( $(this).data("timeout") );
-                    $(item).removeClass('btn-warning')
-                           .addClass('btn-success')
-                           .text( name + ' (active)');
-                    comeBack=true;
+                  if ( vlc['instances'] ) {
+
+                    $(item).find(".control")
+                           .removeClass("glyphicon-play")
+                           .addClass("glyphicon-stop");
+
+                     interface_media.refresh(1500);
+                     interface_recordings.refresh(1500);
 
                   } else {
-                    $(item).removeClass('btn-warning')
-                           .removeClass('btn-success')
-                           .text( name );
+
+                    $(item).find(".control")
+                           .removeClass("glyphicon-stop")
+                           .addClass("glyphicon-play");
+
                   };
+
+                $(item).data("vlc", vlc);
 
           });
 
-          if(comeBack) {
-                   interface_media.refresh(1500);
-                   interface_files.refresh(1500);
-          };
 
         }
 
@@ -219,9 +288,9 @@ var interface_calendar = {
           "element" : $("#event-calendar"),
           
 
-          "setup" : function() {
+          "init" : function() {
 
-                      this.element.fullCalendar( {  
+                      interface_calendar.element.fullCalendar( {  
 
                                                      header: {  left: 'today',  center: 'prev,title,next',  right: 'month,agendaDay'},
                                                      contentHeight: 500,
@@ -437,14 +506,161 @@ var interface_calendar = {
 
 var interface_audio = {
 
-         "setup" : function() {
+         "init" : function() {
+            interface_audio.setup.devices();
+            interface_audio.setup.controls();
          },
+
+         "setup" : {
+						 "devices" : function() {
+                            ss=$('#config-form select[name=audioDevice]');
+                            ss.empty();
+ 						    ss.append('<option value="">-none-</option>');
+
+							 $(interface_audio.devices()).each( function(k,device) {
+								ss.append('<option value="'+device.alsa+'">'+device.name+'</option>');
+                			 });
+
+                             ss.val( interface_machine.audioDevice);
+
+						 },
+
+                         "controls" : function() {
+							 UI.render.sliders( $("#audio-controls"), interface_audio.controls() );
+                         }
+         },
+
+
+         "write" : function() { 
+
+                contents='';
+                $.each( interface_audio.controls(), function(k,v) {
+
+                   
+                   vv=(v['sendLabel']) ? '"'+v.labels[v.value]+'"' : v.value ;
+
+                   contents=contents+'/usr/bin/amixer --device '+v.device+' sset "'+v.name+','+v.instance+'" '+vv+'\n';
+
+                });
+
+                Data.send( { command:"update", item:"config", file:"init-audio", contents:contents, alert:true } );
+
+          },
+
+
+
+         "controls" : function() {
+
+                    var controls=[];
+                    var control={};
+
+                    var audioCard=interface_machine.audioDevice.split(',')[0];
+                    var audioItem=interface_machine.audioDevice.split(',')[1];
+
+                    response=Data.send({command:'audio', action:'get', item:'controls', device : audioCard });
+                    raw=response['result'].split('\n');
+
+                    $(raw).each( function(k,v) {
+
+
+                          switch ( v.substr( 0,2 ) ) {
+
+                                    case "  " : 
+		                                        item=v.split(':');
+                                                append={};
+                                                append[ item[0].trim().toLowerCase() ] =  item[1].trim();
+                                                control = $.extend( control, append );
+                                                break;
+
+                                    case "Si" :
+                                                if ( control['name'] ) { controls.push(control) };
+		                                        item=v.substr(22,60).replace("'",'').split(',');
+                                                control = { 
+                                                            name:item[0],
+                                                            instance:item[1],
+                                                            device:audioCard,
+                                                            caption: item[0]+' ('+item[1]+')',
+                                                            change: function(e,ui) {
+                                                                var oo=$(e.target).slider("option");
+                                                                var value=ui.value;
+                                                                 if(oo['sendLabel']) { value=oo.label( ui ) };
+                                                                Data.send( { command:'audio', action:'set', device:oo.device, item:oo.name+','+oo.instance, value:value, alert:true } );
+                                                                interface_audio.setup.controls();
+                                                                    }
+                                                           };
+ 	                                            break;
+                            };
+                 });
+
+            if (control['name']) { controls.push(control) };
+
+            controls=$(controls).map( function(k,v) { 
+
+                if( v.capabilities.indexOf('cvolume') > -1 ) {
+
+                   var cc={ name:v.name, device:v.device, instance:v.instance, caption:v.caption, change:v.change };
+                   var ranges=v.limits.match(/[0-9]+/g);
+                   cc.min=parseInt( ranges[0] );
+                   cc.max=parseInt( ranges[1] );
+                   cc.value=( v['mono'] || v['front left'] ).match(/[0-9]+/)[0];      
+
+                   return cc;                   
+                };
+
+                if( v.capabilities.indexOf('cenum') > -1 ) {
+
+                   v['labels']={};
+                   v.sendLabel=true;
+                   v.min=0;
+                   v.max=0;
+                   $.each( v.items.match(/\'[^\']*'/g) , function(kk,vv) {
+                      v.labels[kk]=vv.replace(/\'/g,'');
+                      v.max=kk;
+                      if( v['item0'] ==vv ) { v.value=kk };
+                   });
+                   return v;                   
+                };
+
+
+            });
+            
+             return (controls);            
+         },
+
 
          "devices" : function() {
-         },
 
-         "defaults" : function() {
+                    var devices=[];
+
+                    response=Data.send({ command:'audio', action:'get', item:'devices', device:'all' });
+                    if(!response['result']) {
+                     UI.alert('Found no audio devices!', { type:'danger' } );
+                     return;
+                    }
+        
+                    dd=response.result.split('\n');
+                    $(dd).each( function(k,v) {
+                    if(v) {
+                         parts=v.split(',');
+
+                         card=parts[0].match(/\d+/)[0];
+                         device=parts[1].match(/\d+/)[0];
+
+                         nn='('+card+') ' + parts[0].match( /\[(.*?)\]/ )[0] + ', ('+device+') ' + parts[1].match( /\[(.*?)\]/ )[0];
+
+                         devices.push( {
+                                            "card" : card,
+                                            "device" : device,
+                                            "alsa" : 'hw:'+card+','+device,
+                                            "name" : nn
+                                       });
+                     }   
+                   });
+                      
+                    return devices;
          }
+
+
 };
 
 // ----------------------------------------------------------
@@ -454,60 +670,124 @@ var interface_video = {
 
          "reset" : function() { 
 
-                $.each( interface_video.controls(), function(k,v) {
-                   if( v.hasOwnProperty('default') ) {
-                     $("#video_"+v.name).slider( 'option', 'value', Number(v.default) );
-                   };
+                interface_video.setup.silent=true;
+
+                $.each( $("#video-controls .ui-slider"), function(k,v) {
+
+                   var ee=$(v);
+                   var oo=ee.slider("option");
+                  
+                   if( oo.hasOwnProperty('default') ) {
+                      if (oo.value != oo.default ) {
+                        ee.slider( 'option', 'value', Number(oo.default) );
+                      }  
+                 };
                 });
-                UI.alert("Video defaults set");
+
+                delete interface_video.setup.silent;
+
+                interface_video.setup.controls();
+                UI.alert("Video default values applied");
+
           },
 
 
          "write" : function() { 
 
-                settings='# Camera configuration for ' + Data.machine.roomID+'\n# -------------------\n\n';
+                settings='# Video configuration for ' + Data.machine.roomID+'\n# -------------------\n\n';
                 $.each( interface_video.controls(), function(k,v) {
                      if( !v['disabled'] ) {
-                       settings = settings + 'v4l2-ctl -c '+v.name+'='+v.value+'\n';
+                       settings = settings + '/usr/bin/v4l2-ctl -c '+v.name+'='+v.value+'\n';
                      };   
                 });
 
-                Data.send( { command:"update", item:"config", file:"camera", contents:settings, alert:true } );
+                Data.send( { command:"update", item:"config", file:"init-video", contents:settings, alert:true } );
 
           },
 
 
-         "setup" : function() {
+         "init" : function() {
+                     interface_video.setup.devices();
+                     interface_video.setup.controls();
+         },
 
-             cc=$('#video-devices');
-             cc.empty
-             $(this.devices()).each( function(k,device) {
-                cc.append( '<option value="'+device.device+'">'+device.name+'</option>' );
-             });
 
-             cc=$('#video-controls');
-             cc.empty();
+         "setup" : {
+                      "devices" : function() {
 
-             $(this.controls()).each( function(k,control) {
+                        ss=$('#config-form select[name=videoDevice]');
+                        ss.empty();
+                        ss.append('<option value="">-none-</option>');
+                        $( interface_video.devices()).each( function(k,device) {
+                          ss.append('<option value="'+device.device+'">('+k+') '+device.name+'</option>');
+                        });
+                        ss.val( interface_machine.videoDevice );
 
-                                    cc.append( '<div class="row"><b class="small" id="'+control.name+'_status">'+control.name+'</b>');
-                                    cc.append( 
-                                               $('<div></div>', { id:'video_'+control.name } )
-                                               .attr("id","video_"+control.name)
-                                               .data("control",control)
-                                               .slider(control)
-                                             );
-                                    cc.append( '</div>' );
-              }); 
+                        ss=$('#config-form select[name=videoFormat]');
+                        ss.empty();
+                        ss.append('<option value="">-none-</option>');
+                        $( interface_video.formats()).each( function(k,format) {
+                          ss.append('<option value="'+format.value+'">'+format.name+'</option>');
+                        });
+                        ss.val( interface_machine.videoFormat );
 
-          },
+
+                      },
+
+                      "controls" : function() {
+							 UI.render.sliders( $('#video-controls'), interface_video.controls() );
+    		       }
+                     
+         },
+
+         "formats" : function() {
+
+                    var formats=[];
+                    response=Data.send({ command:'video', action:'get', item:'formats', device:interface_machine.videoDevice });
+                    if(!response['result']) {
+                     return;
+                    }
+     
+                    var lines=response.result.split('\n');
+                    var current={};                        
+                        
+                    $(lines).each( function(k,v) {
+       
+                     if( v.indexOf(':') > -1 ) {
+
+		                  item=v.split(':')[0].trim();
+		                  value=v.split(':')[1].trim();
+
+		                  switch( item ) {
+		                          case "Pixel Format" :
+                                                current={ chroma: value.match( /\'[^\']*'/)[0].replace(/\'/g,"") };
+		                                        break;
+	 
+		                          case "Size" : current.size=value.match(/\w[0-9]+[x][0-9]+/g)[0];
+		                                        current.width=current.size.split('x')[0];
+		                                        current.height=current.size.split('x')[1];
+		                                        
+                                                current['value']='width='+current.width+':height='+current.height+':chroma='+current.chroma;
+		                                        current['name'] = current.chroma+' / ' + current.size;
+                                                formats.push( current );
+
+                                                current={ chroma:current.chroma };
+                                                break;
+                                 default : break;
+		                  };
+                      };
+
+                    });
+                  return formats;   
+
+         },
 
          "devices" : function() {
 
                     var devices=[];
-                    response=Data.send({ command:'show', item:'video-devices'});
+                    response=Data.send({ command:'video', action:'get', item:'devices', device:'all'});
                     if(!response['result']) {
-                     UI.alert('Found no cameras attached!');
+                     UI.alert('Found no video devices attached!');
                      return;
                     }
 
@@ -528,30 +808,21 @@ var interface_video = {
                                                     
          },
           
-         "controls" : function( forceLoad ) {
+
+         "controls" : function() {
 
                     var controls=[];
-                    
-                    response=Data.send({command:'show', item:'video-controls'});
+
+                    response=Data.send({command:'video', action:'get', item:'controls', device:interface_machine.videoDevice });
                     raw=response['result'].split('\n');
 
                     $(raw).each( function(k,v) {
 
-                             control={
-                                       menu : {},
-                                       orientation:'horizontal',
-                                       change : function(e) {
-                                                             n=$(this).data("control").name;
-                                                             v=$(this).slider("option","value");
-                                                             $('#'+n+'_status').html(n + ' <span class="pull-right badge">' + v + '</span>');
-                                                             Data.send({command:'update', item:'video-control', control:n, value:v, alert:true } ) ;
-                                                             interface_video.setup();
-                                       },
-                                       slide : function(e) {
-                                                             n=$(this).data("control").name;
-                                                             v=$(this).slider("option","value");
-                                                             $('#'+n+'_status').html(n + ' <span class="pull-right badge">' + v + '</span>');
-                                                           }
+                             control={ change: function(e,ui) {
+                                             var oo=$(e.target).slider("option");
+                                             Data.send( { command:'video', action:'set', device: interface_machine.videoDevice, item:oo.name, value:ui.value, alert: (!interface_video.setup.silent) } );
+                                             if( ! interface_video.setup.silent ) { interface_video.setup.controls() };
+                                      }
                                      };
 
                              items=v.split(/\s+/);
@@ -560,22 +831,27 @@ var interface_video = {
                                switch( true ) {
 
                                  case (kk==1) : if(vv.substring(vv.length-1)==':') {
-                                                  controls[controls.length-1].options[kk]=vv;
+                                                  // Menu item:  get the rest of the parent line and add to the 
+                                                  // most recent control's label list
+                                                  vv=vv.split(':')[0];
+                                                  if( !control['labels'] ) { controls.labels={} };
+                                                  controls[controls.length-1].labels[vv]=v.split(':')[1];
                                                 } else {
                                                   control.name=vv;
                                                 }
                                                 break;
 
-                                 case (kk==2) : switch (vv) {
-                                                     case '(menu)' : control.hasOptions=true; 
-                                                                     control.options={};
+
+                                 case (kk==2) :  control.controlType=vv.replace('(','').replace(')','');
+
+                                                 switch ( control.controlType ) {
+                                                     case 'menu' :  control.labels={};
                                                                      break;
 
-                                                     case '(bool)' : control['min']=0;
+                                                     case 'bool' : control.labels={ "0":"Off","1":"On" };
+                                                                     control['min']=0;
                                                                      control['max']=1;
                                                 };
-                                                control.controlType=vv.replace('(','').replace(')','');
-
 
                                  case (vv.indexOf('=')>0 ) : tt=vv.split('=');
                                                              switch ( tt[0] ) {
@@ -608,10 +884,11 @@ var interface_video = {
 
 // ----------------------------------------------------------
 
-var interface_files = {
+var interface_recordings = {
 
-          "setup"   : function() {
-             interface_files.refresh();
+
+          "init"   : function() {
+             interface_recordings.refresh();
           },
 
           "delete"  : function(filename) {
@@ -620,15 +897,14 @@ var interface_files = {
  
           "refresh" : function( delay ) {
              if(delay) {
-               window.setTimeout(  function() { interface_files.refresh() }, delay );
+               window.setTimeout(  function() { interface_recordings.refresh() }, delay );
                return;
              };
  
-             ff=$('#video-files table tbody');
+             ff=$('#video-recordings table tbody');
              ff.empty();
          
-             files=Data.send( { command:'show', item:'videos'} )['result'];
-
+             files=Data.send( { command:'recordings', action:'get' }  )['result'];
              if(!files) {
                ff.append( '<tr class="danger"><td>None</td></tr>' );
                return;
@@ -650,8 +926,8 @@ var interface_files = {
                            placement : 'right',
                            onConfirm : function(e) {
                                                  file=$(this)[0].file;
-                                                 Data.send({command:'delete', file:file, alert:true} );
-                                                 interface_files.refresh();
+                                                 Data.send({command:'recordings', item:'delete', file:file, alert:true} );
+                                                 interface_recordings.refresh();
                                        }
               });
 
@@ -667,19 +943,20 @@ var interface_preview = {
           "show" : function() {
 
               // Make a preview media object
-              var location=':8889/camera';
-              var url='http://'+window.location.hostname+location;
+              var streamTranscode=':standard{access=http,mux=ts,dst=:8889/preview}';
+              var streamURL='http://'+window.location.hostname+':8889/preview';
+
 
               Data.queue.add( { command:'vlm', item:'del preview'} );
 
-              config=Data.config.read('media',true).split('\n');
+              config=Data.config.read('init-media',true).split('\n');
               $(config).each( function(k,v) {
                   line=v;
                    if(  line.indexOf('recorder') > 0 ) {
                        line=line.replace('recorder','preview');
                        spot=line.indexOf(':standard{');
                        if( spot > 0 ) {
-                          line=line.substr(0,spot)+':standard{access=http,mux=ts,dst='+location+'}';
+                          line=line.substr(0,spot)+streamTranscode;
                        }
                    Data.queue.add( { command:'vlm', item:line } );
                    }
@@ -694,17 +971,28 @@ var interface_preview = {
               // Send commands to the engine
               Data.queue.send();
             
-              oo = $('<b>Video Preview - ' + interface_machine.roomID+'</b><hr>' +
-                     '<div style="text-align:center;z-index:99;">' +
-                         '<object style="width:99%;height:90%;" id="preview-video-object" type="application/x-vlc-plugin" data="'+url+'" controls="yes">' +
-                         ' <param name="movie" value="'+url+'"/>' + 
-                         ' <embed type="application/x-vlc-plugin" autoplay="yes"  loop="no" target="'+url+'" />' + 
-                    '</object></div>');
-             
+              var info='<table style="width:100%;"><tr>'+
+                           '<td style="width:33%;text-align:left;"><b>Audio</b>:' + interface_machine.audioDevice + '</td>' +
+                           '<td style="width:33%;text-align:center;"><b>' + streamURL + '</b></td>' +
+                           '<td style="width:33%;text-align:right;"><b>Video</b>:' + interface_machine.videoDevice + ' @ ' + interface_machine.videoFormat + '</td>' +
+                       '</tr></table>';
+
+
+
+               var oo = '<div style="text-align:center;z-index:99;padding : 1em;">' +
+                         '<object style="width:99%;height:90%;" id="preview-video-object" type="application/x-vlc-plugin" data="'+streamURL+'" controls="yes">' +
+                         ' <param name="movie" value="'+streamURL+'"/>' + 
+                         ' <param name="allowFullScreen" value="true"/>' + 
+                         ' <param name="network-caching" value="150"/>' + 
+                         ' <embed type="application/x-vlc-plugin" autoplay="yes"  loop="no" target="'+streamURL+'" />' + 
+                    '</object></div>';
+
+
+
              // Make a new window for the preview
              pWindow=window.open();
              $(pWindow).unload(  function() { interface_preview.hide(); } );
-             $(pWindow.document.body).html( oo );
+             $(pWindow.document.body).html( info + '<hr>' + oo );
              $(pWindow.document.body).onClose=function() { parent.interface_preview.hide(); };
 
 /*
@@ -781,7 +1069,9 @@ var interface_actions = {
                debugObject=eval('('+$("#debug-object").val()+')');
                result=Data.send( debugObject );
                console.log( result );
-               $("#debug-console").html( Format.object.html(result) );
+               $("#debug-console")
+                 .empty()
+                 .html( Format.object.html(result) );
            }
 
 
@@ -798,24 +1088,24 @@ var Data = {
                 "calendar" : interface_calendar,
                 "actions"  : interface_actions,
 
-                "setup"    : function() {
+                "init"    : function() {
                       Data.common.read();
                       Data.machine.read();
                       Data.machine.status();
                       Data.actions.attach();
                       Data.media.read();
                 },                                
-
+        
                 "config" : {
                                 "read" : function( file, returnRaw ) {
 
-						          raw = $.ajax({
+						          var raw = $.ajax({
 						                type: 'GET',
 						                url: 'config/'+file,
 						                async: false,
 						            }).responseText;
 
-						          if (!returnRaw ) { raw=raw.toObjectArray() }; 
+						          if (!returnRaw ) { raw=raw.parseAsPairs() }; 
 						          return raw;
                                 },
                         
@@ -836,7 +1126,7 @@ var Data = {
 
                              "send" : function() {
                                  while( Data.queue.commands_.length > 0 ) {
-                                     v=Data.queue.commands_.shift();
+                                     var v=Data.queue.commands_.shift();
                                      Data.send(v);
                                  }
                              }
@@ -844,7 +1134,7 @@ var Data = {
 
                 "send" : function( commandObject ) {
                         
-                      response = $.ajax({
+                      var response = $.ajax({
                                 type: "GET",
                                 url: "api.xml",
                                 async: false,
@@ -856,14 +1146,16 @@ var Data = {
                            response=eval('('+response+')');
 
                          } else {
-                           UI.alert('Error: '+ response );
-                           response={ result:[] }
+                           response={ error:true, alert:"Invalid Response from API", result:[] }
                          };
 
+                         if( response['error'] || response['alert'] || commandObject['alert']  ) {
 
-                       if( commandObject.alert ) {
-                            UI.alert( response );
-                       }
+                             var alertOptions = (response['error']) ? { title:'Error', type:'danger', delay:99999 } : { };
+                             UI.alert( response, alertOptions );
+
+                         };
+
 
 /*
                        console.log("--- Data Send");
@@ -871,6 +1163,7 @@ var Data = {
                        console.log( response );
                        console.log("--------------------------");
 */
+
 
                      return(response);
                 }
@@ -880,6 +1173,69 @@ var Data = {
 // ----------------------------------------------------------
 
 var UI = {
+
+            "recordings" : interface_recordings,  
+                 "video" : interface_video,  
+                 "audio" : interface_audio,  
+              "calendar" : interface_calendar,
+              "preview"  : interface_preview,
+
+
+            "render" : {
+
+                                      "sliders" : function ( parent, controlArray, title ) {
+
+												 cc=$('<div></div>').addClass("list-group");
+
+												 $( controlArray ).each( function(k, sliderControl) {
+
+                                                           var control = $.extend (
+                                                                      { 
+                                                                         range : "min",
+                                                                         orientation : "horizontal",
+                                                                         animate : true,
+                                                                         value : 0,
+                                                                         "min" : 0,
+                                                                         "max" : 100,
+                                                                         index : function(ui) {
+                                                                                    return $.inarray( ui.label, this.labels ); 
+                                                                         },
+                                                                         label : function(ui) { 
+                                                                                    var ll=ui.value;
+                                                                                    if( this.labels ) { ll = ( this.labels[ui.value] || ll ) }; 
+                                                                                    return ll;
+                                                                         },
+                                                                         slide : function(e,ui) {
+
+                                                                                    var ee=$(e.target);
+                                                                                    var oo=ee.slider("option");
+                                                                                    ee.parents(".list-group-item")
+                                                                                      .children(".badge")
+                                                                                      .text( oo.label(ui) );
+                                                                         }
+                                                                       },
+                                                                      sliderControl
+                                                           );
+
+														  cc.append( 
+															 $('<a></a>')
+															  .addClass("list-group-item")
+															  .append( ( control.caption || control.name)  )
+															  .append( $('<span class="badge">'+control.label( { value:control.value} )+'</span>') )
+															  .append( $('<div></div>').slider(control) )
+    													   );
+ 																   
+												  }); 
+
+												 $(parent)
+												  .empty()
+												  .append( '<i>'+(title||'')+'</i>')
+										          .append( cc );
+  
+ 						  }
+
+          },
+
 
             "log"   : function(responseData) {
 
@@ -891,34 +1247,33 @@ var UI = {
 
             },
             
-            "alert" : function( responseData, displayOptions) {
+            "alert" : function( alertObject, displayOptions) {
+              // Types:  info, danger, success
+              var alertDisplay=Format.object.html( alertObject );
 
-              details=Format.object.html( responseData );
+              var alertOptions= $.extend( { offset: { from:'bottom', amount: 20 }, align:'right', type:'info', width:500, delay:2500 } , (displayOptions || {} ) );
 
-              defaultOptions= { offset: { from:'bottom', amount: 20 }, align:'right', type:'info', width:500, delay:2500 };
-              
-              $.bootstrapGrowl( details, ( displayOptions || defaultOptions ) );
+              alertOptions.delay=(alertOptions.type=='danger') ? 9999 : 2500;
 
-              if( responseData.log ) {
-                   UI.log( responseData );
+              $.bootstrapGrowl( alertDisplay, alertOptions );
+
+              if( alertObject.log ) {
+                   UI.log( alertObject );
               }
             },
 
-          "setup"    : function() {
+          "init"    : function() {
               UI.preview.hide();
-              UI.calendar.setup();
-              UI.video.setup();
-              UI.files.setup();
-              $("#software-version").html(   Data.send( { command:'show', item :'version'} ).result  );
-              UI.log("Launched management interface");
-              
-          },
+              UI.calendar.init();
+              UI.video.init();
+              UI.audio.init();
+              UI.recordings.init();
+              $("#software-version").html(   Data.send( { command:'machine', action:'get', item :'version'} ).result  );
 
-          "files"   : interface_files,  
-          "video"   : interface_video,  
-          "audio"   : interface_audio,  
-          "calendar" : interface_calendar,
-          "preview"  : interface_preview
+              window.setInterval( function() { UI.calendar.refresh(); }, (1 * 60 * 1000) );
+              UI.log("Launched management interface");
+          }
+
 };
 
 // ----------------------------------------------------------
@@ -955,15 +1310,18 @@ var Format = {
                  if(typeof o == 'string') {
                    return o;
                  };
-                 
+
                  var items='';
                  $.each( o, function(k,v) {
+
                    if( typeof v === 'object' ) { v=Format.object.html(v) };
+                   if( typeof v === 'boolean' ) { v=(v)? 'true' : 'false' }
                    v=v.replace(/\n/g,'<br>');
-                   items=items+'<li class="list-group-item"><b class="label label-primary">'+k+'</b>  '+v+'</li>';
+                  items = items + '<div class="row"><div class="col-sm-3"><b>'+k+'</b></div><div class="col-sm-9">'+v+ '</div></div>';
                  });
 
-                 return '<ul class="list-group">'+items+'</ul>';               
+                return items;
+
                }
            }
 }           
@@ -984,8 +1342,6 @@ var Handler= {
         
                 }
  
-
-
 };
 
 // ----------------------------------------------------------
@@ -1220,5 +1576,94 @@ var Handler= {
 
 }(jQuery);
 
+
+// ----------------------------------------
+
+(function() {
+  var $;
+
+  $ = jQuery;
+
+  $.bootstrapGrowl = function(message, options) {
+    var $alert, css, offsetAmount;
+
+    options = $.extend({}, $.bootstrapGrowl.default_options, options);
+    $alert = $("<div>");
+    $alert.attr("class", "bootstrap-growl alert");
+
+    if (options.type) {
+      $alert.addClass("alert-" + options.type);
+    }
+
+    if (options.allow_dismiss) {
+      $alert.append("<span class=\"close\" data-dismiss=\"alert\">&times;</span>");
+    }
+
+    if (options.title) {
+      $alert.append( '<b>'+options.title +'</b>' );
+    }
+
+    $alert.append(message);
+    if (options.top_offset) {
+      options.offset = {
+        from: "top",
+        amount: options.top_offset
+      };
+    }
+    offsetAmount = options.offset.amount;
+    $(".bootstrap-growl").each(function() {
+      return offsetAmount = Math.max(offsetAmount, parseInt($(this).css(options.offset.from)) + $(this).outerHeight() + options.stackup_spacing);
+    });
+    css = {
+      "position": (options.ele === "body" ? "fixed" : "absolute"),
+      "margin": 0,
+      "z-index": "9999",
+      "display": "none"
+    };
+    css[options.offset.from] = offsetAmount + "px";
+    $alert.css(css);
+    if (options.width !== "auto") {
+      $alert.css("width", options.width + "px");
+    }
+    $(options.ele).append($alert);
+    switch (options.align) {
+      case "center":
+        $alert.css({
+          "left": "50%",
+          "margin-left": "-" + ($alert.outerWidth() / 2) + "px"
+        });
+        break;
+      case "left":
+        $alert.css("left", "20px");
+        break;
+      default:
+        $alert.css("right", "20px");
+    }
+
+    $alert.fadeIn();
+
+    if (options.delay > 0) {
+      $alert.delay(options.delay).fadeOut(function() {
+        return $(this).alert("close");
+      });
+    }
+    return $alert;
+  };
+
+  $.bootstrapGrowl.default_options = {
+    ele: "body",
+    type: "info",
+    offset: {
+      from: "top",
+      amount: 20
+    },
+    align: "right",
+    width: 250,
+    delay: 4000,
+    allow_dismiss: true,
+    stackup_spacing: 10
+  };
+
+}).call(this);
 
 
