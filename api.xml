@@ -299,7 +299,7 @@ elseif ( command == "update" ) then
 
  elseif ( item == "schedule" ) then
    json["result"] = api_execute( './schedule' )
-   vlc.vlm():execute_command( "load config/schedule" )
+   vlc.vlm():execute_command( "load config/init-schedule" )
 
  elseif ( item == nil ) then
     json["result"] = "Missing ITEM"
