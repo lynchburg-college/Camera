@@ -1,6 +1,7 @@
 # 
 
 *
+!init
 !common
 !crontab
 !template
