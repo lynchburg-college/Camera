@@ -186,6 +186,7 @@ elseif ( command == "recordings" ) then
 
 
    elseif (action == "delete" ) then
+
      file = _GET["file"]
      json["file"]=file
 
@@ -200,9 +201,9 @@ elseif ( command == "recordings" ) then
    else
      json["error"]=true
      json["result"]="Invalid ITEM"
+
    end
 
-  end
 
 
 -- --------------------------------------------------------------------------
