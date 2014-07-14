@@ -560,9 +560,13 @@ var interface_audio = {
                     var controls=[];
                     var control={};
 
-                    var audioCard=interface_machine.audioDevice.split(',')[0];
-                    var audioItem=interface_machine.audioDevice.split(',')[1];
-
+                    try {
+                       var audioCard=interface_machine.audioDevice.split(',')[0];
+                       var audioItem=interface_machine.audioDevice.split(',')[1];
+                    }
+                    catch (err) {
+                       return;
+                    }
                     response=Data.send({command:'audio', action:'get', item:'controls', device : audioCard });
                     raw=response['result'].split('\n');
 
