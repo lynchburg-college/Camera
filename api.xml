@@ -150,10 +150,10 @@ if ( command == "vlm" ) then
 -- --------------------------------------------------------------------------
 elseif ( command == "machine" ) then
 
-  if  ( action == "reboot"  ) then
+  if  ( item == "reboot"  ) then
    json["result"] = api_execute( '/sbin/reboot' )
 
-  elseif ( action == "ifconfig" ) then
+  elseif ( item == "ifconfig" ) then
    json["result"] = api_execute( '/sbin/ifconfig' )
 
   elseif ( item == "host" ) then
@@ -181,7 +181,7 @@ elseif ( command == "machine" ) then
 elseif ( command == "recordings" ) then
 
 
-   if (action == "get") then
+   if (action== "get") then
      json["result"] = api_execute( 'ls -a video/*mp4* -lhr | awk \'{print $9"|"$6" "$7" "$8"|"$5}\' ')
 
 
@@ -199,7 +199,7 @@ elseif ( command == "recordings" ) then
 
    else
      json["error"]=true
-     json["result"]="Invalid ACTION"
+     json["result"]="Invalid ITEM"
    end
 
   end

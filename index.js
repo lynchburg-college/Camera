@@ -936,7 +936,7 @@ var interface_recordings = {
                            placement : 'right',
                            onConfirm : function(e) {
                                                  file=$(this)[0].file;
-                                                 Data.send({command:'recordings', item:'delete', file:file, alert:true} );
+                                                 Data.send({command:'recordings', action:'delete', file:file, alert:true} );
                                                  interface_recordings.refresh();
                                        }
               });
