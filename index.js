@@ -244,12 +244,16 @@ var interface_media =  {
         "read" : function() {
 
            var response=Data.send( { command:'vlm', item:'show media' } );
-           if( response['result']['media'].indexOf('0 broadcast') > -1 ) {
+
+           var items='';
+           try {
+             items=( response['result']['media'] || {} );
+           } 
+           catch(err) {
+              UI.alert( 'No media devices in VLC ');
               return;
            };
 
-           var items=( response['result']['media'] || {} );
-          
            $.each( items, function( name, vlc ) {
 
                   var item=$('#media-'+name);
