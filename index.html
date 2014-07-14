@@ -59,7 +59,6 @@
       <li class="active"><a href="#panel-schedule" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-calendar"></span> Schedule</a></li>
       <li><a href="#panel-machine" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-wrench"></span> Machine</a></li>
       <li><a href="#panel-devices" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-eye-open"></span> Devices</a></li>
-      <li><a href="#panel-recording" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-facetime-video"></span> Recording</a></li>
       <li><a href="#panel-debug" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-tasks"></span> Debug</a></li>
       <!-- <li><a href="#panel-log" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list-alt"></span> Log</a></li> -->
     </ul>
@@ -116,8 +115,8 @@
                 <div class="panel-body">
                   <form id="config-form" onSubmit="return false">
                   <table class="table table-hover table-condensed" >
-                    <tr><th width="30%">Room ID</td><td><input class="form-control" name="roomID" /></td></tr>
-                    <tr><th>Room Name</th><td><input class="form-control" name="roomName" /></tr></tr>
+                    <tr><th style="width:30%">Room ID</th><td><input class="form-control" name="roomID" /></td></tr>
+                    <tr><th>Room Name</th><td><input class="form-control" name="roomName" /></td></tr>
                     <tr><th>Schedule Control</th><td><input class="form-control" name="scheduleControl"  /></td></tr>
                     <tr><th>Recording Split</th><td>
                        <select name="splitMinutes">
@@ -167,34 +166,12 @@
 
          </div>
 
-    </div>
-   
-   </div>
+        </div>
 
+         <div class="row">
+            <div class="col-sm-12">
 
-
-
-
-    <!-- Recording Panel -->
-    <div id="panel-recording" class="tab-pane fade">
-
-        <div class="row">
-
-           <div class="col-md-3">
-
-              <div class="panel panel-default">
-                <div class="panel-heading">Recorder Devices<span class="pull-right"><a href="#" data-action="Data.media.refresh">refresh</a></span></div>
-                <div class="panel-body">
-                  <span id="status-media"></span>
-               </div>
-
-             </div>
- 
-           </div>
-           
-           <div class="col-md-9">
-
-               <div id="video-recordings" class="panel panel-default">
+              <div id="video-recordings" class="panel panel-default"> 
                    <div class="panel-heading">
                     Video Recordings
                     <span class="pull-right">
@@ -207,18 +184,33 @@
                     </table>
                    </div>
                </div>
-
-          </div>
-
-         </div>
-          
+            </div>
         </div>
+   
+   </div>
+
 
 
 
 
     <!-- Devices Panel -->
         <div id="panel-devices" class="tab-pane fade">
+ 
+        <div class="row hidden">
+
+            <div class="col-sm-12">
+
+              <div class="panel panel-default">
+                <div class="panel-heading">Recorder Devices<span class="pull-right"><a href="#" data-action="Data.media.refresh">refresh</a></span></div>
+                <div class="panel-body">
+                  <span id="status-media"></span>
+               </div>
+
+             </div>
+ 
+          </div>
+         </div>
+
 
            <div class="row">
            
