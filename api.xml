@@ -183,13 +183,9 @@ elseif ( command == "recordings" ) then
 
    if (action == "get") then
      json["result"] = api_execute( 'ls -a video/*mp4* -lhr | awk \'{print $9"|"$6" "$7" "$8"|"$5}\' ')
-   else
-     json["error"]=true
-     json["result"]="Invalid ACTION"
-   end
 
 
-   if (action == "delete" ) then
+   elseif (action == "delete" ) then
      file = _GET["file"]
      json["file"]=file
 
@@ -200,6 +196,11 @@ elseif ( command == "recordings" ) then
         cmd="rm --verbose "..file
         json["result"] = api_execute( cmd )
      end
+
+   else
+     json["error"]=true
+     json["result"]="Invalid ACTION"
+   end
 
   end
 
