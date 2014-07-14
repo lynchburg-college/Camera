@@ -243,11 +243,14 @@ var interface_media =  {
 
         "read" : function() {
 
-
            var response=Data.send( { command:'vlm', item:'show media' } );
+           
+           if( response.result.indexOf('0 broadcast') ) {
+              return;
+           };
 
            var items=( response['result']['media'] || {} );
-
+          
            $.each( items, function( name, vlc ) {
 
                   var item=$('#media-'+name);
