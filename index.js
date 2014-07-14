@@ -244,8 +244,7 @@ var interface_media =  {
         "read" : function() {
 
            var response=Data.send( { command:'vlm', item:'show media' } );
-console.log(response);           
-           if( response.result.indexOf('0 broadcast') ) {
+           if( response['result']['media'].indexOf('0 broadcast') > -1 ) {
               return;
            };
 
