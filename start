@@ -3,15 +3,19 @@
 # Common
 source "${0%/*}/config/common"
 
-if [[ -z "$roomID" ]]; then
- log "This machine has not been configured!  Visit the web page to configure"
-fi
-
 # Move to the home directory
 cd $pathRoot
 
 # Make sure everything is stopped..
 $pathRoot/stop
+
+# Ensure the needed stuff is here
+touch $pathRoot/config/machine
+touch $pathRoot/config/schedule
+touch $pathRoot/config/init-schedule
+touch $pathRoot/config/init-meta
+touch $pathRoot/config/init-vlc
+touch $pathRoot/config/init-media
 
 if [ "$1" == "debug" ]; then
  logVLC=$pathRoot/log/vlc.log
@@ -28,6 +32,7 @@ log "Started VLC (logging to $logVLC)"
 sleep 2
 source $pathRoot/config/init-video
 source $pathRoot/config/init-audio
+
 
 # Notify that we're running
 $pathRoot/notify "Capture Started."
