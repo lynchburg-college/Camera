@@ -18,14 +18,14 @@ touch $pathRoot/config/init-meta
 touch $pathRoot/config/init-vlc
 touch $pathRoot/config/init-media
 
-if [ "$1" == "debug" ]; then
+#if [ "$1" == "debug" ]; then
  logVLC=$pathRoot/log/vlc.log
- optionsVLC=-vvvvv
+ optionsVLC="--http-password capture -vvvvv"
  log "Starting in debug mode (logging to $logVLC)"
-else
- logVLC=/dev/null
- optionsVLC="--http-password capture"
-fi
+#else
+# logVLC=/dev/null
+# optionsVLC="--http-password capture"
+#fi
 
 
 # Start the HTTP interface
