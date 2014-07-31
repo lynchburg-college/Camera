@@ -243,8 +243,8 @@ var interface_media =  {
 
 
         "read" : function() {
-
-           var response=Data.send( { command:'vlm', item:'show media' } );
+return; 
+          var response=Data.send( { command:'vlm', item:'show media' } );
 
            var items='';
            try {
