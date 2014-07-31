@@ -1062,7 +1062,7 @@ var interface_actions = {
                            title :  ( $(e).attr("data-confirm-prompt") || 'Are you sure?' ),
                            placement : ( $(e).attr('data-confirm-placement') || 'left' ),
                            onConfirm : function(e) {
-                                        a=$(e)[0].action;
+                                        a=$(e).attr('data-action');
                                         eval(a+'()');
                            }
                 });
