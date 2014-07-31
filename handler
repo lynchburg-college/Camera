@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# Common
+source "${0%/*}/config/common"
+
+
+# Only need to do this is we have somewhere to deliver it
+if [ -z "$urlUpload" ]
+then
+  exit 1
+fi
+
+
+touch $logFile
+
+{
+
+        file=$1
+
+        isBusy=$(lsof $file)
+        if [ ! -z "$isBusy" ]
+        then
+          log "Ignoring (file is open) $file"
+          exit 1
+        fi
+
+         # If the filename is a date, use it as the start time
+         baseName=$(basename "$file")
+         baseName="${baseName%.*}"
+
+         date -d @$baseName > /dev/null 2>&1
+
+         if [ ! $? -eq 1 ]
+         then
+            asOf=$baseName
+            log "Using filename ($baseName) as creation date"
+         else
+            asOf=$(stat -c "%s" $file)
+            log "Using file modified date ($asOf)"
+         fi
+
+         #Use the local init-schedule file to look up metadata
+         log "Metadata date is : $asOf"
+         info=$(./parse meta "$asOf")
+
+
+         # Couldn't find anything?  That's OK.. use the default stuff
+         if [ "$info" == "" ]
+         then
+             log "Couldn't find metadata : $roomID / $asOf"
+             info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\""
+         else
+             log "Matched : $info"
+             echo "$info" > $file.meta
+         fi
+           
+                    
+         # Post to the media server
+         cmd="/usr/bin/curl -F \"batchMode=Y\" $info -F \"file=@$file\" -F \"keywords=$roomID $baseName\" $urlUpload"
+         log "$cmd"
+
+         if [ "$1" == "debug" ] 
+         then
+           exit 0
+         fi
+
+         info=$(eval "$cmd")
+         log $info
+
+           # Archive the original file
+           if [[ "$info" == *Success* ]]
+           then
+                log "$file was sucessfully uploaded"
+                mv "$file" "$file.uploaded"
+           else
+                $pathRoot/notify "Upload Error" "$file\n$info"
+           fi
+
+
+
+} | tee -a $logFile
+

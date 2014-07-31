@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# Common
+source "${0%/*}/config/common"
+
+item=${1,,}
+
+# Validations..
+if [ "$item" == "" ]
+then
+ log "No item provided."
+ exit 1
+fi
+
+case "$item" in
+
+    "meta" )
+           metaMatch=$2
+           if [ ! "$metaMatch" == "" ]
+           then
+              awk '{  if( d+20 >= ($1) &&  d-10 <= ($2) ) { print $0 }  }' d="$metaMatch"  config/meta | tail -1 | cut -d' ' -f 3-
+           fi
+           ;;
+
+    "schedule" )
+					scheduleCounter=1
+
+					inputFile="config/schedule"
+
+					outputSchedule="config/init-schedule"
+					backup "$outputSchedule"
+
+					outputMeta="config/meta"
+					backup "$outputMeta"
+
+                    sourceData=$(grep "|" "$inputFile") 
+
+                    echo "del schedule" > $outputSchedule
+                    echo "" > $outputMeta
+
+                    while IFS="|" read -r courseid title description owner start stop
+					do
+
+                      sid="s$scheduleCounter-$courseid"
+
+					  startEpoch=$(date +"%s" -d "$start")
+					  stopEpoch=$(date +"%s" -d "$stop")
+
+					  meta="$startEpoch $stopEpoch -F \"title=$title\" -F \"description=$description\" -F \"owner=$owner\" "
+
+					  startTimestamp=$(date +"%Y/%m/%d-%H:%M:%S" -d @$startEpoch)
+
+                                          let stopEpoch=stopEpoch-5 
+					  stopTimestamp=$(date +"%Y/%m/%d-%H:%M:%S" -d @$stopEpoch)
+
+
+                          {
+				              echo ""
+							  echo "new   $sid-start schedule"
+							  echo "setup $sid-start date $startTimestamp"
+							  echo "setup $sid-start append control recorder stop"
+							  echo "setup $sid-start append control recorder play"
+							  echo "setup $sid-start enabled"
+							  echo ""
+							  echo "new   $sid-stop schedule"
+							  echo "setup $sid-stop date $stopTimestamp"
+							  echo "setup $sid-stop append control recorder stop"
+							  echo "setup $sid-stop enabled"
+
+                          } >> "$outputSchedule"
+
+		          {
+                              echo "$meta"
+                          } >> "$outputMeta"
+
+       		         let scheduleCounter=scheduleCounter+1
+       			done  <<< "$sourceData"
+
+                    log "Parsed $scheduleCounter items into $outputSchedule and $outputMeta"
+                   ;;
+
+
+esac
+
+exit 0
+
