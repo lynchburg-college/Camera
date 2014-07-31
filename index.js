@@ -105,9 +105,6 @@ var interface_common = {
 // ----------------------------------------------------------
 var interface_machine = {
 
-                      "defaults" : {
-                                          videoTranscode : '{acodec=mpga,ab=128,channels=2,samplerate=48000,audio-sync}'
-                       },
 
                       "status" : function() {
 
@@ -142,7 +139,7 @@ var interface_machine = {
                                   $("#roomInfo").text( interface_machine.roomID + ' / ' + interface_machine.roomName )
                                   $(".video-device").text( interface_machine.videoDevice + ' (' + interface_machine.videoFormat + ')'  );
                                   $(".audio-device").text( interface_machine.audioDevice );
-                                  document.title=interface_machine.roomID;
+                                  document.title='Capture-'+(interface_machine.roomID||'');
 
                                   // Safety checks:
                                   if( (''+interface_machine['videoDevice']) == '' ) {
