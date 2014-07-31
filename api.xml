@@ -291,8 +291,8 @@ elseif ( command == "update" ) then
 
  elseif ( item == "schedule-clear" ) then
    api_vlm( "del schedule" )
-   api_writefile( "schedule","" )
-   api_writefile( "init-schedule" )
+   api_writefile( "schedule","#cleared" )
+   api_writefile( "init-schedule" ,"#cleared")
    json["result"] = "Schedule cleared."
 
  elseif ( item == "schedule" ) then
