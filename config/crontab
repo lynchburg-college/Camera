@@ -4,7 +4,7 @@
 # Mi  Hr  Da  Mo  We [--- Command ---]
 # ------------------------------------
 # Start the system at reboot
-@reboot /home/capture/Camera/start &2> /dev/null
+@reboot cd /home/capture/Camera/start && ./start &2> /dev/null
 
 # Upload
 08,38 *  *  *  *    /home/capture/Camera/upload &2> /dev/null
