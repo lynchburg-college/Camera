@@ -16,6 +16,9 @@
 
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.css" rel="stylesheet" />
 
+  <link href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/3.0.0/css/bootstrap-datetimepicker.css" rel="stylesheet" />
+
+
   <link href="index.css" rel="stylesheet" type="text/css" />
   
 </head>
@@ -56,51 +59,48 @@
   <div class="container">
 
     <ul class="nav nav-pills" role="tablist">
-      <li class="active"><a href="#panel-schedule" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-calendar"></span> Schedule</a></li>
-      <li><a href="#panel-machine" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-wrench"></span> Machine</a></li>
-      <li><a href="#panel-devices" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-eye-open"></span> Devices</a></li>
-      <li><a href="#panel-debug" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-tasks"></span> Debug</a></li>
+      <li class="active"><a href="#panel-calendar" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-calendar"></span> Schedule</a></li>
+      <!-- <li><a href="#panel-schedule" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-calendar"></span> Schedule</a></li> -->
+      <li><a href="#panel-machine" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-tasks"></span> Machine</a></li>
+      <li><a href="#panel-devices" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-cog"></span> Devices</a></li>
+      <li><a href="#panel-debug" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-send"></span> Debug</a></li>
       <!-- <li><a href="#panel-log" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list-alt"></span> Log</a></li> -->
     </ul>
 
    <div class="clearfix"><hr></div>
+
+   <div id="modal-dialog" class="modal fade">
+	  <div class="modal-dialog">
+		<div class="modal-content">
+		  <div class="modal-header">
+		    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+		    <h4 class="modal-title"></h4>
+		  </div>
+		  <div class="modal-body">
+		  </div>
+		  <div class="modal-footer">
+		    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <span class="modal-buttons"></span>
+		  </div>
+		</div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
    
+
    <div class="tab-content">
 
 
+    <!-- Calendar Panel -->
+     <div id="panel-calendar" class="tab-pane fade in active">
 
-    <!-- Schedule Panel -->
-    <div id="panel-schedule" class="tab-pane fade in active">
- 
-       <div id="event-dialog"></div>
-       <div class="row">
-           <div class="text-center" style="padding:1em;">
-              <div id="event-calendar"></div>
+        <div class="row">
+           <div class="col-sm-12">
+		       <div id="event-calendar"></div>
            </div>
-       </div>
-
-
-        <div class="row calendar-controls hidden">
- 
-          <div class="col-lg-3" id="calendar-refresh">
-           <span class="pull-left">
-             <a href="#" data-action="UI.calendar.refresh">refresh</a>
-           </span>
-          </div>
- 
-          <div class="col-lg-6 text-center" id="calendar-drawn">
-          </div>
- 
-          <div class="col-lg-3">
-           <span class="pull-right">
-            <a href="#" class="confirm" data-confirm-placement="top" data-action="UI.calendar.reload" data-icon="calendar">reload from server</a>
-           </span>
-          </div>
-  
         </div>
-  
-    </div>
 
+
+   </div>
 
 
     <!-- Machine Panel -->
@@ -108,29 +108,163 @@
 
        <div class="row">
 
-          <div class="col-md-6">        
+          <div class="col-md-12">        
 
               <div class="panel panel-default">
-                <div class="panel-heading">Machine Configuration</div>
+                <div class="panel-heading">
+                      Machine Configuration
+                     <span class="pull-right small">
+                      <a href="#" class="confirm" data-confirm="Download and update software?" data-action="Data.actions.update"><span class="btn btn-warning badge" title="Update Software"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
+                      <a href="#" class="confirm" data-action="Data.actions.reboot"><span class="btn btn-warning badge" title="Reboot Machine"><span class="glyphicon glyphicon-off"></span></span></a>
+                      |
+                      <button class="btn btn-primary btn-xs" data-action="Data.machine.write">save</button>
+                     </span>
+               </div>
+
                 <div class="panel-body">
-                  <form id="config-form" onSubmit="return false">
-                  <table class="table table-hover table-condensed" >
-                    <tr><th style="width:30%">Room ID</th><td><input class="form-control" name="roomID" /></td></tr>
-                    <tr><th>Room Name</th><td><input class="form-control" name="roomName" /></td></tr>
-                    <tr><th>Schedule Control</th><td><input class="form-control" name="scheduleControl"  /></td></tr>
-                    <tr><th>Recording Split</th><td>
-                       <select name="splitMinutes">
-                         <option value="00">Don't Split</option>
-                         <option value="30">30 Minute blocks</option>
-                         <option value="60">1 Hour blocks</option>
-                         <option value="90">90 Minute blocks</option>
-                       </select>
-                      </td></tr>
-                  <tr><th>Audio Device</th><td><select name="audioDevice"></select></td></tr>
-                  <tr><th>Video Device</th><td><select name="videoDevice"></select></td></tr>
-                  <tr><th>Video Format</th><td><select name="videoFormat"></select></td></tr>
-                  <tr><th>Transcode</th><td><input class="form-control" name="transcode"  /></td></tr>
-                 </table>
+
+                  <form id="config-form" class="form-horizontal" onSubmit="return false">
+
+
+					<div class="panel-group" id="settings">
+
+					  <div class="panel panel-default">
+						<div class="panel-heading">
+						  <h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#settings" href="#collapseOne">
+							  Identification
+							</a>
+						  </h4>
+						</div>
+						<div id="collapseOne" class="panel-collapse collapse in">
+						  <div class="panel-body">
+
+								    <div class="form-group">
+				 
+								      <label  class="col-sm-2 control-label">Room ID</label>
+								      <div class="col-sm-2">
+								        <input class="form-control" name="roomID" maxlength="8" />
+								      </div>
+
+								      <label class="col-sm-2 control-label">Room Name</label>
+								      <div class="col-sm-6">
+								        <input class="form-control" name="roomName" />
+								     </div>
+				   
+								    </div>
+
+                        </div>
+                      </div>
+                     </div>
+
+
+					  <div class="panel panel-default">
+						<div class="panel-heading">
+						  <h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#settings" href="#collapseTwo">
+							  Audio and Video
+							</a>
+						  </h4>
+						</div>
+						<div id="collapseTwo" class="panel-collapse collapse">
+						  <div class="panel-body">
+
+
+								    <div class="form-group">
+								      <label class="col-sm-2 control-label">Audio Device</label>
+								      <div class="col-sm-10 small">
+								         <select class="form-control" name="audioDevice"></select>
+								      </div>
+								    </div>
+
+								    <div class="form-group">
+
+								          <label class="col-sm-2 control-label">Video Device</label>
+								            <div class="col-sm-6 small">
+								             <select class="form-control" name="videoDevice"></select>
+								           </div>
+
+								          <label class="col-sm-1 control-label">Format</label>
+								          <div class="col-sm-3 small">
+								           <select class="form-control" name="videoFormat"></select>
+								          </div>
+
+								    </div>
+
+								    <div class="form-group">
+								      <label class="col-sm-2 control-label">Transcode</label>
+								      <div class="col-sm-10">
+								        <input class="form-control" name="videoTranscode" />
+								      </div>
+								    </div>
+
+                         </div>
+                       </div>
+                      </div>
+
+
+					  <div class="panel panel-default">
+						<div class="panel-heading">
+						  <h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#settings" href="#collapseThree">
+							  Network and URLs
+							</a>
+						  </h4>
+						</div>
+						<div id="collapseThree" class="panel-collapse collapse">
+						  <div class="panel-body">
+
+								    <div class="form-group">
+								      <label class="col-sm-2 control-label">Schedule URL</label>
+								       <div class="col-sm-10">
+								        <div class="input-group">
+								           <input class="form-control" name="urlSchedule" />
+								           <div class="input-group-addon">
+								            <button class="btn btn-xs btn-primary" data-action="Data.calendar.fetch">fetch</button>
+								           </div>
+								        </div> 
+								       </div> 
+								    </div>
+
+								    <div class="form-group">
+								      <label class="col-sm-2 control-label">Upload URL</label>
+								      <div class="col-sm-10">
+								        <input class="form-control" name="urlUpload" />
+								      </div>
+								    </div>
+                        </div>
+                      </div>
+                    </div>
+
+
+					  <div class="panel panel-default">
+						<div class="panel-heading">
+						  <h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#settings" href="#collapseFour">
+							  Notification and Alerts
+							</a>
+						  </h4>
+						</div>
+						<div id="collapseFour" class="panel-collapse collapse">
+						  <div class="panel-body">
+
+
+						        <div class="form-group">
+						          <label class="col-sm-2 control-label">Notify</label>
+						          <div class="col-sm-10">
+						            <input class="form-control" name="notify" />
+						            <div class="help-block">Optional, email address to receive various notifications</div>
+						          </div>
+						        </div>
+
+
+                        </div>
+                      </div>
+                    </div>
+
+                 </div>
+
+
                  </form>
                 </div>
                 <div class="panel-footer">
@@ -144,32 +278,13 @@
 
           </div>
         
-          <div class="col-md-6">
-
-              <div class="panel panel-default">
-                <div class="panel-heading">
-                  Quick Commands
-                </div>
-               <div class="panel-body">
-                <div class="list-group">
-                 <a href="#" class="list-group-item confirm" data-action="Data.actions.update"><span class="badge"><span class="glyphicon glyphicon-cloud-download"></span></span> Update Camera Software</a>
-                 <a href="#" class="list-group-item confirm" data-action="Data.actions.reboot"><span class="badge"><span class="glyphicon glyphicon-off"></span></span> Reboot Machine</a>
-                </div>
-               </div>
-            </div>
-
-
-              <div class="panel panel-default">
-                <div class="panel-heading">System Status<span class="pull-right"><a href="#" data-action="Data.machine.status" data-icon="refresh">refresh</a></span></div>
-                <div id="machine-status" class="panel-body" ></div>
-             </div>
-
-         </div>
 
         </div>
 
-         <div class="row">
-            <div class="col-sm-12">
+        <hr>
+
+        <div class="row">
+        <div class="col-sm-7">
 
               <div id="video-recordings" class="panel panel-default"> 
                    <div class="panel-heading">
@@ -184,19 +299,31 @@
                     </table>
                    </div>
                </div>
+
+         </div>        
+
+         <div class="col-sm-5">
+
+             <div class="panel panel-default">
+               <div class="panel-heading">System Status<span class="pull-right"><a href="#" data-action="Data.machine.status" data-icon="refresh">refresh</a></span></div>
+               <div id="machine-status" class="panel-body" ></div>
             </div>
-        </div>
+
+         </div>        
+
+      </div>
+
+
+
    
    </div>
-
-
 
 
 
     <!-- Devices Panel -->
         <div id="panel-devices" class="tab-pane fade">
  
-        <div class="row hidden">
+        <div class="row hidden" >
 
             <div class="col-sm-12">
 
@@ -218,7 +345,7 @@
 
               <div class="panel panel-default">
                 <div class="panel-heading">
-                  Video
+                  Video <span class="video-device small"></span>
                   <span class="pull-right">
                     <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.show">preview</a>
                     <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.video.reset">reset</a>
@@ -236,7 +363,7 @@
 
               <div class="panel panel-default">
                 <div class="panel-heading">
-                  Audio
+                     Audio <span class="audio-device small"></span>
                   <span class="pull-right">
                     <!-- <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.reset">reset</a> -->
                     <a href="#" class="btn btn-success btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.write">save</a>
@@ -289,7 +416,7 @@
 
 
 
-       
+
     <!-- Log Panel -->
        <div id="panel-log" class="tab-pane fade">
 
@@ -317,11 +444,12 @@
   
  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
  <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+ <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
  <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.6.0/moment.js"></script>
  <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.js"></script>
- 
- <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+ <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/3.0.0/js/bootstrap-datetimepicker.min.js"></script>
  
  <script src="index.js"></script>
  

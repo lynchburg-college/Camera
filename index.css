@@ -1,39 +1,41 @@
+html {
+      overflow-y:scroll;
+}
 
-   label {  
-     width: 10em;
-   }
-   .panel-heading {
+.panel-heading {
      font-weight: bold;
    }
 
-  #ajaxBusy {
-		background: black;
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		z-index: 100;
-		opacity: 0.75;
-		filter: alpha(opacity = 75);
-		zoom:1;
-  }
+input[type="checkbox"].checkbox {
+    display: none;
+}
 
+input[type="checkbox"].checkbox + label {
+    display: inline;
+    position: relative;
+    background-color: gainsboro;
+       
+    /*label styling*/
+    cursor:pointer;
+    color: tan;
+    padding: 2px;
+    font-size: 11.844px;
+    font-weight: bold;
+    line-height: 14px;
+    vertical-align: baseline;
+    white-space: nowrap;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+input[type="checkbox"].checkbox:checked + label {
+    background-color: #468847;
+    color:white;
+}
 
-.ui-slider-wrapper { position: relative; }
-.ui-slider-wrapper .ui-slider-horizontal { width: 100%; }
+input[type="checkbox"].checkbox:disabled + label {
+    opacity: 0.5;
+}
 
-.ui-slider-labels { position: absolute; border: 1px solid transparent; }
-.ui-slider-label-ticks { border: 1px solid transparent; position: absolute; white-space: nowrap; }
-.ui-slider-label-ticks span { font-size: 0.9em; min-width: 1.2em; }
-
-.ui-slider-wrapper.horizontal { height: 4.5em; }
-.horizontal .ui-slider-labels { left: 0; right: 0; top: 0.7em }
-.horizontal .ui-slider-label-ticks { width: 1.2em; height: .8em; text-align: center; border-left: 1px solid #999; }
-.horizontal .ui-slider-label-ticks span { position: relative; display: inline-block; margin-left: -1.2em; top: .8em; }
-
-.ui-slider-wrapper.vertical { width: 4.5em; }
-.vertical .ui-slider-labels { top: 1px; bottom: 0; left: 0.7em; }
-.vertical .ui-slider-label-ticks { height: 1.2em; width: 0.8em; border-bottom: 1px solid #999; }
-.vertical .ui-slider-label-ticks span { position: relative; display: inline-block; margin-left: 1em; top: .6em; }
 

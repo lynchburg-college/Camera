@@ -51,28 +51,13 @@ function api_execute(cmd, raw)
   return s
 end
 -- ----------------------
+function api_vlm ( cmd )
+     local cc=string.gsub( cmd, "+"," ")
+     return vlc.vlm():execute_command( cc )
+end
+-- ----------------------
 function api_now()
    return os.date("%a %b %d, %Y @ %I:%M:%S%p  ")
-end
-
-function updateMachine()
-
-   local now = api_now()
-
-   local file = io.open("config/machine", "w")
-
-   file:write('# Configuration written from web : '..now..'\n')
-   file:write('\n')
-
-   file:write('roomID='.._GET["roomID"]..'\n')
-   file:write('roomName="'.._GET["roomName"]..'"\n')
-   file:write('splitMinutes='.._GET["splitMinutes"]..'\n')
-   file:write('include="'.._GET["include"]..'"\n')
-   file:write('exclude="'.._GET["exclude"]..'"\n')
-   
-   file:flush()
-   file:close()
-
 end
 -- ----------------------
 function api_writefile( configFile, configContents )
@@ -91,9 +76,11 @@ function api_writefile( configFile, configContents )
        local ff="config/"..configFile
        local cc=string.gsub( configContents, "+"," ")
 
+       api_execute ( "mv "..ff.." "..ff..".bak" )
+
        local file = io.open( ff, "w")
 
-	   file:write('# Saved : '..now..'\n')
+	   file:write('# Written : '..now..'\n')
 	   file:write('\n')
 
 	   file:write(cc )
@@ -136,7 +123,7 @@ if ( command == "vlm" ) then
   else
 
    item=string.gsub( item, "+", " ") 
-   response = vlc.vlm():execute_command( item )
+   response=api_vlm( item )
  
    if( type(response.children) == "table" ) then
        json["result"] = getProperties( response.children )
@@ -300,8 +287,9 @@ elseif ( command == "update" ) then
    json["result"] = api_execute( 'git pull' )
 
  elseif ( item == "schedule" ) then
-   json["result"] = api_execute( './schedule' )
-   vlc.vlm():execute_command( "load config/init-schedule" )
+   api_vlm( "del schedule" )
+   json["result"] = api_execute( './fetch schedule && ./parse schedule' )
+   api_vlm( "load config/init-schedule" )
 
  elseif ( item == nil ) then
     json["result"] = "Missing ITEM"

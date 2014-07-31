@@ -3,17 +3,18 @@
 # Common
 source "${0%/*}/config/common"
 
+# Apply camera and audio settings 
+include "config/init-video"
+include "config/init-audio"
 
-# Apply camera settings 
-if [ -e "config/init-video" ] 
+
+if [ -z "$urlUpload" ]
 then
- source "config/init-video"
+  exit 1
 fi
-
 
 touch $logFile
 {
-
 
    # If an upload is already in progress, skip this pass.
    pidCurl=$(ps -A | grep curl)
@@ -23,9 +24,8 @@ touch $logFile
      exit 1
    fi
 
-
    #  Find all the files that should be uploaded
-   for file in $(ls $pathVideo/*.mp4)
+  for file in $(ls $pathVideo/*.mp4)
    do
 
       if [ ! -z "$file" ] && [ -s $file ]  
@@ -42,31 +42,32 @@ touch $logFile
            # If the filename is a date, use it as the start time
            baseName=$(basename "$file")
            baseName="${baseName%.*}"
-           date -d "$baseName" > /dev/null 2>&1
+
+           date -d @$baseName > /dev/null 2>&1
+
            if [ ! $? -eq 1 ]
            then
-             asOf=$(date -d "$baseName")
+             asOf=$baseName
              log "Using filename ($baseName) as creation date"
            else
-             asOf=$(stat -c "%y" $file)
+             asOf=$(stat -c "%s" $file)
              log "Using file modified date ($asOf)"
            fi
 
-           # #Use the local schedule file to look up metadata
-           # asOf=$(TZ=UTC date +%s -d "$asOf")
-           # log "Metadata date is : $asOf"
-           # info=$(awk '$1=="#" && $2=="META" { if( d+20 >= ($3) &&  d-10 <= ($4) ) { print $0 } }' d="$asOf"  config/schedule | cut -d' ' -f 5-)
+           #Use the local init-schedule file to look up metadata
+           log "Metadata date is : $asOf"
+           info=$(./parse meta "$asOf")
 
            # Make a call back to the mothership to get the metadata
-           cmd="curl -G -d \"roomID=$roomID&meta=$baseName\" $urlInfo"
-           log "$cmd"
-           info=$(eval "$cmd")
+           #cmd="curl -G -d \"roomID=$roomID&meta=$baseName\" $urlInfo"
+           #log "$cmd"
+           #info=$(eval "$cmd")
 
            # Couldn't find anything?  That's OK.. use the default stuff
            if [ "$info" == "" ]
            then
                log "Couldn't find metadata : $roomID / $asOf"
-               info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\" -F \"keywords=$roomID $baseName\""
+               info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\""
            else
                log "Matched : $info"
                echo "$info" > $file.meta
@@ -74,7 +75,7 @@ touch $logFile
            
                     
            # Post to the media server
-           cmd="curl -F \"batchMode=Y\" $info -F \"file=@$file\" $urlUpload"
+           cmd="/usr/bin/curl -F \"batchMode=Y\" $info -F \"file=@$file\" -F \"keywords=$roomID $baseName\" $urlUpload"
            log "$cmd"
 
            if [ "$1" == "debug" ] 

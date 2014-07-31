@@ -106,7 +106,7 @@ var interface_common = {
 var interface_machine = {
 
                       "defaults" : {
-                                          transcode : '{acodec=mpga,ab=128,channels=2,samplerate=48000,audio-sync}'
+                                          videoTranscode : '{acodec=mpga,ab=128,channels=2,samplerate=48000,audio-sync}'
                        },
 
                       "status" : function() {
@@ -137,8 +137,10 @@ var interface_machine = {
                                     cc=$("#config-form *[name="+v['name']+']').val( v['value'] );
                                  });
                                  
-                                  // Update the browser title
+                                  // Update some on-screen stuff
                                   $("#roomInfo").text( interface_machine.roomID + ' / ' + interface_machine.roomName )
+                                  $(".video-device").text( interface_machine.videoDevice + ' (' + interface_machine.videoFormat + ')'  );
+                                  $(".audio-device").text( interface_machine.audioDevice );
                                   document.title=interface_machine.roomID;
 
                                   // Safety checks:
@@ -159,10 +161,7 @@ var interface_machine = {
                            contents='';
 
                            $.each( config, function(i,item) { 
-                               v=item.value;
-                               if (v.indexOf("'") > -1 ) { v=v.replace("'","") };
-                               if (v.indexOf(' ') > -1 ) { v='"'+v+'"'  };
-                               contents += item.name+'='+v+'\n';
+                               contents += item.name+'="'+item.value+'"\n';
 
                            });
 
@@ -170,11 +169,13 @@ var interface_machine = {
                            interface_machine.read();
 
                            // Build a new media init file
+                           // Old -- 'setup recorder output #transcode{'+interface_machine.transcode+'}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4} \n' +
+
                            contents = '# Media init file for ' + interface_machine.roomID + '\n\n' + 
                                       'new recorder broadcast \n'+
                                       'setup recorder input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
                                       'setup recorder option input-slave=alsa://'+interface_machine.audioDevice+' \n' +
-                                      'setup recorder output #transcode{'+interface_machine.transcode+'}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4} \n' +
+                                      'setup recorder output #transcode{'+interface_machine.videoTranscode+'}:standard{access=file,mux=mp4,dst=./video/%s.mp4} \n' +
                                       'setup recorder enabled';
                    
                            Data.send({ command:'update', item:'config', file:'init-media', contents: contents, alert:true } );
@@ -184,7 +185,7 @@ var interface_machine = {
                            window.setTimeout( function() { 
                                interface_audio.setup.controls(); 
                                interface_video.setup.controls(); 
-                               interface_calendar.reload() }
+                               interface_calendar.refresh() }
                            , 500 );
                            
                         }
@@ -287,18 +288,18 @@ var interface_media =  {
 
 };
 
-// ----------------------------------------------------------
 
+// ----------------------------------------------------------
 var interface_calendar = {
 
           "element" : $("#event-calendar"),
-          
+        
 
           "init" : function() {
 
                       interface_calendar.element.fullCalendar( {  
 
-                                                     header: {  left: 'today',  center: 'prev,title,next',  right: 'month,agendaDay'},
+                                                     header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaDay'},
                                                      contentHeight: 500,
                                                      handleWindowResize: true ,
                                                      selectable: true,
@@ -310,64 +311,68 @@ var interface_calendar = {
                                                      firstHour : 7,
                                                      allDaySlot : false,
 
-                                                     eventClick: Data.calendar.eventClick,
-                                                     dayClick: Data.calendar.dayClick,
+                                                     eventClick: Data.calendar.handler.event,
+                                                     dayClick: Data.calendar.handler.day,
                                                      select : Data.calendar.select,
                                                      events : Data.calendar.events
                                               });
 
                       $(".calendar-controls").removeClass("hidden");                 
-          },
 
-          "reload" : function() {
-
-                   interface_calendar.element.fullCalendar( 'removeEvents' );
-                   Data.send( {command:'update', item:'schedule', alert:true } );
-
-                   interface_calendar.element.fullCalendar( 'refetchEvents' );
-                   interface_calendar.refresh();
 
           },
 
-          "refresh" : function( ) {
-                      interface_calendar.element.fullCalendar('changeView','month');
+          "fetch" : function( stage ) {
+                      if( interface_machine.urlSchedule != "" ) {
+                         Data.send({ command:"update", item:"schedule", before:'Loading Schedule for '+interface_machine.roomID+'.  Stand by...', alert:true});
+                      }
+          },
+
+          "refresh" : function() {
+                      interface_calendar.element.fullCalendar( 'removeEvents' );
+                      interface_calendar.element.fullCalendar( 'refetchEvents' );
                       interface_calendar.element.fullCalendar( 'rerenderEvents' );
-                      $("#calendar-drawn").html( 'Schedule as of '+(new Date($.now())).toLocaleString() );
           },
 
           
-          "eventClick" : function( event, jsEvent, view) {
+          "handler" : {
+                                      "event" : function( event, jsEvent, view) {
 
-                       interface_calendar.element.fullCalendar( 'unselect' );
+												   interface_calendar.element.fullCalendar( 'unselect' );
 
-                       template='<div><label>Course/Title</label>'+event.title+'</div>'+
-                                '<div><label>Starts</label>'+event.start.calendar()+'</div>'+                      
-                                '<div><label>Ends</label>'+event.end.calendar()+'</div>';
+                     	                            UI.dialog({ 
 
-                       $("<div></div>")
-                        .dialog ({  title : 'Recording Details',
-                                    width : "40%",
-                                   height : 240,
-                                    modal : true,
-                                 appendTo : "body",
-                            closeOnEscape : true,
-                                   buttons: { 
-                                              'Cancel Recording'  : function() { 
-                                                              if(window.confirm('Are you sure?')) { interface_calendar.delete( event) ; $(this).dialog("destroy") };
-                                                            }, 
-                                              'Close': function() { $(this).dialog("destroy") } ,
-                                             }
-                                 })
-                        .html( template );
-          },
+                                                        title : 'Scheduled Recording',
 
-          "dayClick" : function( date, jsEvent, view) {
+  												         body : '<div><label class="label label-default">Title</label> '+event.title+'</div>'+
+  														         '<div><label class="label label-default">Starts</label> '+event.start.calendar()+'</div>'+                      
+														         '<div><label class="label label-default">Ends</label> '+event.end.calendar()+'</div>',
+ 
+                                                        buttons : [
+                                                                     { 
+                                                                       caption:'Cancel Recording',
+                                                                       className:'btn-danger',
+                                                                       data : { "event" : event } ,
+									                                   click : function() { 
+                                                                                            if(window.confirm('Are you sure?')) {
+								                                                                  interface_calendar.delete( $(this).data('event') );
+								                                                                  UI.dialog("close");
+								                                                            }
+                                                                                            
+                                                                                }
+                                                                     }
+                                                                  ]
+                                                    });
+                                      },
 
-                   if( (view.name!='agendaDay') &&  ( !date.isBefore() )  ) {
-                       interface_calendar.element.fullCalendar( 'gotoDate', date );
-                       interface_calendar.element.fullCalendar('changeView','agendaDay');
-                   }
-          },
+                                     "day" :  function( date, jsEvent, view) {
+
+											   if( (view.name!='agendaDay') &&  ( !date.isBefore() )  ) {
+												   interface_calendar.element.fullCalendar( 'gotoDate', date );
+												   interface_calendar.element.fullCalendar('changeView','agendaDay');
+			             					   }
+                                      }
+         },
           
           "select" : function( startMoment, endMoment, jsEvent, view) {
 
@@ -375,34 +380,23 @@ var interface_calendar = {
            
                        interface_calendar.element.fullCalendar( 'unselect' );
 
-                       template='<form class="formAdd" onsubmit="return false">'+
-                                '<input type="hidden" name="add" value="1">'+
-                                '<input type="hidden" name="room" value="'+interface_machine.roomID+'">'+
-                                '<input type="hidden" name="start" value="'+startMoment.format()+'">'+
-                                '<input type="hidden" name="end" value="'+endMoment.format()+'">'+
-                                '<div><label>Starts</label>' + startMoment.calendar() + '</div>'+
-                                '<div><label>Ends</label>' + endMoment.calendar() + '</div>'+
-                                '<div><label>Title</label><input name="title"><small>*required</small></div>'+
-                                '<div><label>Owner</label><input name="owner"><small>*required, network username</small></div>'+
-                                '<div><label>Description</label><textarea name="description"></textarea></div>'+
-                                '</form>';
-                               
-                       $("<div></div>")
-                        .dialog ({  title : interface_machine.roomID+' - Add A Scheduled Recording',
-                                    width : "40%",
-                                   height : 340,
-                                    modal : true,
-                                 appendTo : "body",
-                                   buttons: { 
-                                              'Never Mind': function() { $(this).dialog("destroy").remove() } ,
-                                              'Create'    : function() { 
-                                                              interface_calendar.add( $(".formAdd") ); 
-                                                              $(this).dialog("destroy").remove();
-                                                            } 
-                                             }
-                                 })
-                        .html( template );
-                    }             
+
+                       UI.dialog({
+                                   title : "Add a Scheduled Recording",
+
+                                   body : '<form class="formAdd" onsubmit="return false">'+
+						                    '<input type="hidden" name="add" value="1">'+
+						                    '<input type="hidden" name="room" value="'+interface_machine.roomID+'">'+
+						                    '<input type="hidden" name="start" value="'+startMoment.format()+'">'+
+						                    '<input type="hidden" name="end" value="'+endMoment.format()+'">'+
+						                    '<div><label class="label label-default">Starts</label> ' + startMoment.calendar() + '</div>'+
+						                    '<div><label class="label label-default">Ends</label> ' + endMoment.calendar() + '</div>'+
+						                    '<div><label class="label label-default">Title</label> <input name="title"><small>*required</small></div>'+
+						                    '<div><label class="label label-default">Owner</label> <input name="owner"><small>*required, network username</small></div>'+
+						                    '<div><label class="label label-defailt">Description</label> <textarea name="description"></textarea></div>'+
+						                    '</form>',
+                     });
+                  }
           },
 
           "delete"     : function( calendarEvent ) {
@@ -410,20 +404,12 @@ var interface_calendar = {
                        scheduleID=calendarEvent.eventID+'-'+calendarEvent.courseID;
 
                        command = 'del '+scheduleID+'-start';
-                       Data.send( { command:'vlm', item:command, alert:true } );
+                       Data.send( { command:'vlm', item:command } );
 
                        command = 'del '+scheduleID+'-stop';
-                       Data.send( { command:'vlm', item:command, alert:true } );
+                       Data.send( { command:'vlm', item:command } );
 
-                         response = $.ajax({
-                                type: "POST",
-                                url: interface_common.urlInfo,
-                                async: false,
-                                data : { "delete" : scheduleID }
-                            }).responseText;
-                       UI.alert(  response );
-
-                       interface_calendar.reload();
+                       interface_calendar.refresh();
                            
           },
 
@@ -437,7 +423,6 @@ var interface_calendar = {
                             }).responseText;
 
                          UI.alert ( response );
-                         interface_calendar.reload();
 
           },
           
@@ -718,6 +703,7 @@ var interface_video = {
 
          "init" : function() {
                      interface_video.setup.devices();
+                     interface_video.setup.formats();
                      interface_video.setup.controls();
          },
 
@@ -725,22 +711,31 @@ var interface_video = {
          "setup" : {
                       "devices" : function() {
 
-                        ss=$('#config-form select[name=videoDevice]');
-                        ss.empty();
-                        ss.append('<option value="">-none-</option>');
+                        var ss=$('#config-form select[name=videoDevice]');
+
+                        ss.off("change")
+                          .empty()
+                          .append('<option value="">-none-</option>');
+
                         $( interface_video.devices()).each( function(k,device) {
                           ss.append('<option value="'+device.device+'">('+k+') '+device.name+'</option>');
                         });
                         ss.val( interface_machine.videoDevice );
+                        ss.change( interface_video.setup.formats );
 
-                        ss=$('#config-form select[name=videoFormat]');
-                        ss.empty();
-                        ss.append('<option value="">-none-</option>');
-                        $( interface_video.formats()).each( function(k,format) {
-                          ss.append('<option value="'+format.value+'">'+format.name+'</option>');
-                        });
-                        ss.val( interface_machine.videoFormat );
+                       },
 
+                       "formats" : function() {
+
+		                    var ss=$('#config-form select[name=videoFormat]');
+		                    ss.empty()
+		                      .append('<option value="">-none-</option>');
+
+		                    $( interface_video.formats()).each( function(k,format) {
+		                      ss.append('<option value="'+format.value+'">'+format.name+'</option>');
+		                    });
+
+		                    ss.val( interface_machine.videoFormat );
 
                       },
 
@@ -753,7 +748,9 @@ var interface_video = {
          "formats" : function() {
 
                     var formats=[];
-                    response=Data.send({ command:'video', action:'get', item:'formats', device:interface_machine.videoDevice });
+                    var videoDevice=$('#config-form select[name=videoDevice]').val();
+
+                    response=Data.send({ command:'video', action:'get', item:'formats', device:videoDevice });
                     if(!response['result']) {
                      return;
                     }
@@ -1046,6 +1043,7 @@ var interface_actions = {
              $("button").addClass("btn btn-default");
        
              $("*[data-action]")
+                .css("cursor","pointer")
                 .click( function() { 
                           a=$(this).attr("data-action"); 
                           eval(a+'()');
@@ -1056,7 +1054,7 @@ var interface_actions = {
                 .unbind("click")
                 .confirmation({
                            action : $(this).attr("data-action"),
-                           title : 'Are you sure?',
+                           title :  ( $(this).attr("data-confirm") || 'Are you sure?' ),
                            placement : ( $(this).attr('data-confirm-placement') || 'left' ),
                            onConfirm : function(e) {
                                         a=$(this)[0].action;
@@ -1097,7 +1095,7 @@ var Data = {
                 "media"    : interface_media,
                 "calendar" : interface_calendar,
                 "actions"  : interface_actions,
-
+ 
                 "init"    : function() {
                       Data.common.read();
                       Data.machine.read();
@@ -1144,6 +1142,13 @@ var Data = {
 
                 "send" : function( commandObject ) {
                         
+                      if( commandObject.before) {
+                          UI.alert( commandObject.before );
+                          delete commandObject.before;
+                          window.setTimeout( function() { Data.send( commandObject ) }, 500);
+                          return;
+                      };
+
                       var response = $.ajax({
                                 type: "GET",
                                 url: "api.xml",
@@ -1153,7 +1158,11 @@ var Data = {
 
                          // If we get back JSON, evaluate it
                          if( response.indexOf('{') > -1 ) {
-                           response=eval('('+response+')');
+                           try {
+                               response=eval('('+response+')');
+                           } catch (e) {
+                               response={ error:true, alert:e, result:[] };
+                           }
 
                          } else {
                            response={ error:true, alert:"Invalid Response from API", result:[] }
@@ -1161,18 +1170,10 @@ var Data = {
 
                          if( response['error'] || response['alert'] || commandObject['alert']  ) {
 
-                             var alertOptions = (response['error']) ? { title:'Error', type:'danger', delay:99999 } : { };
+                             var alertOptions = (response['error']) ? { title:'Error', type:'danger', delay:99999 } : { delay:10000 };
                              UI.alert( response, alertOptions );
 
                          };
-
-
-/*
-                       console.log("--- Data Send");
-                       console.log( commandObject );
-                       console.log( response );
-                       console.log("--------------------------");
-*/
 
 
                      return(response);
@@ -1192,6 +1193,17 @@ var UI = {
 
 
             "render" : {
+                                      "timepicker" : function (element) {
+
+                                        s='<select name="'+element.attr("name")+'">';
+
+                                        for(var h=0;h<25;h++) {
+                                           for(var m=0;m<61;m++) {
+                                             console.log(h + ' : ' + m);
+                                           };
+                                        };
+
+                                      },
 
                                       "sliders" : function ( parent, controlArray, title ) {
 
@@ -1256,12 +1268,46 @@ var UI = {
                          '</tr>');
 
             },
-            
+
+
+            "dialog" : function( dialogOptions ) {
+
+                 d=$("#modal-dialog");
+
+
+                 if( dialogOptions == "close" )
+                 {
+                     if( d.data()['bs.modal'] ) { d.modal("hide") };
+                     return 0;
+                 };
+
+                 dt=$("#modal-dialog .modal-title").html( dialogOptions.title || 'Attention' );
+                 db=$("#modal-dialog .modal-body").html( dialogOptions.body || '' );
+                 dbb=$("#modal-dialog .modal-buttons").empty();
+
+                 $.each( (dialogOptions.buttons || [] ) , function(k, button) {
+
+                      bb=$('<button class="btn '+(button.className||'')+'">' + 
+                            (button.caption||'Button')+
+                            '</button>' )
+                          .data( (button.data || {} ) ) 
+                          .click( (button.click || function() {}) );        
+                      dbb.append(bb);
+                   
+                 });
+
+                 d.removeData()
+                   .data( dialogOptions.data || {}  )
+                   .modal();
+
+
+            },            
+
             "alert" : function( alertObject, displayOptions) {
               // Types:  info, danger, success
               var alertDisplay=Format.object.html( alertObject );
 
-              var alertOptions= $.extend( { offset: { from:'bottom', amount: 20 }, align:'right', type:'info', width:500, delay:2500 } , (displayOptions || {} ) );
+              var alertOptions= $.extend( { offset: { from:'top', amount: 20 }, align:'right', type:'info', width:600, delay:2500 } , (displayOptions || {} ) );
 
               alertOptions.delay=(alertOptions.type=='danger') ? 9999 : 2500;
 
@@ -1273,14 +1319,24 @@ var UI = {
             },
 
           "init"    : function() {
+
               UI.preview.hide();
               UI.calendar.init();
               UI.video.init();
               UI.audio.init();
               UI.recordings.init();
+
+              $(".datepicker").datetimepicker( { pickTime : false });
+              $(".timepicker").datetimepicker( { pickDate : false, useSeconds:false, minuteStepping: 15  });
+
               $("#software-version").html(   Data.send( { command:'machine', action:'get', item :'version'} ).result  );
 
+              $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                       interface_calendar.refresh();
+              });
+
               window.setInterval( function() { UI.calendar.refresh(); }, (1 * 60 * 1000) );
+
               UI.log("Launched management interface");
           }
 
