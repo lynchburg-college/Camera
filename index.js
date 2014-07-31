@@ -1054,19 +1054,22 @@ var interface_actions = {
                  }
              );
 
-             $("*[data-action].confirm")
-                .unbind("click")
-                .confirmation({
-                           action : $(this).attr("data-action"),
-                           title :  ( $(this).attr("data-confirm") || 'Are you sure?' ),
-                           placement : ( $(this).attr('data-confirm-placement') || 'left' ),
+             $("*[data-action].confirm").each( function(k,e) {
+
+                 $(e).unbind("click");
+                 $(e).confirmation({
+                           action : $(e).attr("data-action"),
+                           title :  ( $(e).attr("data-confirm-prompt") || 'Are you sure?' ),
+                           placement : ( $(e).attr('data-confirm-placement') || 'left' ),
                            onConfirm : function(e) {
-                                        a=$(this)[0].action;
+                                        a=$(e)[0].action;
                                         eval(a+'()');
                            }
-                    });
+                });
               
-             },
+              });
+ 
+            },
 
            "reboot"        : function() {
                Data.send( { command:'control', item:'reboot', alert:true } );          

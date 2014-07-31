@@ -96,9 +96,9 @@
         <div class="row">
            <div class="col-sm-12">
 		       <div id="event-calendar"></div>
-               <div class="pull-right">
-                  <a href="#" class="confirm" data-action="Data.calendar.fetch"><span class="btn btn-warning badge" title="Update Schedule"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
-                  <a href="#" class="confirm" data-action="Data.calendar.clear"><span class="btn btn-warning badge" title="Clear Schedule"><span class="glyphicon glyphicon-remove"></span></span></a>
+               <div class="well text-center">
+                  <a href="#" class="confirm" data-action="Data.calendar.fetch" data-confirm-prompt="Fetch an updated schedule?" data-confirm-placement="top"><span class="btn btn-warning badge" title="Update Schedule"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
+                  <a href="#" class="confirm" data-action="Data.calendar.clear" data-confirm-prompt="Clear the recording schedule?" data-confirm-placement="top"><span class="btn btn-warning badge" title="Clear Schedule"><span class="glyphicon glyphicon-remove"></span></span></a>
                </div>
            </div>
         </div>
@@ -116,12 +116,11 @@
 
               <div class="panel panel-default">
                 <div class="panel-heading">
-                      Machine Configuration
+                     Machine Configuration
                      <span class="pull-right small">
-                      <a href="#" class="confirm" data-confirm="Download and update software?" data-action="Data.actions.update"><span class="btn btn-warning badge" title="Update Software"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
-                      <a href="#" class="confirm" data-action="Data.actions.reboot"><span class="btn btn-warning badge" title="Reboot Machine"><span class="glyphicon glyphicon-off"></span></span></a>
-                      |
-                      <button class="btn btn-primary btn-xs" data-action="Data.machine.write">save</button>
+                      <a href="#" class="confirm" data-confirm-prompt="Download and update this software?" data-action="Data.actions.update"><span class="btn btn-warning badge" title="Update Software"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
+                      <a href="#" class="confirm" data-confirm-prompt="Reboot the machine?" data-action="Data.actions.reboot"><span class="btn btn-warning badge" title="Reboot Machine"><span class="glyphicon glyphicon-off"></span></span></a>
+                      <button class="btn btn-primary btn-xs confirm" data-confirm-prompt="Save machine configuration?" data-action="Data.machine.write">save</button>
                      </span>
                </div>
 
@@ -136,7 +135,7 @@
 						<div class="panel-heading">
 						  <h4 class="panel-title">
 							<a data-toggle="collapse" data-parent="#settings" href="#collapseOne">
-							  <span class="glyphicon glyphicon-hdd"></span> Identification
+							  <span class="glyphicon glyphicon-hdd"></span>Identification
 							</a>
 						  </h4>
 						</div>
@@ -352,8 +351,8 @@
                   Video <span class="video-device small"></span>
                   <span class="pull-right">
                     <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.show">preview</a>
-                    <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.video.reset">reset</a>
-                    <a href="#" class="btn btn-success btn-xs confirm" data-confirm-placement="left" data-action="UI.video.write">save</a>
+                    <a href="#" class="btn btn-default btn-xs confirm" data-confirm-prompt="Reset video options to defaults?" data-confirm-placement="left" data-action="UI.video.reset">reset</a>
+                    <a href="#" class="btn btn-success btn-xs confirm" data-confirm-prompt="Save video configuration?" data-confirm-placement="left" data-action="UI.video.write">save</a>
                   </span>
                 </div>
                <div class="panel-body">
@@ -370,7 +369,7 @@
                      Audio <span class="audio-device small"></span>
                   <span class="pull-right">
                     <!-- <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.reset">reset</a> -->
-                    <a href="#" class="btn btn-success btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.write">save</a>
+                    <a href="#" class="btn btn-success btn-xs confirm" data-confirm-prompt="Save audio configuration?" data-confirm-placement="left" data-action="UI.audio.write">save</a>
                   </span>
                 </div>
                <div class="panel-body">
