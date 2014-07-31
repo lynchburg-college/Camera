@@ -6,14 +6,16 @@ source "${0%/*}/config/common"
 
 host=$(hostname)
 ip=$(hostname -I)
-test=1
 
-to="hudson.b@lynchburg.edu"
-
+to=$notify
 subject="$1"
 body="$2"
 
-sendEmail -f "$host@$ip" -t "$to" -u "$subject" -m "$body\n($host/$ip)" -s "mail.lynchburg.edu":25 -o tls=no
+if [ ! "notify" == "" ] 
+then
+  log "Notifying $to : $subject / $body"
+  sendEmail -f "$host@$ip" -t "$to" -u "$subject" -m "$body\n($host/$ip)" -s "mail.lynchburg.edu":25 -o tls=no
+fi
 
 
 

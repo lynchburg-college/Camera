@@ -20,7 +20,17 @@ function include {
 # ------------
 # Read in the settings for this unit
 # ------------
-source "${0%/*}/config/machine"
+pathRoot=$(pwd)
+
+# We need a machine configuration file.. at the very least
+if [ ! -e "$pathRoot/config/machine" ] 
+then
+ cp $pathRoot/config/machine.default $pathRoot/config/machine
+ log "Copied default machine setings..."
+fi
+
+source "$pathRoot/config/machine"
+
 
 # ------------
 # Common  for all scripts
@@ -29,10 +39,7 @@ source "${0%/*}/config/machine"
 # Create a log file for whatever script is running
 logFile="${0%/*}/log/${0##*/}.log"
 
-formatISO="%Y-%m-%dT%TZ"
-
 # Local paths
-pathRoot=$(pwd)
 pathLog="$pathRoot/log"
 pathVideo="$pathRoot/video"
 pathConfig="$pathRoot/config"
