@@ -158,6 +158,9 @@ elseif ( command == "machine" ) then
   elseif ( item == "space" ) then
    json["result"] = api_execute( 'df -h' )
 
+  elseif ( item == "sensors" ) then
+   json["result"] = api_execute( 'sensors -f' )
+
   else
     json["result"] = "Unknown ITEM : "..item
 

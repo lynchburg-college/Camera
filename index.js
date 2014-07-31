@@ -116,7 +116,8 @@ var interface_machine = {
 
                          var items=[
                                    { command:'machine', item: 'host' },
-                                   { command:'machine', item: 'space'} ,
+                                   { command:'machine', item: 'sensors'} ,
+                                   { command:'machine', item: 'space'} 
                                ];
 
                          $.each( items, function(k,v) {
