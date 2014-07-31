@@ -1077,6 +1077,7 @@ var interface_actions = {
 
            "update" : function() {
                Data.send({ command:'update', item:'software', alert:true } );         
+               window.setTimeout( function() { location.reload(true) } , 1000);
            },
 
 
