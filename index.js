@@ -1,3 +1,4 @@
+
 $(document).ready( function() {  
               Data.init();
               UI.init();
@@ -18,7 +19,6 @@ jQuery.fn.redraw = function() {
         $(this).show();
     });
 };
-
 
 
 String.prototype.parseAsObject = function( controlObject  ) {
@@ -326,7 +326,13 @@ var interface_calendar = {
           "fetch" : function( stage ) {
                       if( interface_machine.urlSchedule != "" ) {
                          Data.send({ command:"update", item:"schedule", before:'Loading Schedule for '+interface_machine.roomID+'.  Stand by...', alert:true});
+                         setTimeout( function() { interface_calendar.refresh() }, 2000 );
                       }
+          },
+
+          "clear" : function() {
+   			         Data.send({ command:'update', item:'schedule-clear', alert:true } );         
+					 interface_calendar.refresh();               
           },
 
           "refresh" : function() {
@@ -1072,6 +1078,7 @@ var interface_actions = {
            "update" : function() {
                Data.send({ command:'update', item:'software', alert:true } );         
            },
+
 
            "debug"        : function() {
                
