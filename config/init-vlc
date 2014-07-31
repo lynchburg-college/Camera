@@ -1,0 +1,7 @@
+# ------------
+# VLM Initialization
+# ------------
+del all
+load config/init-media
+load config/init-schedule
+
