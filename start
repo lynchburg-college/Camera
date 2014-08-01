@@ -9,20 +9,27 @@ cd $pathRoot
 # Make sure everything is stopped..
 $pathRoot/stop
 
-# Ensure the needed stuff is here
-touch $pathRoot/config/machine
-touch $pathRoot/config/schedule
-touch $pathRoot/config/init-schedule
-touch $pathRoot/config/init-meta
-touch $pathRoot/config/init-vlc
-touch $pathRoot/config/init-media
+# Initializing?
+if [ ! -e "$pathRoot/config/machine" ] 
+then
+ cp $pathRoot/config/default.machine $pathRoot/config/machine
+ log "Created default machine setings..."
+ mkdir $pathRoot/video
+ touch $pathRoot/config/machine
+ touch $pathRoot/config/schedule
+ touch $pathRoot/config/init-schedule
+ touch $pathRoot/config/init-meta
+ touch $pathRoot/config/init-vlc
+ touch $pathRoot/config/init-media
+fi
+source "$pathRoot/config/machine"
 
-# Do we have schedules for the important stuff?
+# Need cron jobs?
 crontab=$(crontab -l)
 if [[ ! $crontab == *capture* ]] 
 then
  log "Created scheduled jobs"
- crontab $pathRoot/config/crontab.default
+ crontab $pathRoot/config/default.crontab
 fi
 
 # What version of VLC?
@@ -32,6 +39,7 @@ then
  optionsVLC="$optionsVLC --http-password capture"
 fi
 
+# Running in debug mode?
 if [ "$1" == "debug" ]; then
  logVLC=$pathRoot/log/vlc.log
  optionsVLC="$optionsVLC -vvvvv"
@@ -58,7 +66,7 @@ fi
  source $pathRoot/config/init-audio &> /dev/null
  source $pathRoot/config/init-video &> /dev/null
 
-
+# Let 'em know!
  ip=$(hostname -I)
  hostname=$(hostname)
  mac=$(ifconfig eth0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')

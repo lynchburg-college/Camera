@@ -650,7 +650,7 @@ var interface_audio = {
                          devices.push( {
                                             "card" : card,
                                             "device" : device,
-                                            "alsa" : 'plughw:'+card+','+device,
+                                            "alsa" : 'hw:'+card+','+device,
                                             "name" : nn
                                        });
                      }   
