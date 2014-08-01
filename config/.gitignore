@@ -1,8 +1,6 @@
 # 
 
 *
-!init
-!common
-!crontab
-!template
 !.gitignore
+!common
+!default*
