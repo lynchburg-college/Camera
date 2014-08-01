@@ -19,7 +19,7 @@ then
  log "Created default machine setings..."
  echo "#" > $pathRoot/config/init-schedule
  echo "#" > $pathRoot/config/init-media
- echo "del all\nload config/init-media\nload config/init-schedule" > $pathRoot/config/init-vlc
+ echo -e "del all\nload config/init-media\nload config/init-schedule" > $pathRoot/config/init-vlc
  log "Created default initialization files..."
 fi
 
