@@ -9,7 +9,6 @@ cd $pathRoot
 # Make sure everything is stopped..
 $pathRoot/stop
 
-
 # Ensure the needed stuff is here
 touch $pathRoot/config/machine
 touch $pathRoot/config/schedule
@@ -18,22 +17,37 @@ touch $pathRoot/config/init-meta
 touch $pathRoot/config/init-vlc
 touch $pathRoot/config/init-media
 
-#if [ "$1" == "debug" ]; then
+# Do we have schedules for the important stuff?
+crontab=$(crontab -l)
+if [[ ! $crontab == *capture* ]] 
+then
+ log "Created scheduled jobs"
+ crontab $pathRoot/config/crontab.default
+fi
+
+# What version of VLC?
+vlcVersion=$(vlc --version)
+if [[ ! $vlcVersion == *Twoflower* ]] 
+then
+ optionsVLC="$optionsVLC --http-password capture"
+fi
+
+if [ "$1" == "debug" ]; then
  logVLC=$pathRoot/log/vlc.log
- optionsVLC="--http-password capture -vvvvv"
+ optionsVLC="$optionsVLC -vvvvv"
  log "Starting in debug mode (logging to $logVLC)"
-#else
-# logVLC=/dev/null
-# optionsVLC="--http-password capture"
-#fi
+else
+ logVLC=/dev/null
+fi
 
 
 # Start the HTTP interface
 cvlc --intf=http --http-port=8888  --http-src="$pathRoot" $optionsVLC  --vlm-conf="$pathRoot/config/init-vlc"  >> "$logVLC" 2>&1  &
 
-
-# Sleep for a bit, then set the video and audio options
+# Sleep for a bit
 sleep 3
+
+# Make sure things are running..
 if [ ! "$(pidof vlc)" ]
 then
   echo "Whoops!  VLC didn't start!"
@@ -45,13 +59,13 @@ fi
  source $pathRoot/config/init-video &> /dev/null
 
 
-  ip=$(hostname -I)
-  hostname=$(hostname)
-  mac=$(ifconfig eth0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
+ ip=$(hostname -I)
+ hostname=$(hostname)
+ mac=$(ifconfig eth0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
  
-  echo "----------------------------"
-  echo "Machine Settings"
-  echo "----------------------------"
+ echo "----------------------------"
+ echo "Capture Is Running"
+ echo "----------------------------"
   echo "        IP : $ip"
   echo "       MAC : $mac"
   echo "  HOSTNAME : $hostname"

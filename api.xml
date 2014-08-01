@@ -159,7 +159,7 @@ elseif ( command == "machine" ) then
    json["result"] = api_execute( 'df -h' )
 
   elseif ( item == "sensors" ) then
-   json["result"] = api_execute( 'sensors -f' )
+   json["result"] = api_execute( 'sensors' )
 
   else
     json["result"] = "Unknown ITEM : "..item
