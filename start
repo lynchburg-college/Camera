@@ -9,13 +9,14 @@ cd $pathRoot
 # Make sure everything is stopped..
 $pathRoot/stop
 
-# Initializing?
+
+# ----------------------------
+# Initialization
+# ----------------------------
 if [ ! -e "$pathRoot/config/machine" ] 
 then
- cp $pathRoot/config/default.machine $pathRoot/config/machine
+ cp $pathRoot/config/default-machine $pathRoot/config/machine
  log "Created default machine setings..."
- mkdir $pathRoot/video
- touch $pathRoot/config/machine
  touch $pathRoot/config/schedule
  touch $pathRoot/config/init-schedule
  touch $pathRoot/config/init-meta
@@ -24,15 +25,23 @@ then
 fi
 source "$pathRoot/config/machine"
 
-# Need cron jobs?
+if [ -e "$pathRoot/video" ] 
+then
+ mkdir $pathRoot/video
+ log "Created video directory ($pathRoot/video)"
+fi
+
 crontab=$(crontab -l)
 if [[ ! $crontab == *capture* ]] 
 then
+ crontab $pathRoot/config/default-crontab
  log "Created scheduled jobs"
- crontab $pathRoot/config/default.crontab
 fi
+# ----------------------------
+
 
 # What version of VLC?
+# ----------------------------
 vlcVersion=$(vlc --version)
 if [[ ! $vlcVersion == *Twoflower* ]] 
 then
@@ -40,6 +49,7 @@ then
 fi
 
 # Running in debug mode?
+# ----------------------------
 if [ "$1" == "debug" ]; then
  logVLC=$pathRoot/log/vlc.log
  optionsVLC="$optionsVLC -vvvvv"
@@ -50,12 +60,15 @@ fi
 
 
 # Start the HTTP interface
+# ----------------------------
 cvlc --intf=http --http-port=8888  --http-src="$pathRoot" $optionsVLC  --vlm-conf="$pathRoot/config/init-vlc"  >> "$logVLC" 2>&1  &
 
 # Sleep for a bit
+# ----------------------------
 sleep 3
 
 # Make sure things are running..
+# ----------------------------
 if [ ! "$(pidof vlc)" ]
 then
   echo "Whoops!  VLC didn't start!"
@@ -63,10 +76,12 @@ then
 fi
 
 # Set up audio and video
+# ----------------------------
  source $pathRoot/config/init-audio &> /dev/null
  source $pathRoot/config/init-video &> /dev/null
 
 # Let 'em know!
+# ----------------------------
  ip=$(hostname -I)
  hostname=$(hostname)
  mac=$(ifconfig eth0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
