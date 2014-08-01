@@ -25,7 +25,7 @@ fi
 
 source "$pathRoot/config/machine"
 
-if [ -e "$pathRoot/video" ] 
+if [ ! -d "$pathRoot/video" ] 
 then
  mkdir $pathRoot/video
  log "Created video directory ($pathRoot/video)"
