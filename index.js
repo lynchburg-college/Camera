@@ -178,9 +178,11 @@ var interface_machine = {
                    
                            Data.send({ command:'update', item:'config', file:'init-media', contents: contents, alert:true } );
 
-                           Data.send({ command:'vlm', item:'load config/init' });
+                           // Re-load the stuff
+                           Data.send({ command:'vlm', item:'load config/init-vlc', alert:true });
 
-                           window.setTimeout( function() { 
+                           // Redraw everything
+                          window.setTimeout( function() { 
                                interface_audio.setup.controls(); 
                                interface_video.setup.controls(); 
                                interface_calendar.refresh() }
