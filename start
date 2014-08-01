@@ -17,12 +17,12 @@ if [ ! -e "$pathRoot/config/machine" ]
 then
  cp $pathRoot/config/default-machine $pathRoot/config/machine
  log "Created default machine setings..."
- touch $pathRoot/config/schedule
- touch $pathRoot/config/init-schedule
- touch $pathRoot/config/init-meta
- touch $pathRoot/config/init-vlc
- touch $pathRoot/config/init-media
+ echo "#" > $pathRoot/config/init-schedule
+ echo "#" > $pathRoot/config/init-media
+ echo "del all\nload config/init-media\nload config/init-schedule" > $pathRoot/config/init-vlc
+ log "Created default initialization files..."
 fi
+
 source "$pathRoot/config/machine"
 
 if [ -e "$pathRoot/video" ] 
