@@ -1,0 +1,18 @@
+# ------------------------------------
+# Scheduled jobs for lecture capture system
+# ------------------------------------
+# Mi  Hr  Da  Mo  We [--- Command ---]
+# ------------------------------------
+
+# Start the system at reboot
+@reboot cd /home/capture/Camera/start && ./start &2> /dev/null
+
+# Upload
+08,38 *  *  *  *    /home/capture/Camera/upload &2> /dev/null
+
+# Schedule
+00   00  *  * 0,3   /home/capture/Camera/schedule &2> /dev/null
+
+# --------------
+
+ 
