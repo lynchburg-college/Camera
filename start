@@ -45,7 +45,7 @@ fi
 vlcVersion=$(vlc --version)
 if [[ ! $vlcVersion == *Twoflower* ]] 
 then
- optionsVLC="$optionsVLC --http-password capture"
+ optionsVLC="$optionsVLC --http-password capture --sout-file-format"
 fi
 
 # Running in debug mode?
