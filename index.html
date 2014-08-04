@@ -27,7 +27,7 @@
 
   <div id="ajaxBusy" class="hidden"></div>
 
-  <nav class="navbar navbar-default navbar-inverse " >
+  <nav class="navbar navbar-default navbar-inverse navbar-fixed-top" >
    <div class="container-fluid">
        
       <div class="navbar-header">
@@ -37,7 +37,6 @@
            <span id="roomInfo"></span>
            <span id="versionInfo"></span>
          </a>
-
           <button id="navbar-button-toggle" type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
             <span class="sr-only">Toggle navigation</span>
             <span class="icon-bar"></span>
@@ -60,15 +59,15 @@
 
     <ul class="nav nav-pills" role="tablist">
       <li class="active"><a href="#panel-calendar" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-calendar"></span> Schedule</a></li>
-      <!-- <li><a href="#panel-schedule" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-calendar"></span> Schedule</a></li> -->
       <li><a href="#panel-machine" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-tasks"></span> Machine</a></li>
-      <li><a href="#panel-devices" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-cog"></span> Devices</a></li>
+      <li><a href="#panel-settings" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-facetime-video"></span> Settings</a></li>
       <li><a href="#panel-debug" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-send"></span> Debug</a></li>
       <!-- <li><a href="#panel-log" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list-alt"></span> Log</a></li> -->
     </ul>
 
    <div class="clearfix"><hr></div>
 
+   <!-- Common modal   -->
    <div id="modal-dialog" class="modal fade">
 	  <div class="modal-dialog">
 		<div class="modal-content">
@@ -89,7 +88,6 @@
 
    <div class="tab-content">
 
-
     <!-- Calendar Panel -->
      <div id="panel-calendar" class="tab-pane fade in active">
 
@@ -103,8 +101,51 @@
            </div>
         </div>
 
-
    </div>
+
+
+   <!-- Preview Panel -->
+   <div id="panel-settings" class="tab-pane fade in">
+
+    <div class="row preview-active">
+      <div class="col-sm-6">
+
+   	         <div class="panel panel-default">
+				        <div class="panel-heading">
+				          Video
+				          <span class="pull-right">
+				            <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.show">preview</a>
+				            <a href="#" class="btn btn-default btn-xs confirm" data-confirm-prompt="Reset video options to defaults?" data-confirm-placement="left" data-action="UI.video.reset">reset</a>
+				            <a href="#" class="btn btn-success btn-xs confirm" data-confirm-prompt="Save video configuration?" data-confirm-placement="left" data-action="UI.video.write">save</a>
+				          </span>
+				        </div>
+				       <div class="panel-body">
+				         <div id="video-controls"></div>
+				       </div>
+		     </div>
+
+     </div>
+       <div class="col-sm-6">
+
+		      <div class="panel panel-default">
+				        <div class="panel-heading">
+				             Audio
+				             <span class="pull-right">
+				             <!-- <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.reset">reset</a> -->
+				             <a href="#" class="btn btn-success btn-xs confirm" data-confirm-prompt="Save audio configuration?" data-confirm-placement="left" data-action="UI.audio.write">save</a>
+				          </span>
+				        </div>
+				       <div class="panel-body">
+				         <div id="audio-controls"></div>
+				       </div>
+		     </div>
+
+       </div>
+
+     </div>
+
+    </div>
+    <!-- -->
 
 
     <!-- Machine Panel -->
@@ -316,78 +357,11 @@
 
       </div>
 
-
-
-   
    </div>
 
 
 
-    <!-- Devices Panel -->
-        <div id="panel-devices" class="tab-pane fade">
- 
-        <div class="row hidden" >
-
-            <div class="col-sm-12">
-
-              <div class="panel panel-default">
-                <div class="panel-heading">Recorder Devices<span class="pull-right"><a href="#" data-action="Data.media.refresh">refresh</a></span></div>
-                <div class="panel-body">
-                  <span id="status-media"></span>
-               </div>
-
-             </div>
- 
-          </div>
-         </div>
-
-
-           <div class="row">
-           
-            <div class="col-md-6">
-
-              <div class="panel panel-default">
-                <div class="panel-heading">
-                  Video <span class="video-device small"></span>
-                  <span class="pull-right">
-                    <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.show">preview</a>
-                    <a href="#" class="btn btn-default btn-xs confirm" data-confirm-prompt="Reset video options to defaults?" data-confirm-placement="left" data-action="UI.video.reset">reset</a>
-                    <a href="#" class="btn btn-success btn-xs confirm" data-confirm-prompt="Save video configuration?" data-confirm-placement="left" data-action="UI.video.write">save</a>
-                  </span>
-                </div>
-               <div class="panel-body">
-                 <div id="video-controls"></div>
-               </div>
-             </div>
-             
-           </div>
-
-            <div class="col-md-6">
-
-              <div class="panel panel-default">
-                <div class="panel-heading">
-                     Audio <span class="audio-device small"></span>
-                  <span class="pull-right">
-                    <!-- <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.reset">reset</a> -->
-                    <a href="#" class="btn btn-success btn-xs confirm" data-confirm-prompt="Save audio configuration?" data-confirm-placement="left" data-action="UI.audio.write">save</a>
-                  </span>
-                </div>
-               <div class="panel-body">
-                 <div id="audio-controls"></div>
-               </div>
-             </div>
-
-           </div>
-  
-         </div>
-
-       </div>
-
-
-
-
-
-       <!-- Debug Panel -->
+     <!-- Debug Panel -->
      <div id="panel-debug" class="tab-pane fade">
 
               <div class="panel panel-default">

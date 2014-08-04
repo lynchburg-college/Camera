@@ -183,8 +183,6 @@ var interface_machine = {
 
                            // Redraw everything
                           window.setTimeout( function() { 
-                               interface_audio.setup.controls(); 
-                               interface_video.setup.controls(); 
                                interface_calendar.refresh() }
                            , 500 );
                            
@@ -523,7 +521,7 @@ var interface_audio = {
 						 },
 
                          "controls" : function() {
-							 UI.render.sliders( $("#audio-controls"), interface_audio.controls() );
+							 UI.render.sliders( $("#audio-controls"), interface_audio.controls(), { title:interface_machine.audioDevice } );
                          }
          },
 
@@ -563,7 +561,6 @@ var interface_audio = {
 
                     $(raw).each( function(k,v) {
 
-
                           switch ( v.substr( 0,2 ) ) {
 
                                     case "  " : 
@@ -597,19 +594,7 @@ var interface_audio = {
 
             controls=$(controls).map( function(k,v) { 
 
-                if( v.capabilities.indexOf('cvolume') > -1 ) {
-
-                   var cc={ name:v.name, device:v.device, instance:v.instance, caption:v.caption, change:v.change };
-                   var ranges=v.limits.match(/[0-9]+/g);
-                   cc.min=parseInt( ranges[0] );
-                   cc.max=parseInt( ranges[1] );
-                   cc.value=( v['mono'] || v['front left'] ).match(/[0-9]+/)[0];      
-
-                   return cc;                   
-                };
-
-                if( v.capabilities.indexOf('cenum') > -1 ) {
-
+                if( (v.capabilities.indexOf('cenum') > -1 ) || (v.capabilities=='enum') ) {
                    v['labels']={};
                    v.sendLabel=true;
                    v.min=0;
@@ -621,6 +606,21 @@ var interface_audio = {
                    });
                    return v;                   
                 };
+
+                //if( v.capabilities.indexOf('cvolume') > -1  ) {
+
+                   var cc={ name:v.name, device:v.device, instance:v.instance, caption:v.caption, change:v.change };
+                   try {
+                       var ranges=v.limits.match(/[0-9]+/g);
+                       cc.min=parseInt( ranges[0] );
+                       cc.max=parseInt( ranges[1] );
+                       cc.value=( v['mono'] || v['front left'] ).match(/[0-9]+/)[0];      
+                   } catch (e) {
+                       console.log(e);
+                   }
+                   return cc;                   
+                //};
+
 
 
             });
@@ -746,7 +746,7 @@ var interface_video = {
                       },
 
                       "controls" : function() {
-							 UI.render.sliders( $('#video-controls'), interface_video.controls() );
+							 UI.render.sliders( $('#video-controls'), interface_video.controls(), { title:interface_machine.videoDevice+'@'+interface_machine.videoFormat }  );
     		       }
                      
          },
@@ -956,9 +956,10 @@ var interface_preview = {
           "show" : function() {
 
               // Make a preview media object
+
               var streamTranscode=':standard{access=http,mux=ts,dst=:8889/preview}';
               var streamURL='http://'+window.location.hostname+':8889/preview';
-
+              var streamType='video/mp4';
 
               Data.queue.add( { command:'vlm', item:'del preview'} );
 
@@ -972,6 +973,7 @@ var interface_preview = {
                           line=line.substr(0,spot)+streamTranscode;
                        }
                    Data.queue.add( { command:'vlm', item:line } );
+                  console.log( line );
                    }
               });
 
@@ -980,46 +982,43 @@ var interface_preview = {
               Data.queue.add( { command:'vlm', item:'setup s0-preview-stop date '+Format.date.schedule( moment().add(5,'minutes').toDate() ) } );
               Data.queue.add( { command:'vlm', item:'setup s0-preview-stop append control preview stop' } );
               Data.queue.add( { command:'vlm', item:'setup s0-preview-stop enabled' } );
+              Data.queue.add( { command:'vlm', item:'control preview play'} );
 
               // Send commands to the engine
               Data.queue.send();
             
-              var info='<table style="width:100%;"><tr>'+
-                           '<td style="width:33%;text-align:left;"><b>Audio</b>:' + interface_machine.audioDevice + '</td>' +
-                           '<td style="width:33%;text-align:center;"><b>' + streamURL + '</b></td>' +
-                           '<td style="width:33%;text-align:right;"><b>Video</b>:' + interface_machine.videoDevice + ' @ ' + interface_machine.videoFormat + '</td>' +
-                       '</tr></table>';
+              // var content='<html>'+
+              //            '<head><title>Camera Preview</title></head>'+
+              //            '<body>'+
 
+             
+              var content = '<html>'+
+								'<head>'+
+								'  <meta charset="UTF-8">'+
+								'  <title>Preview</title>'+
+								'  <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.css"  />'+
+								'</head>'+
+								'<body>'+
+				                  '<div style="text-align:center;z-index:99;padding : 1em;">' +
+				                    '<object style="width:99%;height:90%;" id="preview-video-object" type="application/x-vlc-plugin" data="'+streamURL+'" controls="yes">' +
+				                    ' <param name="movie" value="'+streamURL+'"/>' + 
+				                    ' <param name="allowFullScreen" value="true"/>' + 
+				                    ' <param name="network-caching" value="150"/>' + 
+				                    ' <embed type="application/x-vlc-plugin" autoplay="yes"  loop="no" target="'+streamURL+'" />' + 
+				                   '</object>'+
+				                   '</div>' +
+								'</body>'+
+							'</html>';
 
+              pWindow=window.open( "", "", "menubar=0,scrollbars=0,width=320,height=200" );
 
-               var oo = '<div style="text-align:center;z-index:99;padding : 1em;">' +
-                         '<object style="width:99%;height:90%;" id="preview-video-object" type="application/x-vlc-plugin" data="'+streamURL+'" controls="yes">' +
-                         ' <param name="movie" value="'+streamURL+'"/>' + 
-                         ' <param name="allowFullScreen" value="true"/>' + 
-                         ' <param name="network-caching" value="150"/>' + 
-                         ' <embed type="application/x-vlc-plugin" autoplay="yes"  loop="no" target="'+streamURL+'" />' + 
-                    '</object></div>';
+              pWindow.document.open();
+              pWindow.document.write( content );
+              pWindow.document.close();
 
+              pWindow.document.onClose=function() { parent.interface_preview.hide(); };
+              $(pWindow).unload(  function() { interface_preview.hide(); } );
 
-
-             // Make a new window for the preview
-             pWindow=window.open();
-             $(pWindow).unload(  function() { interface_preview.hide(); } );
-             $(pWindow.document.body).html( info + '<hr>' + oo );
-             $(pWindow.document.body).onClose=function() { parent.interface_preview.hide(); };
-
-/*
-             interface_preview.dialog=oo.dialog({
-                                 title: url,
-                                 width: 640,
-                                 height: 480,
-                              appendTo : "body",
-                              resizable: true,
-                         closeOnEscape : true, 
-                                 close : function() { interface_preview.hide(); }
-                       });
-*/
-             Data.send({command:'vlm', item:'control preview play'} );
               
           },
 
@@ -1030,11 +1029,7 @@ var interface_preview = {
              Data.queue.add( { command:'vlm', item:'del preview' } );
              Data.queue.send();
 
-             d=interface_preview['dialog'];
-             if(d) {
-               d.dialog("close");
-               d.dialog("destroy");
-             };
+
           }
            
 };
@@ -1216,7 +1211,7 @@ var UI = {
 
                                       },
 
-                                      "sliders" : function ( parent, controlArray, title ) {
+                                      "sliders" : function ( parent, controlArray, displayOptions ) {
 
 												 cc=$('<div></div>').addClass("list-group");
 
@@ -1260,9 +1255,11 @@ var UI = {
  																   
 												  }); 
 
+                                             title=( (displayOptions || {})['title'] || '' );
+
 												 $(parent)
 												  .empty()
-												  .append( '<i>'+(title||'')+'</i>')
+												  .append( '<i>'+title+'</i>' )
 										          .append( cc );
   
  						  }
@@ -1285,7 +1282,6 @@ var UI = {
 
                  d=$("#modal-dialog");
 
-
                  if( dialogOptions == "close" )
                  {
                      if( d.data()['bs.modal'] ) { d.modal("hide") };
@@ -1297,21 +1293,19 @@ var UI = {
                  dbb=$("#modal-dialog .modal-buttons").empty();
 
                  $.each( (dialogOptions.buttons || [] ) , function(k, button) {
-
                       bb=$('<button class="btn '+(button.className||'')+'">' + 
                             (button.caption||'Button')+
                             '</button>' )
                           .data( (button.data || {} ) ) 
                           .click( (button.click || function() {}) );        
                       dbb.append(bb);
-                   
                  });
 
                  d.removeData()
                    .data( dialogOptions.data || {}  )
                    .modal();
 
-
+                return d;
             },            
 
             "alert" : function( alertObject, displayOptions) {

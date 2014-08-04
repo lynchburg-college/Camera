@@ -1,6 +1,13 @@
 html {
       overflow-y:scroll;
 }
+body {
+      padding-top: 75px;
+}
+
+body .modal-preview {
+    width: 90%;
+}
 
 .panel-heading {
      font-weight: bold;
