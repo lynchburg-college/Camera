@@ -3,9 +3,11 @@
 
 # Common
 source "${0%/*}/config/common"
+source "${0%/*}/config/machine"
 
 host=$(hostname)
 ip=$(hostname -I)
+
 
 to=$notify
 subject="$1"
