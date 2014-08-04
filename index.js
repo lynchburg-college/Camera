@@ -607,7 +607,7 @@ var interface_audio = {
                    return v;                   
                 };
 
-                //if( v.capabilities.indexOf('cvolume') > -1  ) {
+                if( v.capabilities.indexOf('cvolume') > -1  ) {
 
                    var cc={ name:v.name, device:v.device, instance:v.instance, caption:v.caption, change:v.change };
                    try {
@@ -619,7 +619,7 @@ var interface_audio = {
                        console.log(e);
                    }
                    return cc;                   
-                //};
+                };
 
 
 
