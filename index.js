@@ -196,7 +196,36 @@ var interface_media =  {
         "refresh" : function( delay ) {
             window.setTimeout(  function() { interface_media.read() }, (delay || 5) );
          },
-        
+
+        "monitor" : function() {
+
+           if (interface_media.monitorTimer) {
+             window.clearTimeout( interface_media.monitorTimer);
+           };
+
+           var response=Data.send( { command:'vlm', item:'show recorder' } );
+
+           var itemTime='';
+           var refreshDelay=3000;
+           try {
+             itemTime=( response['result']['recorder']['instances']['instance']['time']  );
+           } 
+           catch(err) {
+             itemTime='';
+           };
+             
+           if( itemTime == '') {
+             $('#status-recorder').addClass('hidden');
+             refreshDelay=refreshDelay*10;
+             
+           } else {
+             $('#status-recorder').removeClass('hidden');
+             $('#status-recorder .small').html( itemTime );
+           };
+
+           interface_media.monitorTimer=window.setTimeout( function() { interface_media.monitor() }, refreshDelay );
+        },        
+
         "handler" : {
 				             "click" : function(event) {
 
@@ -384,21 +413,67 @@ var interface_calendar = {
            
                        interface_calendar.element.fullCalendar( 'unselect' );
 
+                       duration=moment.duration( endMoment.diff( startMoment, 'minutes' ) , 'minutes').humanize();
 
                        UI.dialog({
-                                   title : "Add a Scheduled Recording",
 
-                                   body : '<form class="formAdd" onsubmit="return false">'+
-						                    '<input type="hidden" name="add" value="1">'+
-						                    '<input type="hidden" name="room" value="'+interface_machine.roomID+'">'+
-						                    '<input type="hidden" name="start" value="'+startMoment.format()+'">'+
-						                    '<input type="hidden" name="end" value="'+endMoment.format()+'">'+
-						                    '<div><label class="label label-default">Starts</label> ' + startMoment.calendar() + '</div>'+
-						                    '<div><label class="label label-default">Ends</label> ' + endMoment.calendar() + '</div>'+
-						                    '<div><label class="label label-default">Title</label> <input name="title"><small>*required</small></div>'+
-						                    '<div><label class="label label-default">Owner</label> <input name="owner"><small>*required, network username</small></div>'+
-						                    '<div><label class="label label-defailt">Description</label> <textarea name="description"></textarea></div>'+
+         
+                                   title : '<span class="glyphicon glyphicon-calendar"></span>  Add a Scheduled Recording',
+
+                                   body : '<form id="schedule-form" class="form-horizontal" onsubmit="return false" >' + 
+						                    '<div class="form-group">' + 
+                                              '<label class="control-label col-sm-3">Starts</label><div class="col-sm-9"><p class="form-control-static">'+startMoment.calendar()+'</p></div>'+
+                                            '</div>'+
+						                    '<div class="form-group">' + 
+                                              '<label class="control-label col-sm-3">Ends</label><div class="col-sm-9"><p class="form-control-static">'+endMoment.calendar()+' (duration of '+duration+')</p></div>'+
+                                            '</div>'+
+						                    '<div class="form-group">'+
+                                                 '<label class="control-label col-sm-3">Title</label>'+
+                                                 '<div class="col-sm-9">'+
+                                                    '<input type="text" class="form-control input-required" name="title">'+
+                                                  '</div>'+
+                                            '</div>'+
+						                    '<div class="form-group">'+
+                                                 '<label class="control-label col-sm-3">Owner</label>'+
+                                                 '<div class="col-sm-9">'+
+                                                    '<input class="form-control input-required" name="owner">'+
+                                                  '</div>'+
+                                            '</div>'+
+						                    '<div class="form-group">'+
+                                                 '<label class="control-label col-sm-3">Keywords</label>'+
+                                                 '<div class="col-sm-9"><input class="form-control" name="keywords"></div>'+
+                                            '</div>'+
+						                    '<div class="form-group">'+
+                                                 '<label class="control-label col-sm-3">Description</label>'+
+                                                 '<div class="col-sm-9"><textarea class="form-control" name="owner"></textarea></div>'+
+                                            '</div>'+
 						                    '</form>',
+
+                                  buttons : [
+                                                  {
+                                                    name : 'Save',
+                                                    type : "submit",
+                                                    caption : 'Add Recording',
+                                                    className : 'btn-primary',
+                                                    data : { start:startMoment, end:endMoment },
+                                                    click : function() {
+                                                       console.log("test");
+                                                      $(".has-error").removeClass("has-error");
+                                                        $(".input-required").each( function(k,e) {
+                                                           if ( ( $(e).val() || '') == '' ) {
+																$(e).closest(".form-group").addClass("has-error");
+                                                            }
+                                                         });
+                                                    }
+ 
+                                                  }
+                                            ],
+
+                                  onShown : function() {
+                                            }
+                      
+
+
                      });
                   }
           },
@@ -1082,11 +1157,15 @@ var interface_actions = {
                
                debugObject=eval('('+$("#debug-object").val()+')');
                result=Data.send( debugObject );
+
                console.log( result );
                $("#debug-console")
                  .empty()
                  .html( Format.object.html(result) );
-           }
+
+                interface_media.monitor();
+               }
+
 
 
 }
@@ -1107,7 +1186,7 @@ var Data = {
                       Data.machine.read();
                       Data.machine.status();
                       Data.actions.attach();
-                      Data.media.read();
+                      Data.media.monitor();
                 },                                
         
                 "config" : {
@@ -1296,23 +1375,28 @@ var UI = {
                       bb=$('<button class="btn '+(button.className||'')+'">' + 
                             (button.caption||'Button')+
                             '</button>' )
+                          .attr( "type", (button.type || 'button' ) )
                           .data( (button.data || {} ) ) 
                           .click( (button.click || function() {}) );        
                       dbb.append(bb);
                  });
 
                  d.removeData()
-                   .data( dialogOptions.data || {}  )
-                   .modal();
+                  .data( dialogOptions.data || {} );
+ 
+                 if( dialogOptions.onShown ) {  d.on('shown.bs.modal', dialogOptions.onShown() )  };
+                 if( dialogOptions.onHidden ) {  d.on('hidden.bs.modal', dialogOptions.onHidden() )  };
 
-                return d;
+                 d.modal();
+
+                 return d;
             },            
 
             "alert" : function( alertObject, displayOptions) {
               // Types:  info, danger, success
               var alertDisplay=Format.object.html( alertObject );
 
-              var alertOptions= $.extend( { offset: { from:'top', amount: 20 }, align:'right', type:'info', width:600, delay:2500 } , (displayOptions || {} ) );
+              var alertOptions= $.extend( { offset: { from:'top', amount: 20 }, align:'right', type:'info', width:300, delay:2500 } , (displayOptions || {} ) );
 
               alertOptions.delay=(alertOptions.type=='danger') ? 9999 : 2500;
 
@@ -1335,6 +1419,10 @@ var UI = {
               $(".timepicker").datetimepicker( { pickDate : false, useSeconds:false, minuteStepping: 15  });
 
               $("#software-version").html(   Data.send( { command:'machine', action:'get', item :'version'} ).result  );
+
+              $("#debug-common").on("change", function() {
+                 $("#debug-object").val( '{' + $(this).val() + '}' );
+              });
 
               $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                        interface_calendar.refresh();

@@ -8,7 +8,7 @@
 
   <title>Capture</title>
 
-  <link rel="icon" type="image/jpg" href="favicon.jpg?v=2" />
+  <link rel="icon" type="image/jpg" href="index.jpg?v=2" />
 
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" />
 
@@ -17,7 +17,6 @@
   <link href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.css" rel="stylesheet" />
 
   <link href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/3.0.0/css/bootstrap-datetimepicker.css" rel="stylesheet" />
-
 
   <link href="index.css" rel="stylesheet" type="text/css" />
   
@@ -47,8 +46,10 @@
       </div>
 
 
+
       <div class="collapse navbar-collapse collapse navbar-right">
-         <p id="software-version" class="navbar-text"></p>
+         <span id="status-recorder" class="navbar-text hidden"><span class="glyphicon glyphicon-record"></span>  Recording <span class="small"></span></span>
+         <span id="software-version" class="navbar-text"></span>
       </div>
 
    </div>
@@ -85,6 +86,7 @@
 	  </div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->
    
+
 
    <div class="tab-content">
 
@@ -169,7 +171,6 @@
 
                   <form id="config-form" class="form-horizontal" onSubmit="return false">
 
-
 					<div class="panel-group" id="settings">
 
 					  <div class="panel panel-default">
@@ -236,7 +237,7 @@
 								    </div>
 
 								    <div class="form-group">
-								      <label class="col-sm-2 control-label">Transcode</label>
+								      <label class="col-sm-2 control-label">Video Transcode</label>
 								      <div class="col-sm-10">
 								        <input class="form-control" name="videoTranscode" />
 								      </div>
@@ -364,30 +365,44 @@
      <!-- Debug Panel -->
      <div id="panel-debug" class="tab-pane fade">
 
+            <div class="row">
+
+             <div class="col-sm-3">
+ 
               <div class="panel panel-default">
-
-                <div class="panel-heading">Command Interface Debugger</div>
+                <div class="panel-heading">Debug Command</div>
                 <div class="panel-body">
-
-                      <div class="row">
-                       <div class="col-sm-5">
-                        <textarea id="debug-object" style="width:100%;height:200px;">
-{
-   command : "vlm",
-   item : "show"
-}
-                        </textarea>
-                        <button class="btn btn-primary" data-action="Data.actions.debug">Send Command Object</button>
-                        </div>
-
-                        <div class="col-sm-7">
-                           <div id="debug-console"></div>
-                        </div>
-  
-                    </div>
-
+                       <select id="debug-common">
+                         <option value=''>-- choose a command --</option>
+                         <option value='command:"vlm",item:"show"'>VLM - Show Config</option>
+                         <option value='command:"vlm",item:"show schedule"'>VLM - Show Schedule</option>
+                         <option value='command:"vlm",item:"control recorder play"'>VLM - Recorder Start</option>
+                         <option value='command:"vlm",item:"control recorder stop"'>VLM - Recorder Stop</option>
+                         <option value='command:"vlm",item:"load config/init-schedule"'>VLM - Init Schedule</option>
+                         <option value='command:"vlm",item:"load config/init-schedule"'>VLM - Init Media</option>
+                       </select>                       
+                       <hr>
+                       <textarea id="debug-object" style="width:100%;height:200px;">
+                       </textarea>
                 </div>
-               </div>
+                <div class="panel-footer"> 
+                       <button class="btn btn-primary" data-action="Data.actions.debug">Send Command Object</button>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="col-sm-9">
+              <div class="panel panel-default">
+                <div class="panel-heading">Debug Console</div>
+                <div class="panel-body">
+                  <div id="debug-console"></div>
+                </div>
+              </div>
+            </div>
+
+
+       </div>
 
     </div>
 
@@ -427,7 +442,7 @@
  <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/2.0.0/fullcalendar.js"></script>
 
  <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/3.0.0/js/bootstrap-datetimepicker.min.js"></script>
- 
+
  <script src="index.js"></script>
  
 </body>

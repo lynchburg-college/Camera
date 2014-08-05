@@ -3,6 +3,7 @@
 
 # Common
 source "${0%/*}/config/common"
+source "${0%/*}/config/machine"
 
 log "Fetch starting"
 
