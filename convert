@@ -1,0 +1,20 @@
+#!/bin/bash
+
+source=$1
+dest=$source.converted.mp4
+
+/usr/bin/HandBrakeCLI -i $source -o $dest
+
+/usr/bin/avprobe $dest > $dest.info
+
+if grep -q "HandBrake" $(/usr/bin/avprobe $dest)
+then
+ rm $source
+ mv $dest $source
+ echo "Good Conversion"
+else
+  echo "Whoops.  Didn't encode correctly"
+fi
+rm $dest.info
+
+
