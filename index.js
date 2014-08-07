@@ -333,11 +333,14 @@ var interface_calendar = {
                                                      selectHelper: true,
                                                      now:  moment(),
                                                      defaultView : 'month',
-                                                     defaultTimedEventDuration : '00:15:00',
-                                                     slotDuration : '00:15:00',
+                                                     defaultTimedEventDuration : '00:10:00',
+                                                     slotDuration : '00:10:00',
                                                      firstHour : 7,
                                                      allDaySlot : false,
 
+                                                     XXeventStartEditable : true,
+                                                     XXeventDurationEditable : true,
+                          
                                                      eventClick: Data.calendar.handler.event,
                                                      dayClick: Data.calendar.handler.day,
                                                      select : Data.calendar.select,
@@ -369,33 +372,46 @@ var interface_calendar = {
 
           
           "handler" : {
-                                      "event" : function( event, jsEvent, view) {
+                                   "attachmetadata" : function( event ) {
 
-												   interface_calendar.element.fullCalendar( 'unselect' );
+                                                  response=Data.send( { command:"parse", action:"meta-id",  item:event.eventID+'-'+event.courseID } );
 
-                     	                            UI.dialog({ 
+                                                  if( response.result ) {
+                                                    var meta=response['result'].split("|");
+                                                    event['title']=( meta[3] || '' );
+                                                    event['description']=( meta[4] || '');
+                                                    event['owner']= ( meta[5] || '' );
+                                                  }
 
-                                                        title : 'Scheduled Recording',
+                                                  return event;
 
-  												         body : '<div><label class="label label-default">Title</label> '+event.title+'</div>'+
-  														         '<div><label class="label label-default">Starts</label> '+event.start.calendar()+'</div>'+                      
-														         '<div><label class="label label-default">Ends</label> '+event.end.calendar()+'</div>',
+                                   },
+
+  							       "validate" : function( startMoment, endMoment ) {
+
+												var rangeCheck=moment().range( startMoment, endMoment );
+
+                                                var returnObject={ conflict:false }
  
-                                                        buttons : [
-                                                                     { 
-                                                                       caption:'Cancel Recording',
-                                                                       className:'btn-danger',
-                                                                       data : { "event" : event } ,
-									                                   click : function() { 
-                                                                                            if(window.confirm('Are you sure?')) {
-								                                                                  interface_calendar.delete( $(this).data('event') );
-								                                                                  UI.dialog("close");
-								                                                            }
-                                                                                            
-                                                                                }
-                                                                     }
-                                                                  ]
-                                                    });
+                                                $.each( $(interface_calendar.element).fullCalendar('clientEvents'), function(k,event) {
+                                                  rangeEvent=moment().range( event.start, event.end );
+
+                                                  if ( rangeCheck.overlaps(rangeEvent)  ||  rangeEvent.overlaps(rangeCheck) ) {
+                                                   returnObject.conflict=true;
+                                                   returnObject.range=rangeEvent;
+                                                   return false;
+                                                  }
+                                                  return true;
+                                                });
+                                               return returnObject;
+							        },
+
+
+                                    "event" : function( event, jsEvent, view) {
+
+												  interface_calendar.element.fullCalendar( 'unselect' );
+                                                  
+                                                  UI.render.schedule( interface_calendar.handler.attachmetadata( event )  );
                                       },
 
                                      "day" :  function( date, jsEvent, view) {
@@ -409,73 +425,19 @@ var interface_calendar = {
           
           "select" : function( startMoment, endMoment, jsEvent, view) {
 
-                   if( view.name == 'agendaDay') {
-           
+                       if( view.name != 'agendaDay') { return false };
+
                        interface_calendar.element.fullCalendar( 'unselect' );
 
-                       duration=moment.duration( endMoment.diff( startMoment, 'minutes' ) , 'minutes').humanize();
+                       validate=interface_calendar.handler.validate( startMoment, endMoment );
+                       if( validate.conflict ) {
+                            UI.alert( 'Cannot add:Conflicts with existing schedule', { type:'danger', duration:3000 } );
+                            return false;
+                       };
 
-                       UI.dialog({
+                       event=interface_calendar.handler.attachmetadata( { start:startMoment, end:endMoment, sID:'', courseID:'' } );
+                       UI.render.schedule( event );
 
-         
-                                   title : '<span class="glyphicon glyphicon-calendar"></span>  Add a Scheduled Recording',
-
-                                   body : '<form id="schedule-form" class="form-horizontal" onsubmit="return false" >' + 
-						                    '<div class="form-group">' + 
-                                              '<label class="control-label col-sm-3">Starts</label><div class="col-sm-9"><p class="form-control-static">'+startMoment.calendar()+'</p></div>'+
-                                            '</div>'+
-						                    '<div class="form-group">' + 
-                                              '<label class="control-label col-sm-3">Ends</label><div class="col-sm-9"><p class="form-control-static">'+endMoment.calendar()+' (duration of '+duration+')</p></div>'+
-                                            '</div>'+
-						                    '<div class="form-group">'+
-                                                 '<label class="control-label col-sm-3">Title</label>'+
-                                                 '<div class="col-sm-9">'+
-                                                    '<input type="text" class="form-control input-required" name="title">'+
-                                                  '</div>'+
-                                            '</div>'+
-						                    '<div class="form-group">'+
-                                                 '<label class="control-label col-sm-3">Owner</label>'+
-                                                 '<div class="col-sm-9">'+
-                                                    '<input class="form-control input-required" name="owner">'+
-                                                  '</div>'+
-                                            '</div>'+
-						                    '<div class="form-group">'+
-                                                 '<label class="control-label col-sm-3">Keywords</label>'+
-                                                 '<div class="col-sm-9"><input class="form-control" name="keywords"></div>'+
-                                            '</div>'+
-						                    '<div class="form-group">'+
-                                                 '<label class="control-label col-sm-3">Description</label>'+
-                                                 '<div class="col-sm-9"><textarea class="form-control" name="owner"></textarea></div>'+
-                                            '</div>'+
-						                    '</form>',
-
-                                  buttons : [
-                                                  {
-                                                    name : 'Save',
-                                                    type : "submit",
-                                                    caption : 'Add Recording',
-                                                    className : 'btn-primary',
-                                                    data : { start:startMoment, end:endMoment },
-                                                    click : function() {
-                                                       console.log("test");
-                                                      $(".has-error").removeClass("has-error");
-                                                        $(".input-required").each( function(k,e) {
-                                                           if ( ( $(e).val() || '') == '' ) {
-																$(e).closest(".form-group").addClass("has-error");
-                                                            }
-                                                         });
-                                                    }
- 
-                                                  }
-                                            ],
-
-                                  onShown : function() {
-                                            }
-                      
-
-
-                     });
-                  }
           },
 
           "delete"     : function( calendarEvent ) {
@@ -493,20 +455,9 @@ var interface_calendar = {
           },
 
           "add"     : function( form ) {
-
-                         response = $.ajax({
-                                type: "POST",
-                                url: interface_common.urlInfo,
-                                async: false,
-                                data : $(form).serialize(),
-                            }).responseText;
-
-                         UI.alert ( response );
-
           },
           
           "events"  : function( calendarStart, calendarEnd,  timezone, callback ) {
-
            vlcStatus=Data.send( { command:'vlm', item:'show schedule'} );
 
            var events={};
@@ -1278,6 +1229,79 @@ var UI = {
 
 
             "render" : {
+
+                                      "schedule" : function (calendarEvent) {
+
+										   duration=calendarEvent.end.diff( calendarEvent.start, 'minutes');
+
+										   UI.dialog({
+							 
+										               title : '<span class="glyphicon glyphicon-calendar"></span>  Scheduled Recording',
+
+										               body : '<form id="schedule-form" class="form-horizontal" onsubmit="return false" >' + 
+																'<div class="form-group">' + 
+										                          '<label class="control-label col-sm-3">Starts</label><div class="col-sm-9"><p class="form-control-static">'+calendarEvent.start.calendar()+'</p></div>'+
+										                        '</div>'+
+																'<div class="form-group">' + 
+										                          '<label class="control-label col-sm-3">Ends</label><div class="col-sm-9"><p class="form-control-static">'+calendarEvent.end.calendar()+' ('+duration+' minutes)</p></div>'+
+										                        '</div>'+
+																'<div class="form-group">'+
+										                             '<label class="control-label col-sm-3">Title</label>'+
+										                             '<div class="col-sm-9">'+
+										                                '<input type="text" class="form-control input-required" name="title" value="'+(calendarEvent.title||'')+'">'+
+										                              '</div>'+
+										                        '</div>'+
+																'<div class="form-group">'+
+										                             '<label class="control-label col-sm-3">Owner</label>'+
+										                             '<div class="col-sm-9">'+
+										                                '<input class="form-control input-required" name="owner" value="'+(calendarEvent.owner||'')+'">'+
+										                              '</div>'+
+										                        '</div>'+
+																'<div class="form-group">'+
+										                             '<label class="control-label col-sm-3">Description</label>'+
+										                             '<div class="col-sm-9"><textarea class="form-control" name="owner">'+(calendarEvent.description||'')+'</textarea></div>'+
+										                        '</div>'+
+																'</form>',
+
+										              buttons : [
+                                                                      { 
+										                                active : ( (calendarEvent.eventID||'') != '' ),
+                                                                        caption : 'Delete',
+                                                                        className : 'btn-danger confirm',
+ 										                                data : calendarEvent
+                                                                      },
+										                              {
+                                                                        active : true,
+                                                                        caption : 'Save',
+										                                className : 'btn-primary',
+										                                data : calendarEvent,
+										                                click : function() {
+
+										                                  canSave=true;
+										                                  $(".has-error").removeClass("has-error");
+										                                  $(".input-required").each( function(k,e) {
+										                                     if ( ( $(e).val() || '') == '' ) {
+																				$(e).closest(".form-group").addClass("has-error");
+										                                        canSave=false;
+										                                    }
+										                                  });
+
+										                                  if(canSave) {
+										                                    d=$(this).data();
+										                                    // Create the metadata
+										                                    // Create the schedule
+										                                    // Do it.
+										                                  }
+										                                
+										                                }
+					 
+										                              }
+
+										                        ]
+                                                });
+                      
+                                      },
+
                                       "timepicker" : function (element) {
 
                                         s='<select name="'+element.attr("name")+'">';
@@ -1371,14 +1395,19 @@ var UI = {
                  db=$("#modal-dialog .modal-body").html( dialogOptions.body || '' );
                  dbb=$("#modal-dialog .modal-buttons").empty();
 
-                 $.each( (dialogOptions.buttons || [] ) , function(k, button) {
-                      bb=$('<button class="btn '+(button.className||'')+'">' + 
-                            (button.caption||'Button')+
-                            '</button>' )
-                          .attr( "type", (button.type || 'button' ) )
-                          .data( (button.data || {} ) ) 
-                          .click( (button.click || function() {}) );        
-                      dbb.append(bb);
+                  $.each( (dialogOptions.buttons || [] ) , function(k, button) {
+
+
+                     if( (!button.hasOwnProperty("active")) || ( button.active ) ) {
+
+		                 bb=$('<button class="btn '+(button.className||'')+'">' + 
+		                        (button.caption||'Button')+
+		                        '</button>' )
+		                      .attr( "type", (button.type || 'button' ) )
+		                      .data( (button.data || {} ) ) 
+		                      .click( (button.click || function() {}) );        
+		                  dbb.append(bb);
+                     };
                  });
 
                  d.removeData()
@@ -1394,11 +1423,12 @@ var UI = {
 
             "alert" : function( alertObject, displayOptions) {
               // Types:  info, danger, success
+
               var alertDisplay=Format.object.html( alertObject );
 
-              var alertOptions= $.extend( { offset: { from:'top', amount: 20 }, align:'right', type:'info', width:300, delay:2500 } , (displayOptions || {} ) );
+              var alertOptions= $.extend( { offset: { from:'top', amount: 20 }, align:'right', type:'info', width:400, delay:2500 } , (displayOptions || {} ) );
 
-              alertOptions.delay=(alertOptions.type=='danger') ? 9999 : 2500;
+              alertOptions.delay=(alertOptions.type=='danger') ? (alertOptions.delay||9999) : 2500;
 
               $.bootstrapGrowl( alertDisplay, alertOptions );
 
@@ -1438,6 +1468,7 @@ var UI = {
 // ----------------------------------------------------------
 
 var Format = {
+
            "time" : {
               "compressed" : function(sourceDate) {
 
@@ -1824,5 +1855,268 @@ var Handler= {
   };
 
 }).call(this);
+
+
+var DateRange, INTERVALS;
+
+INTERVALS = {
+  year: true,
+  month: true,
+  week: true,
+  day: true,
+  hour: true,
+  minute: true,
+  second: true
+};
+
+/**
+  * DateRange class to store ranges and query dates.
+  * @typedef {!Object}
+*
+*/
+
+
+DateRange = (function() {
+  /**
+    * DateRange instance.
+    * @param {(Moment|Date)} start Start of interval.
+    * @param {(Moment|Date)} end   End of interval.
+    * @constructor
+  *
+  */
+
+  function DateRange(start, end) {
+    this.start = moment(start);
+    this.end = moment(end);
+  }
+
+  /**
+    * Determine if the current interval contains a given moment/date/range.
+    * @param {(Moment|Date|DateRange)} other Date to check.
+    * @return {!boolean}
+  *
+  */
+
+
+  DateRange.prototype.contains = function(other) {
+    if (other instanceof DateRange) {
+      return this.start <= other.start && this.end >= other.end;
+    } else {
+      return (this.start <= other && other <= this.end);
+    }
+  };
+
+  /**
+    * @private
+  *
+  */
+
+
+  DateRange.prototype._by_string = function(interval, hollaback) {
+    var current, _results;
+    current = moment(this.start);
+    _results = [];
+    while (this.contains(current)) {
+      hollaback.call(this, current.clone());
+      _results.push(current.add(interval, 1));
+    }
+    return _results;
+  };
+
+  /**
+    * @private
+  *
+  */
+
+
+  DateRange.prototype._by_range = function(range_interval, hollaback) {
+    var i, l, _i, _results;
+    l = Math.round(this / range_interval);
+    if (l === Infinity) {
+      return this;
+    }
+    _results = [];
+    for (i = _i = 0; 0 <= l ? _i <= l : _i >= l; i = 0 <= l ? ++_i : --_i) {
+      _results.push(hollaback.call(this, moment(this.start.valueOf() + range_interval.valueOf() * i)));
+    }
+    return _results;
+  };
+
+  /**
+    * Determine if the current date range overlaps a given date range.
+    * @param {!DateRange} range Date range to check.
+    * @return {!boolean}
+  *
+  */
+
+
+  DateRange.prototype.overlaps = function(range) {
+    return this.intersect(range) !== null;
+  };
+
+  /**
+    * Determine the intersecting periods from one or more date ranges.
+    * @param {!DateRange} other A date range to intersect with this one.
+    * @return {!DateRange|null}
+  *
+  */
+
+
+  DateRange.prototype.intersect = function(other) {
+    var _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7;
+    if (((this.start <= (_ref1 = other.start) && _ref1 < (_ref = this.end)) && _ref < other.end)) {
+      return new DateRange(other.start, this.end);
+    } else if (((other.start < (_ref3 = this.start) && _ref3 < (_ref2 = other.end)) && _ref2 <= this.end)) {
+      return new DateRange(this.start, other.end);
+    } else if (((other.start < (_ref5 = this.start) && _ref5 < (_ref4 = this.end)) && _ref4 < other.end)) {
+      return this;
+    } else if (((this.start <= (_ref7 = other.start) && _ref7 < (_ref6 = other.end)) && _ref6 <= this.end)) {
+      return other;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+    * Subtract one range from another.
+    * @param {!DateRange} other A date range to substract from this one.
+    * @return {!DateRange[]}
+  *
+  */
+
+
+  DateRange.prototype.subtract = function(other) {
+    var _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7;
+    if (this.intersect(other) === null) {
+      return [this];
+    } else if (((other.start <= (_ref1 = this.start) && _ref1 < (_ref = this.end)) && _ref <= other.end)) {
+      return [];
+    } else if (((other.start <= (_ref3 = this.start) && _ref3 < (_ref2 = other.end)) && _ref2 < this.end)) {
+      return [new DateRange(other.end, this.end)];
+    } else if (((this.start < (_ref5 = other.start) && _ref5 < (_ref4 = this.end)) && _ref4 <= other.end)) {
+      return [new DateRange(this.start, other.start)];
+    } else if (((this.start < (_ref7 = other.start) && _ref7 < (_ref6 = other.end)) && _ref6 < this.end)) {
+      return [new DateRange(this.start, other.start), new DateRange(other.end, this.end)];
+    }
+  };
+
+  /**
+    * Iterate over the date range by a given date range, executing a function
+    * for each sub-range.
+    * @param {!DateRange|String} range     Date range to be used for iteration
+    *                                      or shorthand string (shorthands:
+    *                                      http://momentjs.com/docs/#/manipulating/add/)
+    * @param {!function(Moment)} hollaback Function to execute for each sub-range.
+    * @return {!boolean}
+  *
+  */
+
+
+  DateRange.prototype.by = function(range, hollaback) {
+    if (typeof range === 'string') {
+      this._by_string(range, hollaback);
+    } else {
+      this._by_range(range, hollaback);
+    }
+    return this;
+  };
+
+  /**
+    * Date range in milliseconds. Allows basic coercion math of date ranges.
+    * @return {!number}
+  *
+  */
+
+
+  DateRange.prototype.valueOf = function() {
+    return this.end - this.start;
+  };
+
+  /**
+    * Date range toDate
+    * @return  {!Array}
+  *
+  */
+
+
+  DateRange.prototype.toDate = function() {
+    return [this.start.toDate(), this.end.toDate()];
+  };
+
+  /**
+    * Determine if this date range is the same as another.
+    * @param {!DateRange} other Another date range to compare to.
+    * @return {!boolean}
+  *
+  */
+
+
+  DateRange.prototype.isSame = function(other) {
+    return this.start.isSame(other.start) && this.end.isSame(other.end);
+  };
+
+  /**
+    * Return the difference of the end vs start.
+    *   - To get the difference in milliseconds, use range#diff
+    *   - To get the difference in another unit of measurement, pass that measurement as the second argument.
+    * @return milliseconds if no measure is passed in, otherwise an increment of measure
+  *
+  */
+
+
+  DateRange.prototype.diff = function(unit) {
+    if (unit == null) {
+      unit = void 0;
+    }
+    return this.end.diff(this.start, unit);
+  };
+
+  return DateRange;
+
+})();
+
+/**
+  * Build a date range.
+  * @param {(Moment|Date)} start Start of range.
+  * @param {(Moment|Date)} end   End of range.
+  * @this {Moment}
+  * @return {!DateRange}
+*
+*/
+
+
+moment.fn.range = function(start, end) {
+  if (start in INTERVALS) {
+    return new DateRange(moment(this).startOf(start), moment(this).endOf(start));
+  } else {
+    return new DateRange(start, end);
+  }
+};
+
+/**
+  * Build a date range.
+  * @param {(Moment|Date)} start Start of range.
+  * @param {(Moment|Date)} end   End of range.
+  * @this {Moment}
+  * @return {!DateRange}
+*
+*/
+
+
+moment.range = function(start, end) {
+  return new DateRange(start, end);
+};
+
+/**
+  * Check if the current moment is within a given date range.
+  * @param {!DateRange} range Date range to check.
+  * @this {Moment}
+  * @return {!boolean}
+*
+*/
+
+moment.fn.within = function(range) {
+  return range.contains(this._d);
+};
 
 

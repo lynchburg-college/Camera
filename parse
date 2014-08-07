@@ -2,6 +2,7 @@
 
 # Common
 source "${0%/*}/config/common"
+source "${0%/*}/config/machine"
 
 item=${1,,}
 
@@ -14,31 +15,42 @@ fi
 
 case "$item" in
 
-    "meta" )
+    "meta-epoch" )
            metaMatch=$2
            if [ ! "$metaMatch" == "" ]
            then
-              awk '{  if( d+20 >= ($1) &&  d-10 <= ($2) ) { print $0 }  }' d="$metaMatch"  config/meta | tail -1 | cut -d' ' -f 3-
+              awk '{  if( d+20 >= ($2) &&  d-10 <= ($3) ) { print $0 }  }' d="$metaMatch"  config/meta | tail -1  # | cut -d'|' -f 3-
+           fi
+           ;;
+
+
+    "meta-id" )
+           metaMatch=$2
+           if [ ! "$metaMatch" == "" ]
+           then
+              grep "$metaMatch" config/meta 
            fi
            ;;
 
     "schedule" )
 					scheduleCounter=1
 
-					inputFile="config/schedule"
+					inputLocal="config/schedule-local"
+					inputRemote="config/schedule-remote"
+                    touch $inputLocal $inputRemote
 
 					outputSchedule="config/init-schedule"
 					backup "$outputSchedule"
 
-					outputMeta="config/meta"
+                    outputMeta="config/meta"
 					backup "$outputMeta"
 
-                    sourceData=$(grep "|" "$inputFile") 
+                    sourceData=$(grep -h "|" "$inputLocal" "$inputRemote") 
 
                     echo "del schedule" > $outputSchedule
                     echo "" > $outputMeta
 
-                    while IFS="|" read -r courseid title description owner start stop
+                    while IFS="|" read -r courseid start stop title description owner
 					do
 
                       sid="s$scheduleCounter-$courseid"
@@ -46,38 +58,38 @@ case "$item" in
 					  startEpoch=$(date +"%s" -d "$start")
 					  stopEpoch=$(date +"%s" -d "$stop")
 
-					  meta="$startEpoch $stopEpoch -F \"title=$title\" -F \"description=$description\" -F \"owner=$owner\" "
-
 					  startTimestamp=$(date +"%Y/%m/%d-%H:%M:%S" -d @$startEpoch)
 
-                                          let stopEpoch=stopEpoch-5 
+                      # Trim off 5 seconds
+                      let stopEpoch=stopEpoch-5
 					  stopTimestamp=$(date +"%Y/%m/%d-%H:%M:%S" -d @$stopEpoch)
 
+					  meta="$sid|$startEpoch|$stopEpoch|$title|$description|$owner"
 
-                          {
-				              echo ""
-							  echo "new   $sid-start schedule"
-							  echo "setup $sid-start date $startTimestamp"
-							  echo "setup $sid-start append control recorder stop"
-							  echo "setup $sid-start append control recorder play"
-							  echo "setup $sid-start enabled"
-							  echo ""
-							  echo "new   $sid-stop schedule"
-							  echo "setup $sid-stop date $stopTimestamp"
-							  echo "setup $sid-stop append control recorder stop"
-							  echo "setup $sid-stop enabled"
+						{
+							echo ""
+							echo "new   $sid-start schedule"
+							echo "setup $sid-start date $startTimestamp"
+							echo "setup $sid-start append control recorder stop"
+							echo "setup $sid-start append control recorder play"
+							echo "setup $sid-start enabled"
+							echo ""
+							echo "new   $sid-stop schedule"
+							echo "setup $sid-stop date $stopTimestamp"
+							echo "setup $sid-stop append control recorder stop"
+							echo "setup $sid-stop enabled"
 
-                          } >> "$outputSchedule"
+						} >> "$outputSchedule"
 
-		          {
-                              echo "$meta"
-                          } >> "$outputMeta"
+                        {
+                            echo "$meta"
+                        } >> "$outputMeta"
 
-       		         let scheduleCounter=scheduleCounter+1
+      		         let scheduleCounter=scheduleCounter+1
        			done  <<< "$sourceData"
 
-                    log "Parsed $scheduleCounter items into $outputSchedule and $outputMeta"
-                   ;;
+               log "Parsed $scheduleCounter items into $outputSchedule"
+               ;;
 
 
 esac

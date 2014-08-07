@@ -2,37 +2,39 @@
 
 # Common
 source "${0%/*}/config/common"
+source "${0%/*}/config/machine"
 
 # Apply camera and audio settings 
 include "config/init-video"
 include "config/init-audio"
-
 
 if [ -z "$urlUpload" ]
 then
   exit 1
 fi
 
+# Update the timestamp on the log file
 touch $logFile
+
+# If an upload is already in progress, skip this pass.
+pidCurl=$(ps -A | grep "curl")
+if [ ! "$pidCurl" == "" ]
+then
+ log "Upload already in progress."
+ exit 1
+fi
+
+
+#  Find all the files that should can be considered for upload
 {
-
-   # If an upload is already in progress, skip this pass.
-   pidCurl=$(ps -A | grep curl)
-   if [ ! "$pidCurl" == "" ]
-   then
-	 log "Upload already in progress."
-     exit 1
-   fi
-
-   #  Find all the files that should be uploaded
-  for file in $(ls $pathVideo/*.mp4)
+for file in $(ls $pathVideo/*.mp4)
    do
 
       if [ ! -z "$file" ] && [ -s $file ]  
       then
-
         isBusy=$(lsof $file)
         if [ ! -z "$isBusy" ]
+
         then
           log "Ignoring (file is open) $file"
 
@@ -54,34 +56,28 @@ touch $logFile
              log "Using file modified date ($asOf)"
            fi
 
-           #Use the local init-schedule file to look up metadata
+           # Find the metadata for this guy..
            log "Metadata date is : $asOf"
-           info=$(./parse meta "$asOf")
-
-           # Make a call back to the mothership to get the metadata
-           #cmd="curl -G -d \"roomID=$roomID&meta=$baseName\" $urlInfo"
-           #log "$cmd"
-           #info=$(eval "$cmd")
+           info=$(./parse meta-epoch "$asOf")
 
            # Couldn't find anything?  That's OK.. use the default stuff
            if [ "$info" == "" ]
            then
                log "Couldn't find metadata : $roomID / $asOf"
-               info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\""
+               info="RECORDING|$asOf|$asOf|$roomID Recording|Recording made in $roomID / $roomName on $asOf|hudson-b"
            else
                log "Matched : $info"
                echo "$info" > $file.meta
            fi
-           
-                    
-           # Post to the media server
-           cmd="/usr/bin/curl -F \"batchMode=Y\" $info -F \"file=@$file\" -F \"keywords=$roomID $baseName\" $urlUpload"
-           log "$cmd"
 
-           if [ "$1" == "debug" ] 
-           then
-             exit 0
-           fi
+ 
+           # Parse out the metadata into a curl-friendly string
+           IFS='|' read -a meta <<< "$info"
+           curlParameters=" -F \"title=${meta[3]}\" -F \"description=${meta[4]}\" -F \"userID=${meta[5]}\" "
+
+           # Post to the media server
+           cmd="/usr/bin/curl $curlParameters -F \"batchMode=Y\" -F \"keywords=$roomID $baseName\" -F \"public=1\" -F \"file=@$file\" $urlUpload"
+           log "$cmd"
 
            info=$(eval "$cmd")
            log $info
@@ -101,6 +97,9 @@ touch $logFile
 
 done
 
+} | tee -a $logFile
+
+
 # Remove uploaded stuff older than 1 week
 find "$pathVideo/*.uploaded" -mtime +5 -exec rm {} \;
 
@@ -109,5 +108,4 @@ spaceUsed=$(df $pathVideo | tail -1 | awk '{print $5}' | sed 's/%//g')
 [[ $spaceUsed -gt 70 ]] && $pathRoot/notify  "Storage Space Used : $spaceUsed%"
 
 
-} | tee -a $logFile
 

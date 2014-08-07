@@ -7,28 +7,33 @@ source "${0%/*}/config/machine"
 
 log "Fetch starting"
 
-item=${1,,}
-
-itemProper=${item^}
-urlSetting="url$itemProper"
-
-url=${!urlSetting}
-
-# Validations..
+item=$1
 if [ "$item" == "" ]
 then
  echo "No item provided."
  exit 1
 fi
 
-if [ "$url" == "" ]
-then
- echo "No URL found for $item"
- exit 1
-fi
 
-# We have an URL, let's go get the data
-configFile="config/$item"
+#item=${1,,}
+#itemProper=${item^}
+#urlSetting="url$itemProper"
+# Get the value of that setting
+#url=${!urlSetting}
+
+
+case "$1" in
+
+    "schedule" ) url="$urlSchedule"
+                 configFile="config/schedule-remote"
+                 ;;
+
+             * ) echo "No URL found for $1"
+                 exit 1
+                 ;;
+esac
+
+
 if [ -z "$configFile" ]
 then
  log "Backing up $configFile"

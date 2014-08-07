@@ -135,6 +135,19 @@ if ( command == "vlm" ) then
 
 
 -- --------------------------------------------------------------------------
+elseif ( command == "fetch" ) then
+
+   json["result"] = api_execute('./fetch '..action)
+
+
+-- --------------------------------------------------------------------------
+elseif ( command == "parse" ) then
+
+   local ccc='./parse '..action..' '..item
+   json["os"] = ccc
+   json["result"] = api_execute( ccc )
+
+-- --------------------------------------------------------------------------
 elseif ( command == "machine" ) then
 
   if  ( item == "reboot"  ) then
@@ -160,6 +173,7 @@ elseif ( command == "machine" ) then
 
   elseif ( item == "sensors" ) then
    json["result"] = api_execute( 'sensors' )
+
 
   else
     json["result"] = "Unknown ITEM : "..item
@@ -283,7 +297,6 @@ elseif ( command == "update" ) then
  if ( item == "config" ) then
    local configFile=_GET["file"]
    local configContents=_GET["contents"]
-
    json["result"] = api_writefile( configFile, configContents )
  
  elseif ( item == "software" ) then
@@ -291,14 +304,15 @@ elseif ( command == "update" ) then
 
  elseif ( item == "schedule-clear" ) then
    api_vlm( "del schedule" )
-   api_writefile( "schedule","#cleared" )
-   api_writefile( "init-schedule" ,"#cleared")
-   json["result"] = "Schedule cleared."
+   api_writefile( "schedule-local","#cleared" )
+   api_writefile( "init-schedule-remote" ,"#cleared")
+   json["result"] = "Local and Remote Schedules cleared."
 
  elseif ( item == "schedule" ) then
    api_vlm( "del schedule" )
    json["result"] = api_execute( './fetch schedule && ./parse schedule' )
    api_vlm( "load config/init-schedule" )
+
 
  elseif ( item == nil ) then
     json["result"] = "Missing ITEM"
