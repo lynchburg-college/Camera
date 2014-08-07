@@ -7,11 +7,8 @@
 # Start the system at reboot
 @reboot cd /home/capture/Camera && ./start &2> /dev/null
 
-# Upload
-08,38 *  *  *  *    /home/capture/Camera/upload &2> /dev/null
-
 # Schedule
-00   00  *  * 0,3   /home/capture/Camera/schedule &2> /dev/null
+00   00  *  * 0,3   cd /home/capture/Camera && ./fetch schedule && ./parse schedule &2> /dev/null
 
 # --------------
 

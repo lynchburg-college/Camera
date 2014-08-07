@@ -167,8 +167,6 @@ var interface_machine = {
                            interface_machine.read();
 
                            // Build a new media init file
-                           // Old -- 'setup recorder output #transcode{'+interface_machine.transcode+'}:standard{access=file,mux=mp4,dst=./video/%Y-%m-%dT%H:%M:%SZ.mp4} \n' +
-
                            contents = '# Media init file for ' + interface_machine.roomID + '\n\n' + 
                                       'new recorder broadcast \n'+
                                       'setup recorder input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
@@ -182,9 +180,7 @@ var interface_machine = {
                            Data.send({ command:'vlm', item:'load config/init-vlc', alert:true });
 
                            // Redraw everything
-                          window.setTimeout( function() { 
-                               interface_calendar.refresh() }
-                           , 500 );
+                           UI.reload();
                            
                         }
 }                
@@ -1100,8 +1096,8 @@ var interface_actions = {
 
            "update" : function() {
                Data.send({ command:'update', item:'software', alert:true } );         
-               window.setTimeout( function() { location.reload(true) } , 1000);
-           },
+               UI.reload();
+          },
 
 
            "debug"        : function() {
@@ -1227,6 +1223,9 @@ var UI = {
               "calendar" : interface_calendar,
               "preview"  : interface_preview,
 
+              "reload"   : function() {
+                            window.setTimeout( function() { location.reload(true) } , 1000);
+             },
 
             "render" : {
 
@@ -1507,7 +1506,7 @@ var Format = {
                    if( typeof v === 'object' ) { v=Format.object.html(v) };
                    if( typeof v === 'boolean' ) { v=(v)? 'true' : 'false' }
                    v=v.replace(/\n/g,'<br>');
-                  items = items + '<div class="row"><div class="col-sm-3"><b>'+k+'</b></div><div class="col-sm-9">'+v+ '</div></div>';
+                  items = items + '<div class="row"><div class="col-sm-1"><b class="label label-primary">'+k+'</b></div><div class="col-sm-11">'+v+ '</div></div>';
                  });
 
                 return items;

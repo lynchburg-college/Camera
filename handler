@@ -2,27 +2,47 @@
 
 # Common
 source "${0%/*}/config/common"
+source "${0%/*}/config/machine"
 
+file=$1
 
-# Only need to do this is we have somewhere to deliver it
-if [ -z "$urlUpload" ]
+# Only need to do this is if we find the file..
+if [ ! -e "$file" ] 
 then
+  log "$file not found!"
   exit 1
 fi
 
+# .. and the file is an original recording
+base=$(basename "$file")
+ext="${base##*.}"
+if [ ! $ext == "mp4" ] 
+then
+ log "Ignoring $file (not a recording)" 
+ exit 1
+fi
 
-touch $logFile
+# .. and we have somewhere to upload it..
+if [ -z "$urlUpload" ]
+then
+  echo "No upload required"
+  exit 1
+fi
 
 {
+         # Get the stats of the original
+         /usr/bin/avprobe $file &> $file.info
 
-        file=$1
+   	     # Convert the file
+ 		 /usr/bin/HandBrakeCLI --optimize --encoder x264 -vb 900 -ab 128 -i $file -o $file.converted
 
-        isBusy=$(lsof $file)
-        if [ ! -z "$isBusy" ]
-        then
-          log "Ignoring (file is open) $file"
-          exit 1
-        fi
+         # Get the stats of the converted file
+         /usr/bin/avprobe $file.converted &> $file.converted.info
+
+		 if grep -q "HandBrake" $file.converted
+ 		 then
+ 		  file=$file.converted
+ 		 fi
 
          # If the filename is a date, use it as the start time
          baseName=$(basename "$file")
@@ -51,12 +71,12 @@ touch $logFile
              info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\""
          else
              log "Matched : $info"
-             echo "$info" > $file.meta
          fi
            
+         echo "$info" > $file.meta
                     
          # Post to the media server
-         cmd="/usr/bin/curl -F \"batchMode=Y\" $info -F \"file=@$file\" -F \"keywords=$roomID $baseName\" $urlUpload"
+         cmd="/usr/bin/curl $info -F \"batchMode=Y\" -F \"convert=no\" -F \"keywords=$roomID $baseName\" -F \"file=@$file\"  $urlUpload"
          log "$cmd"
 
          if [ "$1" == "debug" ] 
@@ -75,7 +95,6 @@ touch $logFile
            else
                 $pathRoot/notify "Upload Error" "$file\n$info"
            fi
-
 
 
 } | tee -a $logFile

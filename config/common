@@ -18,10 +18,11 @@ function include {
 
 
 pathRoot="/home/capture/Camera"
-logFile="${0%/*}/log/${0##*/}.log"
 pathLog="$pathRoot/log"
 pathVideo="$pathRoot/video"
 pathConfig="$pathRoot/config"
+
+logFile="${0%/*}/log/${0##*/}.log"
 
 
 
