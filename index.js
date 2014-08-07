@@ -167,12 +167,19 @@ var interface_machine = {
                            interface_machine.read();
 
                            // Build a new media init file
-                           contents = '# Media init file for ' + interface_machine.roomID + '\n\n' + 
-                                      'new recorder broadcast \n'+
-                                      'setup recorder input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
-                                      'setup recorder option input-slave=alsa://'+interface_machine.audioDevice+' \n' +
-                                      'setup recorder output #transcode{'+interface_machine.videoTranscode+'}:standard{access=file,mux=mp4,dst=./video/%s.mp4} \n' +
-                                      'setup recorder enabled';
+                           contents='# Media init file for ' + interface_machine.roomID + '\n\n' + 
+                                  '# -------------------\n'+
+                                  'new recorder broadcast \n'+
+                                  'setup recorder input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
+                                  'setup recorder option input-slave=alsa://'+interface_machine.audioDevice+' \n' +
+                                  'setup recorder output #transcode{'+interface_machine.videoTranscode+'}:standard{access=file,mux=mp4,dst=./video/%s.mp4} \n' +
+                                  'setup recorder enabled\n'+
+                                  '# -------------------\n'+
+                                  'new preview broadcast \n'+
+                                  'setup preview input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
+                                  'setup preview option input-slave=alsa://'+interface_machine.audioDevice+' \n' +
+                                  'setup preview output #transcode{vcodec=theo,vb=1024,acodec=vorb,channels=2,ab=128,samplerate=44100}:http{mux=ogg,dst=:8889/preview.ogg}\n'+
+                                  'setup preview enabled';
                    
                            Data.send({ command:'update', item:'config', file:'init-media', contents: contents, alert:true } );
 
@@ -334,9 +341,8 @@ var interface_calendar = {
                                                      firstHour : 7,
                                                      allDaySlot : false,
 
-                                                     XXeventStartEditable : true,
-                                                     XXeventDurationEditable : true,
-                          
+                                                     viewRender : function(v,e) { $("#event-calendar-tools").removeClass("hidden") },
+                         
                                                      eventClick: Data.calendar.handler.event,
                                                      dayClick: Data.calendar.handler.day,
                                                      select : Data.calendar.select,
@@ -977,70 +983,22 @@ var interface_preview = {
 
           "show" : function() {
 
-              // Make a preview media object
-
-              var streamTranscode=':standard{access=http,mux=ts,dst=:8889/preview}';
-              var streamURL='http://'+window.location.hostname+':8889/preview';
-              var streamType='video/mp4';
-
-              Data.queue.add( { command:'vlm', item:'del preview'} );
-
-              config=Data.config.read('init-media',true).split('\n');
-              $(config).each( function(k,v) {
-                  line=v;
-                   if(  line.indexOf('recorder') > 0 ) {
-                       line=line.replace('recorder','preview');
-                       spot=line.indexOf(':standard{');
-                       if( spot > 0 ) {
-                          line=line.substr(0,spot)+streamTranscode;
-                       }
-                   Data.queue.add( { command:'vlm', item:line } );
-                  console.log( line );
-                   }
-              });
-
-              // Set a safety timer
+              // Set a safety timer and start the preview
+              Data.queue.add( { command:'vlm', item:'delete s0-preview-stop' } );
               Data.queue.add( { command:'vlm', item:'new s0-preview-stop schedule' } );
               Data.queue.add( { command:'vlm', item:'setup s0-preview-stop date '+Format.date.schedule( moment().add(5,'minutes').toDate() ) } );
               Data.queue.add( { command:'vlm', item:'setup s0-preview-stop append control preview stop' } );
               Data.queue.add( { command:'vlm', item:'setup s0-preview-stop enabled' } );
               Data.queue.add( { command:'vlm', item:'control preview play'} );
-
-              // Send commands to the engine
               Data.queue.send();
-            
-              // var content='<html>'+
-              //            '<head><title>Camera Preview</title></head>'+
-              //            '<body>'+
+           
+              $("#camera-preview").removeClass("hidden");
 
-             
-              var content = '<html>'+
-								'<head>'+
-								'  <meta charset="UTF-8">'+
-								'  <title>Preview</title>'+
-								'  <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.css"  />'+
-								'</head>'+
-								'<body>'+
-				                  '<div style="text-align:center;z-index:99;padding : 1em;">' +
-				                    '<object style="width:99%;height:90%;" id="preview-video-object" type="application/x-vlc-plugin" data="'+streamURL+'" controls="yes">' +
-				                    ' <param name="movie" value="'+streamURL+'"/>' + 
-				                    ' <param name="allowFullScreen" value="true"/>' + 
-				                    ' <param name="network-caching" value="150"/>' + 
-				                    ' <embed type="application/x-vlc-plugin" autoplay="yes"  loop="no" target="'+streamURL+'" />' + 
-				                   '</object>'+
-				                   '</div>' +
-								'</body>'+
-							'</html>';
-
-              pWindow=window.open( "", "", "menubar=0,scrollbars=0,width=320,height=200" );
-
-              pWindow.document.open();
-              pWindow.document.write( content );
-              pWindow.document.close();
-
-              pWindow.document.onClose=function() { parent.interface_preview.hide(); };
-              $(pWindow).unload(  function() { interface_preview.hide(); } );
-
+              player=$("#camera-preview video")[0];
+              player.src='http://'+window.location.hostname+':8889/preview.ogg';
+              player.load();
+              player.play();
+           
               
           },
 
@@ -1048,9 +1006,16 @@ var interface_preview = {
 
              Data.queue.add( { command:'vlm', item:'control preview stop'} );
              Data.queue.add( { command:'vlm', item:'del s0-preview-stop' } );
-             Data.queue.add( { command:'vlm', item:'del preview' } );
              Data.queue.send();
 
+             try {
+                player=$("#camera-preview video")[0];
+                player.src='';
+                player.load();
+                player.stop();
+             } catch(e) {
+             }
+             $("#camera-preview").addClass("hidden");
 
           }
            

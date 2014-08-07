@@ -96,7 +96,7 @@
         <div class="row">
            <div class="col-sm-12">
 		       <div id="event-calendar"></div>
-               <div class="well text-center">
+               <div id="event-calendar-tools" class="well text-center hidden">
                   <a href="#" class="confirm" data-action="Data.calendar.fetch" data-confirm-prompt="Fetch an updated schedule?" data-confirm-placement="top"><span class="btn btn-warning badge" title="Update Schedule"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
                   <a href="#" class="confirm" data-action="Data.calendar.clear" data-confirm-prompt="Clear the recording schedule?" data-confirm-placement="top"><span class="btn btn-warning badge" title="Clear Schedule"><span class="glyphicon glyphicon-remove"></span></span></a>
                </div>
@@ -116,7 +116,6 @@
 				        <div class="panel-heading">
 				          Video
 				          <span class="pull-right">
-				            <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.show">preview</a>
 				            <a href="#" class="btn btn-default btn-xs confirm" data-confirm-prompt="Reset video options to defaults?" data-confirm-placement="left" data-action="UI.video.reset">reset</a>
 				            <a href="#" class="btn btn-success btn-xs confirm" data-confirm-prompt="Save video configuration?" data-confirm-placement="left" data-action="UI.video.write">save</a>
 				          </span>
@@ -128,6 +127,25 @@
 
      </div>
        <div class="col-sm-6">
+
+		      <div class="panel panel-default">
+				        <div class="panel-heading">
+				             Camera Preview
+				             <span class="pull-right">
+   				               <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.show">start</a>
+                               <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.hide">stop</a>
+   				             </span>
+				        </div>
+				       <div class="panel-body">
+				         <div id="camera-preview" class="hidden">
+                          <div class="embed-responsive embed-responsive-16by9">
+                              <video style="width:80%" class="embed-responsive-item" controls></video>
+                              <hr>
+                          </div>
+                         </div>
+				       </div>
+		     </div>
+
 
 		      <div class="panel panel-default">
 				        <div class="panel-heading">
