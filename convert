@@ -4,7 +4,7 @@ source=$1
 dest=$source.converted
 
 # Convert the file
-/usr/bin/HandBrakeCLI -i $source -o $dest
+/usr/bin/HandBrakeCLI -e x264 -i $source -o $dest
 
 # Check to see if everything looks right
 if [ -e $dest ] 
