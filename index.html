@@ -60,9 +60,9 @@
 
     <ul class="nav nav-pills" role="tablist">
       <li class="active"><a href="#panel-calendar" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-calendar"></span> Schedule</a></li>
-      <li><a href="#panel-machine" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-tasks"></span> Machine</a></li>
-      <li><a href="#panel-settings" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-facetime-video"></span> Settings</a></li>
-      <li><a href="#panel-debug" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-send"></span> Debug</a></li>
+      <li><a id="link-setup" href="#panel-setup" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-cog"></span> Setup</a></li>
+      <li><a id="link-preview" href="#panel-preview" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-facetime-video"></span> Preview</a></li>
+      <li><a id="link-debug" href="#panel-debug" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-send"></span> Debug</a></li>
       <!-- <li><a href="#panel-log" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list-alt"></span> Log</a></li> -->
     </ul>
 
@@ -87,7 +87,6 @@
 	</div><!-- /.modal -->
    
 
-
    <div class="tab-content">
 
     <!-- Calendar Panel -->
@@ -107,252 +106,202 @@
 
 
    <!-- Preview Panel -->
-   <div id="panel-settings" class="tab-pane fade in">
+   <div id="panel-preview" class="tab-pane fade in">
 
-    <div class="row preview-active">
       <div class="col-sm-6">
-
-   	         <div class="panel panel-default">
-				        <div class="panel-heading">
-				          Video
-				          <span class="pull-right">
-				            <a href="#" class="btn btn-default btn-xs confirm" data-confirm-prompt="Reset video options to defaults?" data-confirm-placement="left" data-action="UI.video.reset">reset</a>
-				            <a href="#" class="btn btn-success btn-xs confirm" data-confirm-prompt="Save video configuration?" data-confirm-placement="left" data-action="UI.video.write">save</a>
-				          </span>
-				        </div>
-				       <div class="panel-body">
-				         <div id="video-controls"></div>
-				       </div>
-		     </div>
-
-     </div>
-       <div class="col-sm-6">
 
 		      <div class="panel panel-default">
 				        <div class="panel-heading">
 				             Camera Preview
-				             <span class="pull-right">
-   				               <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.show">start</a>
-                               <a href="#" class="btn btn-primary btn-xs" data-action="UI.preview.hide">stop</a>
-   				             </span>
 				        </div>
 				       <div class="panel-body">
-				         <div id="camera-preview" class="hidden">
+				         <div id="camera-preview" class="text-center">
                           <div class="embed-responsive embed-responsive-16by9">
-                              <video style="width:80%" class="embed-responsive-item" controls></video>
+                              <video style="width:90%" class="embed-responsive-item" controls></video>
                               <hr>
                           </div>
                          </div>
 				       </div>
 		     </div>
 
-
-		      <div class="panel panel-default">
+		     <div class="panel panel-default">
 				        <div class="panel-heading">
 				             Audio
 				             <span class="pull-right">
-				             <!-- <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="UI.audio.reset">reset</a> -->
-				             <a href="#" class="btn btn-success btn-xs confirm" data-confirm-prompt="Save audio configuration?" data-confirm-placement="left" data-action="UI.audio.write">save</a>
-				          </span>
+				             <!-- <a href="#" class="btn btn-default btn-xs confirm" data-confirm-placement="left" data-action="Data.audio.reset">reset</a> -->
+				             <a href="#" class="btn btn-success btn-xs confirm" data-confirm-prompt="Save audio configuration?" data-confirm-placement="left" data-action="Data.audio.write">save</a>
+ 				          </span>
 				        </div>
 				       <div class="panel-body">
 				         <div id="audio-controls"></div>
 				       </div>
 		     </div>
 
-       </div>
-
      </div>
+       <div class="col-sm-6">
+
+
+   	         <div class="panel panel-default">
+				        <div class="panel-heading">
+				          Video
+				          <span class="pull-right">
+				            <a href="#" class="btn btn-default btn-xs confirm" data-confirm-prompt="Reset video options to defaults?" data-confirm-placement="left" data-action="Data.video.reset">reset</a>
+				            <a href="#" class="btn btn-success btn-xs confirm" data-confirm-prompt="Save video configuration?" data-confirm-placement="left" data-action="Data.video.write">save</a>
+				          </span>
+				        </div>
+				       <div class="panel-body">
+				         <div id="video-controls"></div>
+				       </div>
+ 
+               </div>
+      </div>
 
     </div>
     <!-- -->
 
 
+
     <!-- Machine Panel -->
-    <div id="panel-machine" class="tab-pane fade">
+    <div id="panel-setup" class="tab-pane fade">
 
        <div class="row">
 
-          <div class="col-md-12">        
+           <div class="well well-sm text-center">
+             <button class="btn btn-primary confirm" data-confirm-prompt="Save machine configuration?" data-action="Data.machine.write">save</button>
+           </div>
 
-              <div class="panel panel-default">
-                <div class="panel-heading">
-                     Machine Configuration
-                     <span class="pull-right small">
-                      <a href="#" class="confirm" data-confirm-prompt="Download and update this software?" data-action="Data.actions.update"><span class="btn btn-warning badge" title="Update Software"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
-                      <a href="#" class="confirm" data-confirm-prompt="Reboot the machine?" data-action="Data.actions.reboot"><span class="btn btn-warning badge" title="Reboot Machine"><span class="glyphicon glyphicon-off"></span></span></a>
-                      <button class="btn btn-primary btn-xs confirm" data-confirm-prompt="Save machine configuration?" data-action="Data.machine.write">save</button>
-                     </span>
-               </div>
+      </div>
 
-                <div class="panel-body">
+       <div class="row">
+         <div class="col-sm-10 col-sm-offset-1">
 
-                  <form id="config-form" class="form-horizontal" onSubmit="return false">
 
-					<div class="panel-group" id="settings">
+          <form id="config-form" onSubmit="return false">
 
-					  <div class="panel panel-default">
-						<div class="panel-heading">
-						  <h4 class="panel-title">
-							<a data-toggle="collapse" data-parent="#settings" href="#collapseOne">
-							  <span class="glyphicon glyphicon-hdd"></span>   Identification
-							</a>
-						  </h4>
-						</div>
-						<div id="collapseOne" class="panel-collapse collapse in">
-						  <div class="panel-body">
+
+ 								     <div class="form-group">
+                                      <label>Room ID</label>
+  							          <input class="form-control"  name="roomID" size="8" maxlength="8" />
+                                      <div class="help-block">Required: No spaces, max 8 characters</div>
+                                     </div>
+
+ 								     <div class="form-group">
+                                      <label>Room Name</label>
+  							          <input class="form-control"  name="roomName" size="24" maxlength="24" />
+                                      <div class="help-block">Optional</div>
+                                     </div>
+
+                                    <hr>
 
 								    <div class="form-group">
-				 
-								      <label  class="col-sm-2 control-label">Room ID</label>
-								      <div class="col-sm-2">
-								        <input class="form-control" name="roomID" maxlength="8" />
-								      </div>
-
-								      <label class="col-sm-2 control-label">Room Name</label>
-								      <div class="col-sm-6">
-								        <input class="form-control" name="roomName" />
-								     </div>
-				   
-								    </div>
-
-                        </div>
-                      </div>
-                     </div>
-
-
-					  <div class="panel panel-default">
-						<div class="panel-heading">
-						  <h4 class="panel-title">
-							<a data-toggle="collapse" data-parent="#settings" href="#collapseTwo">
-							  <span class="glyphicon glyphicon-facetime-video"></span>   Audio and Video
-							</a>
-						  </h4>
-						</div>
-						<div id="collapseTwo" class="panel-collapse collapse">
-						  <div class="panel-body">
-
-
-								    <div class="form-group">
-								      <label class="col-sm-2 control-label">Audio Device</label>
-								      <div class="col-sm-10 small">
-								         <select class="form-control" name="audioDevice"></select>
-								      </div>
+								      <label>Audio Device</label>
+							          <select class="form-control" name="audioDevice"></select>
 								    </div>
 
 								    <div class="form-group">
+								      <label>Video Device</label>
+							          <select class="form-control" name="videoDevice"></select>
+                                    </div>
 
-								          <label class="col-sm-2 control-label">Video Device</label>
-								            <div class="col-sm-6 small">
-								             <select class="form-control" name="videoDevice"></select>
-								           </div>
-
-								          <label class="col-sm-1 control-label">Format</label>
-								          <div class="col-sm-3 small">
-								           <select class="form-control" name="videoFormat"></select>
-								          </div>
-
+								    <div class="form-group">
+								      <label>Video Format</label>
+  						              <select class="form-control" name="videoFormat"></select>
 								    </div>
 
 								    <div class="form-group">
-								      <label class="col-sm-2 control-label">Video Transcode</label>
-								      <div class="col-sm-10">
-								        <input class="form-control" name="videoTranscode" />
-								      </div>
-								    </div>
+								      <label>Video Transcode</label>
+                                      <input class="form-control" name="videoTranscode" />
+    							    </div>
 
-                         </div>
-                       </div>
-                      </div>
-
-
-					  <div class="panel panel-default">
-						<div class="panel-heading">
-						  <h4 class="panel-title">
-							<a data-toggle="collapse" data-parent="#settings" href="#collapseThree">
-							  <span class="glyphicon glyphicon-transfer"></span>   Network and URLs
-							</a>
-						  </h4>
-						</div>
-						<div id="collapseThree" class="panel-collapse collapse">
-						  <div class="panel-body">
+                                    <hr>
 
 								    <div class="form-group">
-								      <label class="col-sm-2 control-label">Schedule</span></label>
-								       <div class="col-sm-10">
+								      <label>Schedule</label>
 								        <div class="input-group">
 								           <input class="form-control" name="urlSchedule" />
 								           <span class="input-group-btn">
-								            <button class="btn btn-xs btn-primary" data-action="Data.calendar.fetch">fetch</button>
+								            <button class="btn btn-xs btn-primary" data-action="Data.calendar.fetch">fetch now</button>
 								           </span>
 								        </div> 
                                         <div class="help-block">Optional: Where to obtain the room schedule</div>
-								       </div> 
 								    </div>
 
 								    <div class="form-group">
-								      <label class="col-sm-2 control-label">Upload</label>
-								      <div class="col-sm-10">
+								      <label>Upload</label>
 								        <input class="form-control" name="urlUpload" />
                                         <div class="help-block">Optional: Where to upload completed recordings</div>
-								      </div>
 								    </div>
 
-								    <hr>
-
-              
-
-
-                        </div>
-                      </div>
-                    </div>
-
-
-					  <div class="panel panel-default">
-						<div class="panel-heading">
-						  <h4 class="panel-title">
-							<a data-toggle="collapse" data-parent="#settings" href="#collapseFour">
-							  <span class="glyphicon glyphicon-bullhorn"></span>   Notification and Alerts
-							</a>
-						  </h4>
-						</div>
-						<div id="collapseFour" class="panel-collapse collapse">
-						  <div class="panel-body">
-
+                                    <hr>
 
 						        <div class="form-group">
-						          <label class="col-sm-2 control-label">Notify</label>
-						          <div class="col-sm-10">
+						          <label>Notify</label>
 						            <input class="form-control" name="notify" />
 						            <div class="help-block">Optional, email address to receive various notifications</div>
-						          </div>
 						        </div>
 
-
-                        </div>
-                      </div>
-                    </div>
-
-                 </div>
-
-
-                 </form>
-                </div>
-                <div class="panel-footer">
-                 <div class="row">
-                  <div class="text-center">
-                   <button class="btn btn-primary" data-action="Data.machine.write">Save Configuration</button>
-                  </div>
-                 </div>
-               </div>
-            </div> 
-
-          </div>
-        
+          </form>
 
         </div>
+       </div>
 
-        <hr>
+      <div class="row">
+
+           <div class="well well-sm text-center">
+             <button class="btn btn-primary confirm" data-confirm-prompt="Save machine configuration?" data-confirm-placement="top" data-action="Data.machine.write">save</button>
+
+             <span class="pull-right">
+              <a href="#" class="confirm" data-confirm-prompt="Download and update this software?" data-action="Data.actions.update"><span class="btn btn-warning badge" title="Update Software"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
+                      <a href="#" class="confirm" data-confirm-prompt="Reboot the machine?" data-action="Data.actions.reboot"><span class="btn btn-warning badge" title="Reboot Machine"><span class="glyphicon glyphicon-off"></span></span></a>
+             </span>
+           </div>
+
+      </div>
+
+   </div>
+
+
+     <!-- Debug Panel -->
+     <div id="panel-debug" class="tab-pane fade">
+
+            <div class="row">
+
+             <div class="col-sm-3">
+ 
+              <div class="panel panel-default">
+                <div class="panel-heading">Debug Command</div>
+                <div class="panel-body">
+                       <select id="debug-common">
+                         <option value=''>-- choose a command --</option>
+                         <option value='command:"vlm",item:"load config/init-schedule"'>VLM - Init Media</option>
+                         <option value='command:"vlm",item:"show media"'>VLM - Show Media</option>
+                         <option value='command:"vlm",item:"load config/init-schedule"'>VLM - Init Schedule</option>
+                         <option value='command:"vlm",item:"show schedule"'>VLM - Show Schedule</option>
+                         <option value='command:"vlm",item:"control recorder play"'>VLM - Recorder Start</option>
+                         <option value='command:"vlm",item:"control recorder stop"'>VLM - Recorder Stop</option>
+                       </select>                       
+                       <hr>
+                       <textarea id="debug-object" style="width:100%;height:80px;">
+                       </textarea>
+                </div>
+                <div class="panel-footer"> 
+                       <button class="btn btn-primary" data-action="Data.actions.debug">Send Command Object</button>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="col-sm-9">
+              <div class="panel panel-default">
+                <div class="panel-heading">Debug Console</div>
+                <div class="panel-body">
+                  <div id="debug-console"></div>
+                </div>
+              </div>
+            </div>
+
+
+       </div>
 
         <div class="row">
         <div class="col-sm-6">
@@ -384,54 +333,7 @@
 
       </div>
 
-   </div>
-
-
-
-     <!-- Debug Panel -->
-     <div id="panel-debug" class="tab-pane fade">
-
-            <div class="row">
-
-             <div class="col-sm-3">
- 
-              <div class="panel panel-default">
-                <div class="panel-heading">Debug Command</div>
-                <div class="panel-body">
-                       <select id="debug-common">
-                         <option value=''>-- choose a command --</option>
-                         <option value='command:"vlm",item:"load config/init-schedule"'>VLM - Init Media</option>
-                         <option value='command:"vlm",item:"show media"'>VLM - Show Media</option>
-                         <option value='command:"vlm",item:"load config/init-schedule"'>VLM - Init Schedule</option>
-                         <option value='command:"vlm",item:"show schedule"'>VLM - Show Schedule</option>
-                         <option value='command:"vlm",item:"control recorder play"'>VLM - Recorder Start</option>
-                         <option value='command:"vlm",item:"control recorder stop"'>VLM - Recorder Stop</option>
-                       </select>                       
-                       <hr>
-                       <textarea id="debug-object" style="width:100%;height:200px;">
-                       </textarea>
-                </div>
-                <div class="panel-footer"> 
-                       <button class="btn btn-primary" data-action="Data.actions.debug">Send Command Object</button>
-                </div>
-
-              </div>
-            </div>
-
-            <div class="col-sm-9">
-              <div class="panel panel-default">
-                <div class="panel-heading">Debug Console</div>
-                <div class="panel-body">
-                  <div id="debug-console"></div>
-                </div>
-              </div>
-            </div>
-
-
-       </div>
-
     </div>
-
 
 
 

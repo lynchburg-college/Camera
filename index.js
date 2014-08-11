@@ -129,17 +129,23 @@ var interface_machine = {
 
                       "read" : function() {
 
+                                  interface_audio.setup.devices();
+                                  interface_video.setup.devices();
+
                                   var config=Data.config.read('machine');
                                   $.each( config, function(i,v) {
                                     interface_machine[ v['name'].trim() ] = v['value'];
-                                    cc=$("#config-form *[name="+v['name']+']').val( v['value'] );
-                                 });
+                                    cc=$('#config-form *[name='+v['name']+']').val( v['value'] );
+                                  });
+
+                                  // Dependent stuff
+                                  interface_video.setup.formats();
+                                  cc=$('#config-form *[name=videoFormat]').val( interface_machine.videoFormat );
+
                                  
                                   // Update some on-screen stuff
-                                  $("#roomInfo").text( interface_machine.roomID + ' / ' + interface_machine.roomName )
-                                  $(".video-device").text( interface_machine.videoDevice + ' (' + interface_machine.videoFormat + ')'  );
-                                  $(".audio-device").text( interface_machine.audioDevice );
                                   document.title='Capture-'+(interface_machine.roomID||'');
+                                  $("#roomInfo").text( interface_machine.roomID + ' / ' + interface_machine.roomName )
 
                                   // Safety checks:
                                   if( (''+interface_machine['videoDevice']) == '' ) {
@@ -179,6 +185,7 @@ var interface_machine = {
                                   'setup preview input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
                                   'setup preview option input-slave=alsa://'+interface_machine.audioDevice+' \n' +
                                   'setup preview output #transcode{vcodec=theo,vb=1024,acodec=vorb,channels=2,ab=128,samplerate=44100}:http{mux=ogg,dst=:8889/preview.ogg}\n'+
+                                  '# -------------------\n'+
                                   'setup preview enabled';
                    
                            Data.send({ command:'update', item:'config', file:'init-media', contents: contents, alert:true } );
@@ -529,10 +536,6 @@ var interface_calendar = {
 
 var interface_audio = {
 
-         "init" : function() {
-            interface_audio.setup.devices();
-            interface_audio.setup.controls();
-         },
 
          "setup" : {
 						 "devices" : function() {
@@ -734,12 +737,6 @@ var interface_video = {
 
           },
 
-
-         "init" : function() {
-                     interface_video.setup.devices();
-                     interface_video.setup.formats();
-                     interface_video.setup.controls();
-         },
 
 
          "setup" : {
@@ -981,7 +978,22 @@ var interface_recordings = {
 
 var interface_preview = {
 
-          "show" : function() {
+          "start" : function() {
+
+              if ( 
+                  (interface_machine.videoDevice||'')=='' ||
+                  (interface_machine.videoFormat||'')=='' ||
+                  (interface_machine.audioDevice||'')==''
+                 ) {
+                      UI.alert( 'Missing Video or Audio configuration.', { type:'danger' } );
+                      $("#link-machine").tab("show");
+                      return false;
+                   };
+          
+              // Load the audio and video controls
+              interface_video.setup.controls();
+              interface_audio.setup.controls();
+
 
               // Set a safety timer and start the preview
               Data.queue.add( { command:'vlm', item:'delete s0-preview-stop' } );
@@ -992,18 +1004,17 @@ var interface_preview = {
               Data.queue.add( { command:'vlm', item:'control preview play'} );
               Data.queue.send();
            
-              $("#camera-preview").removeClass("hidden");
-
               player=$("#camera-preview video")[0];
               player.src='http://'+window.location.hostname+':8889/preview.ogg';
               player.load();
               player.play();
-           
+              console.log("Starting Preview");    
               
           },
 
-          "hide" : function() {
+          "stop" : function() {
 
+             console.log("stopping preview");
              Data.queue.add( { command:'vlm', item:'control preview stop'} );
              Data.queue.add( { command:'vlm', item:'del s0-preview-stop' } );
              Data.queue.send();
@@ -1015,7 +1026,6 @@ var interface_preview = {
                 player.stop();
              } catch(e) {
              }
-             $("#camera-preview").addClass("hidden");
 
           }
            
@@ -1090,6 +1100,8 @@ var Data = {
                 "common"   : interface_common,
                 "machine"  : interface_machine,
                 "media"    : interface_media,
+                "audio"    : interface_audio,
+                "video"    : interface_video,
                 "calendar" : interface_calendar,
                 "actions"  : interface_actions,
  
@@ -1183,8 +1195,6 @@ var Data = {
 var UI = {
 
             "recordings" : interface_recordings,  
-                 "video" : interface_video,  
-                 "audio" : interface_audio,  
               "calendar" : interface_calendar,
               "preview"  : interface_preview,
 
@@ -1390,7 +1400,7 @@ var UI = {
 
               var alertDisplay=Format.object.html( alertObject );
 
-              var alertOptions= $.extend( { offset: { from:'top', amount: 20 }, align:'right', type:'info', width:400, delay:2500 } , (displayOptions || {} ) );
+              var alertOptions= $.extend( { offset: { from:'top', amount: 20 }, align:'center', type:'info', width:'450', delay:2500 } , (displayOptions || {} ) );
 
               alertOptions.delay=(alertOptions.type=='danger') ? (alertOptions.delay||9999) : 2500;
 
@@ -1403,11 +1413,9 @@ var UI = {
 
           "init"    : function() {
 
-              UI.preview.hide();
               UI.calendar.init();
-              UI.video.init();
-              UI.audio.init();
               UI.recordings.init();
+              UI.preview.stop();
 
               $(".datepicker").datetimepicker( { pickTime : false });
               $(".timepicker").datetimepicker( { pickDate : false, useSeconds:false, minuteStepping: 15  });
@@ -1419,9 +1427,15 @@ var UI = {
               });
 
               $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-                       interface_calendar.refresh();
+
+                       tabFrom=e.relatedTarget.hash;
+                       tabTo=e.target.hash;
+                       if (tabTo=='#panel-calendar')  {  UI.calendar.refresh() };
+                       if (tabTo=='#panel-preview')  {  UI.preview.start() };
+                       if (tabFrom=='#panel-preview') {  UI.preview.stop(); };
               });
 
+              $( window ).unload(  function() { UI.preview.stop(); } );
               window.setInterval( function() { UI.calendar.refresh(); }, (1 * 60 * 1000) );
 
               UI.log("Launched management interface");
