@@ -1075,7 +1075,7 @@ var interface_actions = {
            },
 
            "update" : function() {
-               Data.send({ command:'machine', item:'update', alert:true } );         
+               Data.send({ command:'update', item:'software', alert:true } );         
                UI.reload();
           },
 
