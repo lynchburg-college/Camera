@@ -151,7 +151,17 @@ elseif ( command == "parse" ) then
 elseif ( command == "machine" ) then
 
   if  ( item == "reboot"  ) then
-   json["result"] = api_execute( '/sbin/reboot' )
+   json["result"] = api_execute( 'sudo /sbin/reboot' )
+
+  elseif  ( item == "hostname"  ) then
+     if ( action == "set" ) then
+        value = _GET["value"]
+        json["result"] = api_execute( 'c=$(hostname) && sudo sed -i "s/$c/capture-something/g" /etc/hosts' )
+        json["alert"]="Remember to reboot!"
+     else
+        json["result"] = api_execute( '/bin/hostname' )
+     end 
+
 
   elseif ( item == "ifconfig" ) then
    json["result"] = api_execute( '/sbin/ifconfig' )
