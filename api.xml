@@ -153,6 +153,10 @@ elseif ( command == "machine" ) then
   if  ( item == "reboot"  ) then
    json["result"] = api_execute( 'sudo /sbin/reboot' )
 
+
+  elseif ( item == "software" ) then
+   json["result"] = api_execute( 'git pull' )
+
   elseif  ( item == "hostname"  ) then
      if ( action == "set" ) then
         value = _GET["value"]
@@ -309,9 +313,6 @@ elseif ( command == "update" ) then
    local configContents=_GET["contents"]
    json["result"] = api_writefile( configFile, configContents )
  
- elseif ( item == "software" ) then
-   json["result"] = api_execute( 'git pull' )
-
  elseif ( item == "schedule-clear" ) then
    api_vlm( "del schedule" )
    api_writefile( "schedule-local","#cleared" )

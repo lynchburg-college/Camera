@@ -1071,11 +1071,11 @@ var interface_actions = {
             },
 
            "reboot"        : function() {
-               Data.send( { command:'control', item:'reboot', alert:true } );          
+               Data.send( { command:'machine', item:'reboot', alert:true } );          
            },
 
            "update" : function() {
-               Data.send({ command:'update', item:'software', alert:true } );         
+               Data.send({ command:'machine', item:'update', alert:true } );         
                UI.reload();
           },
 
