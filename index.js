@@ -132,6 +132,7 @@ var interface_machine = {
                                   interface_audio.setup.devices();
                                   interface_video.setup.devices();
 
+                                  // Read the config file
                                   var config=Data.config.read('machine');
                                   $.each( config, function(i,v) {
                                     interface_machine[ v['name'].trim() ] = v['value'];
@@ -141,8 +142,7 @@ var interface_machine = {
                                   // Dependent stuff
                                   interface_video.setup.formats();
                                   cc=$('#config-form *[name=videoFormat]').val( interface_machine.videoFormat );
-
-                                 
+ 
                                   // Update some on-screen stuff
                                   document.title='Capture-'+(interface_machine.roomID||'');
                                   $("#roomInfo").text( interface_machine.roomID + ' / ' + interface_machine.roomName )
@@ -155,7 +155,12 @@ var interface_machine = {
                                       UI.alert( { alert:'No audio device selected!' }, { type:'danger' } );
                                   };
 
-                           
+                                  var hostname=Data.send ( { command:'machine', item:'hostname' } ).result;
+
+                                  if ( hostname.indexOf( interface_machine.roomID ) == -1 ) {
+                                    $('.action-hostname').removeClass('hidden');
+                                    $('.action-hostname').find('span.hostname').html('CAPTURE-'+(interface_machine.roomID.toUpperCase()));
+                                  };
 
                         },
 
@@ -166,12 +171,11 @@ var interface_machine = {
 
                            $.each( config, function(i,item) { 
                                contents += item.name+'="'+item.value+'"\n';
-
                            });
 
                            Data.send({ command:'update', item:'config', file:'machine', contents: contents, alert:true } );
                            interface_machine.read();
-
+            
                            // Build a new media init file
                            contents='# Media init file for ' + interface_machine.roomID + '\n\n' + 
                                   '# -------------------\n'+
@@ -189,6 +193,7 @@ var interface_machine = {
                                   'setup preview enabled';
                    
                            Data.send({ command:'update', item:'config', file:'init-media', contents: contents, alert:true } );
+
 
                            // Re-load the stuff
                            Data.send({ command:'vlm', item:'load config/init-vlc', alert:true });

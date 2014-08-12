@@ -164,10 +164,16 @@
     <!-- Machine Panel -->
     <div id="panel-setup" class="tab-pane fade">
 
-       <div class="row">
+      <div class="row">
 
            <div class="well well-sm text-center">
-             <button class="btn btn-primary confirm" data-confirm-prompt="Save machine configuration?" data-action="Data.machine.write">save</button>
+             <button class="btn btn-primary confirm" data-confirm-prompt="Save machine configuration?" data-confirm-placement="bottom" data-action="Data.machine.write"><span class="glyphicon glyphicon-floppy-save"></span>  Save</button>
+             <a href="#" class="action-hostname hidden confirm" data-confirm-prompt="Are you sure?  This will reboot the machine" data-confirm-placement="bottom" data-action="Data.actions.hostname"><span class="btn btn-danger" title="Update Hostname"><span class="glyphicon glyphicon-exclamation-sign"></span>  Set hostname to <span class="hostname"></span>  <span class="small">(requires reboot)</span></span></span></a>
+
+             <span class="pull-right">
+              <a href="#" class="confirm" data-confirm-prompt="Download and update this software?" data-action="Data.actions.update"><span class="btn btn-warning badge" title="Update Software"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
+              <a href="#" class="confirm" data-confirm-prompt="Reboot the machine?" data-action="Data.actions.reboot"><span class="btn btn-warning badge" title="Reboot Machine"><span class="glyphicon glyphicon-off"></span></span></a>
+             </span>
            </div>
 
       </div>
@@ -179,16 +185,26 @@
           <form id="config-form" onSubmit="return false">
 
 
- 								     <div class="form-group">
-                                      <label>Room ID</label>
-  							          <input class="form-control"  name="roomID" size="8" maxlength="8" />
-                                      <div class="help-block">Required: No spaces, max 8 characters</div>
+                                     <div class="row">
+
+                                     <div class="col-sm-3">
+		                                 <div class="form-group">
+				                                  <label>Room ID</label>
+			  							          <input class="form-control"  name="roomID" size="10" maxlength="10" />
+		   	                                      <div class="help-block">
+				                                    Required: No spaces</span>
+				                                  </div>
+                                          </div>
+                                     </div>    
+
+                                     <div class="col-sm-9">
+	 								     <div class="form-group">
+		                                  <label>Room Name</label>
+	  							          <input class="form-control"  name="roomName" size="24" maxlength="24" />
+		                                  <div class="help-block">Optional</div>
+		                                 </div>
                                      </div>
 
- 								     <div class="form-group">
-                                      <label>Room Name</label>
-  							          <input class="form-control"  name="roomName" size="24" maxlength="24" />
-                                      <div class="help-block">Optional</div>
                                      </div>
 
                                     <hr>
@@ -245,18 +261,6 @@
         </div>
        </div>
 
-      <div class="row">
-
-           <div class="well well-sm text-center">
-             <button class="btn btn-primary confirm" data-confirm-prompt="Save machine configuration?" data-confirm-placement="top" data-action="Data.machine.write">save</button>
-
-             <span class="pull-right">
-              <a href="#" class="confirm" data-confirm-prompt="Download and update this software?" data-action="Data.actions.update"><span class="btn btn-warning badge" title="Update Software"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
-                      <a href="#" class="confirm" data-confirm-prompt="Reboot the machine?" data-action="Data.actions.reboot"><span class="btn btn-warning badge" title="Reboot Machine"><span class="glyphicon glyphicon-off"></span></span></a>
-             </span>
-           </div>
-
-      </div>
 
    </div>
 
