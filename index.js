@@ -157,9 +157,9 @@ var interface_machine = {
 
                                   var hostname=Data.send ( { command:'machine', item:'hostname' } ).result;
 
-                                  if ( hostname.indexOf( interface_machine.roomID ) == -1 ) {
+                                  if ( hostname.toLowerCase().indexOf( interface_machine.roomID.toLowerCase() ) == -1 ) {
                                     $('.action-hostname').removeClass('hidden');
-                                    $('.action-hostname').find('span.hostname').html('CAPTURE-'+(interface_machine.roomID.toUpperCase()));
+                                    $('.action-hostname').find('span.hostname').html( ('capture-'+interface_machine.roomID).toLowerCase() );
                                   };
 
                         },
@@ -1419,7 +1419,6 @@ var UI = {
           "init"    : function() {
 
               UI.calendar.init();
-              UI.recordings.init();
               UI.preview.stop();
 
               $(".datepicker").datetimepicker( { pickTime : false });
