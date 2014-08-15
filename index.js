@@ -189,7 +189,8 @@ var interface_machine = {
                                   'new preview broadcast \n'+
                                   'setup preview input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
                                   'setup preview option input-slave=alsa://'+interface_machine.audioDevice+' \n' +
-                                  'setup preview output #transcode{vcodec=theo,vb=800,scale=1,deinterlace=0,acodec=vorb,channels=2,ab=128,samplerate=44100}:http{mux=ogg,dst=:8889/preview.ogg}\n'+
+                                  'setup preview option http-caching=1500 \n'+
+                                  'setup preview output #transcode{vcodec=theo,vb=800,scale=1,acodec=vorb,channels=1,ab=64,samplerate=22050}:http{mux=ogg,dst=:8889/preview.ogg}\n'+
                                   '# -------------------\n'+
                                   'setup preview enabled';
                    
