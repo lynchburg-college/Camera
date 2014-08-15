@@ -178,12 +178,13 @@ var interface_machine = {
             
                            // Build a new media init file
                            contents='# Media init file for ' + interface_machine.roomID + '\n\n' + 
+                                  'del media \n' + 
                                   '# -------------------\n'+
                                   'new recorder broadcast \n'+
                                   'setup recorder input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
                                   'setup recorder option input-slave=alsa://'+interface_machine.audioDevice+' \n' +
                                   'setup recorder output #transcode{'+interface_machine.videoTranscode+'}:standard{access=file,mux=mp4,dst=./video/%s.mp4} \n' +
-                                  'setup recorder enabled\n'+
+                                  'setup recorder enabled \n'+
                                   '# -------------------\n'+
                                   'new preview broadcast \n'+
                                   'setup preview input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
