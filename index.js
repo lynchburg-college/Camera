@@ -1049,14 +1049,9 @@ var interface_preview = {
               Data.queue.add( { command:'vlm', item:'control preview play'} );
               Data.queue.send();
            
-              window.setTimeout( function() {
-											  player=$("#camera-preview video")[0];
-											  player.src='http://'+window.location.hostname+':8889/preview.ogg';
-											  player.load();
-											  player.play();
-                                              console.log("Starting Preview");    
-                                             }, 2000 );
-
+			  player=$("#camera-preview video")[0];
+			  player.src='http://'+window.location.hostname+':8889/preview.ogg';
+			  player.load();
               console.log("Preview Configured");    
               
           },
