@@ -36,8 +36,10 @@ case "$item" in
 					scheduleCounter=1
 
 					inputLocal="config/schedule-local"
+                    touch $inputLocal
+
 					inputRemote="config/schedule-remote"
-                    touch $inputLocal $inputRemote
+                    touch $inputRemote
 
 					outputSchedule="config/init-schedule"
 					backup "$outputSchedule"

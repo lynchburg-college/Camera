@@ -341,24 +341,58 @@ var interface_calendar = {
 
                       interface_calendar.element.fullCalendar( {  
 
-                                                     header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaDay'},
+                                                     header: {  left: 'prev,next today',  center: 'title',  right: 'month,agendaWeek,agendaDay'},
                                                      contentHeight: 500,
                                                      handleWindowResize: true ,
+
                                                      selectable: true,
-                                                     selectHelper: true,
+                                                     selectHelper: function( momentStart, momentEnd ) {
+
+                                                         duration=momentEnd.diff( momentStart, 'minutes');
+
+                                                         return $('<div class="fc-event fc-select-helper">'+
+                                                                  '<span class="badge label label-warning"><span class="glyphicon glyphicon-time"></span>  '+duration+' minutes</span>  '+
+                                                                  '(<b>'+momentStart.format("h:mm a")+'</b> to <b>'+momentEnd.format("h:mm a")+'</b>)'+
+                                                                  '</div>');
+                                                     },
+
                                                      now:  moment(),
                                                      defaultView : 'month',
                                                      defaultTimedEventDuration : '00:10:00',
                                                      slotDuration : '00:10:00',
                                                      firstHour : 7,
+
                                                      allDaySlot : false,
+                                                     allDayDefault : false,
+
+                                                     timeFormat : {
+                                                          agenda : 'h:mm T',
+                                                          month : 'h(:mm)t'
+                                                     },
+                                                     displayEventEnd : {
+                                                          agenda : 'h:mm T',
+                                                          month : 'h(:mm)t'
+                                                     },
 
                                                      viewRender : function(v,e) { $("#event-calendar-tools").removeClass("hidden") },
                          
                                                      eventClick: Data.calendar.handler.event,
                                                      dayClick: Data.calendar.handler.day,
-                                                     select : Data.calendar.select,
-                                                     events : Data.calendar.events
+                                                     select : Data.calendar.handler.select,
+
+                                                     eventSources : [
+                                                         {
+                                                           events : Data.calendar.events,
+                                                           color  : '#2F4F4F',
+                                                           textColor : '#FFFFFF'
+                                                         },
+                                                         {
+                                                           url : 'config/schedule-local',
+                                                           color  : '#8A2BE2',
+                                                           textColor : '#FFFFFF'
+                                                         }
+
+                                                    ] 
                                               });
 
                       $(".calendar-controls").removeClass("hidden");                 
@@ -424,34 +458,39 @@ var interface_calendar = {
                                     "event" : function( event, jsEvent, view) {
 
 												  interface_calendar.element.fullCalendar( 'unselect' );
-                                                  
                                                   UI.render.schedule( interface_calendar.handler.attachmetadata( event )  );
                                       },
 
                                      "day" :  function( date, jsEvent, view) {
 
-											   if( (view.name!='agendaDay') &&  ( !date.isBefore() )  ) {
+											   if( (view.name =='month') &&  ( !date.isBefore() )  ) {
 												   interface_calendar.element.fullCalendar( 'gotoDate', date );
 												   interface_calendar.element.fullCalendar('changeView','agendaDay');
 			             					   }
-                                      }
-         },
+                                      },
           
-          "select" : function( startMoment, endMoment, jsEvent, view) {
+									  "select" : function( startMoment, endMoment, jsEvent, view) {
 
-                       if( view.name != 'agendaDay') { return false };
+												   interface_calendar.element.fullCalendar( 'unselect' );
 
-                       interface_calendar.element.fullCalendar( 'unselect' );
+												   if( view.name.indexOf('agenda') == -1 ) { return false };
 
-                       validate=interface_calendar.handler.validate( startMoment, endMoment );
-                       if( validate.conflict ) {
-                            UI.alert( 'Cannot add:Conflicts with existing schedule', { type:'danger', duration:3000 } );
-                            return false;
-                       };
+												   if( startMoment.isBefore( moment() )) { 
+                                                       UI.alert('<b>Cannot Schedule</b> : Start date/time has already passed!', { type:'danger' });
+                                                       return false;
+                                                   };
+                                                   
 
-                       event=interface_calendar.handler.attachmetadata( { start:startMoment, end:endMoment, sID:'', courseID:'' } );
-                       UI.render.schedule( event );
+												   validate=interface_calendar.handler.validate( startMoment, endMoment );
+												   if( validate.conflict ) {
+														UI.alert( 'Cannot add:Conflicts with existing schedule', { type:'danger', duration:3000 } );
+														return false;
+												   };
 
+												   event=interface_calendar.handler.attachmetadata( { start:startMoment, end:endMoment, sID:'', courseID:'' } );
+												   UI.render.schedule( event );
+
+									  }
           },
 
           "delete"     : function( calendarEvent ) {
@@ -484,8 +523,6 @@ var interface_calendar = {
                      eventType=eventInfo[2];
                      eventLaunch=v['next launch'].substring(0,19);
 
-                     eventColor = eventName.indexOf('ADHOC') ? 'darkolivegreen' : 'darkseagreen' ;
-
                      event = ( events[eventID] );
 
                      if(!event) {
@@ -494,7 +531,6 @@ var interface_calendar = {
                                 title:eventName,
                                 durationEditable : false,
                                 allDay:false,
-                                color:eventColor,
                                 start:eventLaunch
                                };
                      }
@@ -508,7 +544,7 @@ var interface_calendar = {
                        event['hasEnd']=true;
                      }             
 
-                     events[eventID] = event;
+                    events[eventID] = event;
 
                   }                                           
 
@@ -517,15 +553,17 @@ var interface_calendar = {
           eventsArray=[];
           $.each( events, function(k,v) {
 
-              eventStart=new Date(v.start);
-              eventEnd=new Date(v.end);
+              eventStart=moment(v.start, "YYYY-MM-DD hh:mm:ss");
+              eventEnd=moment(v.end, "YYYY-MM-DD hh:mm:ss");
 
               if( !v.hasStart ) { v.allDay=true; v.title = v.title + ' (until '+Format.time.compressed(v.end)+')'; v.color='deeppink'; }
-              if( (calendarStart <= eventStart) && ( eventEnd <= calendarEnd ) ) {
+
+              if( calendarStart.isBefore( eventStart ) && calendarEnd.isAfter( eventEnd ) ) {
                eventsArray.push(v) 
               }
 
            });
+
 
           if(callback) {
            callback(eventsArray);
@@ -1019,7 +1057,6 @@ var interface_preview = {
 
           "stop" : function() {
 
-             console.log("stopping preview");
              Data.queue.add( { command:'vlm', item:'control preview stop'} );
              Data.queue.add( { command:'vlm', item:'del s0-preview-stop' } );
              Data.queue.send();
@@ -1165,7 +1202,7 @@ var Data = {
 
                       var response = $.ajax({
                                 type: "GET",
-                                url: "api.xml",
+                                url: "index.json",
                                 async: false,
                                 data : commandObject
                             }).responseText;
