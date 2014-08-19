@@ -1,18 +1,32 @@
 #!/bin/bash
 
-source=$1
-dest=$source.converted
+# Expand these first..
+source="$1"
+dest="$source.converted"
 
-# Convert the file
-/usr/bin/HandBrakeCLI -e x264 -i $source -o $dest
+# Common
+source "${0%/*}/config/common"
+source "${0%/*}/config/machine"
 
-# Check to see if everything looks right
-if [ -e $dest ] 
+# Get the convert command
+if [ "$videoConvert" == "" ] 
 then
- echo $dest
-else
- echo $source
+ exit 1
 fi
+
+{
+	# Issue the conversion command
+	eval "$videoConvert"
+
+	# Check to see if the thing converted
+	if [ -e $dest ] 
+	then
+	 echo $dest
+	else
+	 echo $source
+	fi
+
+} || tee -a $logFile
 
 
 

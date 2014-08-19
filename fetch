@@ -5,6 +5,7 @@
 source "${0%/*}/config/common"
 source "${0%/*}/config/machine"
 
+{
 log "Fetch starting"
 
 item=$1
@@ -45,5 +46,7 @@ log "File=$configFile"
 curl --silent "$url" > "$configFile"
 
 log "Fetch completed."
+} || tee -a $logFile
+
 exit 0
 
