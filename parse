@@ -16,14 +16,27 @@ fi
 case "$item" in
 
     "meta-epoch" )
-           metaMatch=$2
-           if [ ! "$metaMatch" == "" ]
+           epoch=$2
+           if [ ! "$epoch" == "" ]
            then
-              echo $metaMatch
-              awk '{  if( d+20 >= ($2) &&  d-20 <= ($3) ) { print $0 }  }' d="$metaMatch" config/meta  | head -1  | cut -d'|' -f 3-
+
+                    sourceData=$(grep -h "|" config/meta) 
+
+                    while IFS="|" read -r scheduleid start stop title description owner
+                    do
+                         checkStart=$(( $start - 20 ))
+                         checkStop=$(( $stop + 20 ))
+
+                         if [[ "$checkStart" -le "$epoch" && "$epoch" -le "$checkStop" ]] 
+                         then
+                               echo "$title|$description|$owner"
+                         fi
+
+                    done <<< "$sourceData"
            fi
            ;;
-
+           
+	
 
     "meta-id" )
            metaMatch=$2
