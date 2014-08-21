@@ -19,7 +19,8 @@ case "$item" in
            metaMatch=$2
            if [ ! "$metaMatch" == "" ]
            then
-              awk '{  if( d+20 >= ($2) &&  d-10 <= ($3) ) { print $0 }  }' d="$metaMatch"  config/meta | tail -1  # | cut -d'|' -f 3-
+              echo $metaMatch
+              awk '{  if( d+20 >= ($2) &&  d-20 <= ($3) ) { print $0 }  }' d="$metaMatch" config/meta  | head -1  | cut -d'|' -f 3-
            fi
            ;;
 
@@ -66,7 +67,7 @@ case "$item" in
                       let stopEpoch=stopEpoch-5
 					  stopTimestamp=$(date +"%Y/%m/%d-%H:%M:%S" -d @$stopEpoch)
 
-					  meta="$sid|$startEpoch|$stopEpoch|$title|$description|$owner"
+					  meta="$sid|$startEpoch|$stopEpoch|$title|$description / $start to $stop|$owner"
 
 						{
 							echo ""
