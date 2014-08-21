@@ -76,7 +76,7 @@ for file in $(ls $pathVideo/*.mp4)
            curlParameters=" -F \"title=${meta[3]}\" -F \"description=${meta[4]}\" -F \"userID=${meta[5]}\" "
 
            # Post to the media server
-           cmd="/usr/bin/curl $curlParameters -F \"batchMode=Y\" -F \"keywords=$roomID $baseName\" -F \"public=1\" -F \"file=@$file\" $urlUpload"
+           cmd="/usr/bin/curl $curlParameters -F \"batchMode=Y\" -F \"keywords=$roomID $baseName lecture\" -F \"public=1\" -F \"file=@$file\" $urlUpload"
            log "$cmd"
 
            info=$(eval "$cmd")
