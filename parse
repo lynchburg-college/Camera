@@ -108,6 +108,9 @@ case "$item" in
                ;;
 
 
+           *) echo "Invalid action verb."
+             ;;    
+
 esac
 
 exit 0
