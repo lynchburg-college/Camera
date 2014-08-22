@@ -66,6 +66,7 @@ logFile="$file.log"
          IFS='.' read -a names <<< "$basename"
          epoch=${names[0]}
 
+         /*
          date -d @$epoch > /dev/null 2>&1
 
          if [ ! $? -eq 1 ]
@@ -76,12 +77,13 @@ logFile="$file.log"
             asOf=$(stat -c "%s" $file)
             echo "Using file modified date ($asOf)" 
          fi
+         */
+
+         asOf="$epoch"
 
          #Use the local init-schedule file to look up metadata
          echo "Metadata date is : $asOf" >> "$logFile"
-         echo "$pathRoot/parse meta-epoch $asOf" >> "$logFile"
          info=$("$pathRoot/parse meta-epoch $asOf")
-
 
          # Couldn't find anything?  That's OK.. use the default stuff
          if [ "$info" == "" ]
