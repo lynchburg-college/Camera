@@ -104,6 +104,6 @@ fi
          fi
 
 
-}  | tee -a "$file.log"
+}  || tee -a "$file.log"
 
 
