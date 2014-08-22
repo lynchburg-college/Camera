@@ -75,7 +75,7 @@ case "$item" in
 		       log "$cmd"
 
                info=$(eval "$cmd")
-               log $info
+               log "$info"
 
               else
                    echo "No metadata for $baseName"
