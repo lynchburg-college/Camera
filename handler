@@ -12,7 +12,7 @@ echo $(date)" : $file - $trigger" >> $logFile
 # If we can actually find the file..
 if [ ! -e "$file" ] 
 then
-  echo "$file not found!" >> $logFile
+  #echo "$file not found!" >> $logFile
   exit 1
 fi
 
@@ -21,13 +21,14 @@ base=$(basename "$file")
 ext="${base##*.}"
 if [ ! $ext == "mp4" ] 
 then
+  #echo "$file not a recording" >> $logFile
  exit 1
 fi
 
 # ... and we have somewhere to upload it..
 if [ -z "$urlUpload" ]
 then
-  echo "No upload required" >> $logFile
+  #echo "No upload required" >> $logFile
   exit 1
 fi
 
@@ -36,7 +37,7 @@ sleep 2
 isBusy=$(lsof $file)
 if [ ! -z "$isBusy" ]
 then
-   log "Ignoring (file is open) $file" >> $logFile
+   #echo "Ignoring (file is open) $file" >> $logFile
    exit 1
 fi
 
@@ -45,7 +46,7 @@ fi
 
    	     # Convert the file  (sends back the converted filename if sucessful)
          convertResult=$("$pathRoot/convert" "$file")
-         log "Convert result : $convertResult" 
+         echo "Convert result : $convertResult" 
          if [ -e "$convertResult" ] 
          then
            file="$convertResult"
@@ -63,14 +64,14 @@ fi
          if [ ! $? -eq 1 ]
          then
             asOf="$baseName"
-            log "Using filename ($baseName) as creation date"
+            echo "Using filename ($baseName) as creation date"
          else
             asOf=$(stat -c "%s" $file)
-            log "Using file modified date ($asOf)"
+            echo "Using file modified date ($asOf)"
          fi
 
          #Use the local init-schedule file to look up metadata
-         log "Metadata date is : $asOf"
+         echo "Metadata date is : $asOf"
          echo "$pathRoot/parse meta-epoch $asOf"
          info=$("$pathRoot/parse meta-epoch $asOf")
 
@@ -78,26 +79,26 @@ fi
          # Couldn't find anything?  That's OK.. use the default stuff
          if [ "$info" == "" ]
          then
-             log "Couldn't find metadata : $roomID / $asOf"
+             echo "Couldn't find metadata : $roomID / $asOf"
              info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\""
          else
-             log "Matched : $info"
+             echo "Matched : $info"
          fi
            
          echo "$info" > $file.meta
                     
          # Post to the media server
          cmd="/usr/bin/curl $info -F \"batchMode=Y\" -F \"convert=no\" -F \"keywords=$roomID $baseName lecture\" -F \"file=@$file\"  $urlUpload"
-         log "$cmd"
+         echo "$cmd"
 
 
          info=$(eval "$cmd")
-         log $info
+         echo $info
 
          # Archive the original file
          if [[ "$info" == *Success* ]]
          then
-              log "$file was sucessfully uploaded"
+              echo "$file was sucessfully uploaded"
               mv "$file" "$file.uploaded"
          else
               $pathRoot/notify "Upload Error" "$file\n$info"
