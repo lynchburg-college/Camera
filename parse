@@ -71,7 +71,7 @@ case "$item" in
                log $info
 
               else
-                   echo "No metadata for $info"
+                   echo "No metadata for $baseName"
               fi
 
            done
