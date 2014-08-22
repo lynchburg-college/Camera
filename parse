@@ -55,7 +55,7 @@ case "$item" in
 
   	          IFS='.' read -a names <<< "$item"
 
-              epoch=$(names[0])
+              epoch=${names[0]}
 
               info=$(./parse meta-epoch "$epoch")
               
