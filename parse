@@ -53,8 +53,9 @@ case "$item" in
            for item in video/*uploaded
            do
 
-              baseName=$(basename "$item")
-              epoch="${baseName%.*}"
+  	          IFS='.' read -a names <<< "$item"
+
+              epoch=$(names[0])
 
               info=$(./parse meta-epoch "$epoch")
               
