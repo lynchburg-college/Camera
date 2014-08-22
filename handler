@@ -45,8 +45,8 @@ fi
 
    	     # Convert the file  (sends back the converted filename if sucessful)
          convertResult=$("$pathRoot/convert" "$file")
-         log "Convert result : $convertResult"
-         if [ ! "!$result" == "!" ] 
+         log "Convert result : $convertResult" 
+         if [ -e "$convertResult" ] 
          then
            file="$convertResult"
          fi

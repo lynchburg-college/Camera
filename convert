@@ -25,7 +25,7 @@ then
 	 echo $source
 	fi
 
-} || tee -a "$logFile"
+} 
 
 fi
 
