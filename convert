@@ -4,8 +4,6 @@
 source="$1"
 dest="$source.converted"
 
-log $(date)" : $source $dest"
-
 # Common
 source "${0%/*}/config/common"
 source "${0%/*}/config/machine"
@@ -16,7 +14,7 @@ then
 {
 	# Issue the conversion command
 	eval "$videoConvert"
-
+    
 	# Check to see if the thing converted
 	if [ -e "$dest" ] 
 	then

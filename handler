@@ -41,10 +41,11 @@ then
    exit 1
 fi
 
-
 {
 
-   	     # Convert the file  (sends back the converted filename if sucessful)
+         echo "Handler start" 
+
+   	     # Convert the file  
          convertResult=$("$pathRoot/convert" "$file")
          echo "Convert result : $convertResult" 
          if [ -e "$convertResult" ] 
