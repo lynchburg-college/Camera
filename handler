@@ -41,13 +41,14 @@ then
    exit 1
 fi
 
+logFile="$file.log"
 {
 
-         echo "Handler start" 
+         echo "Handler start"  >> "$logFile"
 
    	     # Convert the file  
          convertResult=$("$pathRoot/convert" "$file")
-         echo "Convert result : $convertResult" 
+         echo "Convert result : $convertResult"  >> "$logFile"
          if [ -e "$convertResult" ] 
          then
            file="$convertResult"
@@ -65,47 +66,47 @@ fi
          if [ ! $? -eq 1 ]
          then
             asOf="$baseName"
-            echo "Using filename ($baseName) as creation date"
+            echo "Using filename ($baseName) as creation date" >> "$logFile"
          else
             asOf=$(stat -c "%s" $file)
-            echo "Using file modified date ($asOf)"
+            echo "Using file modified date ($asOf)" 
          fi
 
          #Use the local init-schedule file to look up metadata
-         echo "Metadata date is : $asOf"
-         echo "$pathRoot/parse meta-epoch $asOf"
+         echo "Metadata date is : $asOf" >> "$logFile"
+         echo "$pathRoot/parse meta-epoch $asOf" >> "$logFile"
          info=$("$pathRoot/parse meta-epoch $asOf")
 
 
          # Couldn't find anything?  That's OK.. use the default stuff
          if [ "$info" == "" ]
          then
-             echo "Couldn't find metadata : $roomID / $asOf"
+             echo "Couldn't find metadata : $roomID / $asOf" >> "$logFile"
              info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\""
-         else
-             echo "Matched : $info"
+         else 
+             echo "Matched : $info" >> "$logFile"
          fi
            
-         echo "$info" > $file.meta
+         echo "$info" > $file.meta 
                     
          # Post to the media server
          cmd="/usr/bin/curl $info -F \"batchMode=Y\" -F \"convert=no\" -F \"keywords=$roomID $baseName lecture\" -F \"file=@$file\"  $urlUpload"
-         echo "$cmd"
+         echo "$cmd" >> "$logFile"
 
 
          info=$(eval "$cmd")
-         echo $info
+         echo $info >> "$logFile"
 
          # Archive the original file
          if [[ "$info" == *Success* ]]
          then
-              echo "$file was sucessfully uploaded"
+              echo "$file was sucessfully uploaded" >> "$logFile"
               mv "$file" "$file.uploaded"
          else
               $pathRoot/notify "Upload Error" "$file\n$info"
          fi
 
 
-}  || tee -a "$file.log"
+}
 
 
