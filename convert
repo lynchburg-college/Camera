@@ -4,16 +4,15 @@
 source="$1"
 dest="$source.converted"
 
+log $(date)" : $source $dest"
+
 # Common
 source "${0%/*}/config/common"
 source "${0%/*}/config/machine"
 
 # Get the convert command
-if [ "$videoConvert" == "" ] 
+if [ ! "$videoConvert" == "" ] 
 then
- exit 1
-fi
-
 {
 	# Issue the conversion command
 	eval "$videoConvert"
@@ -27,6 +26,8 @@ fi
 	fi
 
 } || tee -a $logFile
+
+fi
 
 
 

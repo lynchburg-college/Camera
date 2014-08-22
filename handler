@@ -5,11 +5,14 @@ source "${0%/*}/config/common"
 source "${0%/*}/config/machine"
 
 file=$1
+trigger=$2
 
-# Only need to do this is if we find the file..
+echo $(date)" : $file - $trigger" >> $logFile
+
+# If we can actually find the file..
 if [ ! -e "$file" ] 
 then
-  log "$file not found!"
+  echo "$file not found!" >> $logFile
   exit 1
 fi
 
@@ -18,31 +21,33 @@ base=$(basename "$file")
 ext="${base##*.}"
 if [ ! $ext == "mp4" ] 
 then
- log "Ignoring $file (not a recording)" 
  exit 1
 fi
 
-# .. and we have somewhere to upload it..
+# ... and we have somewhere to upload it..
 if [ -z "$urlUpload" ]
 then
-  echo "No upload required"
+  echo "No upload required" >> $logFile
   exit 1
 fi
+
+# .. and the file isn't currently open (incrontab can be weird)
+sleep 2
+isBusy=$(lsof $file)
+if [ ! -z "$isBusy" ]
+then
+   log "Ignoring (file is open) $file" >> $logFile
+   exit 1
+fi
+
 
 {
          # Get the stats of the original
          /usr/bin/avprobe $file &> $file.info
 
-   	     # Convert the file
- 		 /usr/bin/HandBrakeCLI --optimize --encoder x264 -vb 900 -ab 128 -i $file -o $file.converted
-
-         # Get the stats of the converted file
-         /usr/bin/avprobe $file.converted &> $file.converted.info
-
-		 if grep -q "HandBrake" $file.converted
- 		 then
- 		  file=$file.converted
- 		 fi
+   	     # Convert the file 
+         $file=$("$pathRoot/convert" "$file")
+         log "Convert result : $file"
 
          # If the filename is a date, use it as the start time
          baseName=$(basename "$file")
@@ -87,15 +92,16 @@ fi
          info=$(eval "$cmd")
          log $info
 
-           # Archive the original file
-           if [[ "$info" == *Success* ]]
-           then
-                log "$file was sucessfully uploaded"
-                mv "$file" "$file.uploaded"
-           else
-                $pathRoot/notify "Upload Error" "$file\n$info"
-           fi
+         # Archive the original file
+         if [[ "$info" == *Success* ]]
+         then
+              log "$file was sucessfully uploaded"
+              mv "$file" "$file.uploaded"
+         else
+              $pathRoot/notify "Upload Error" "$file\n$info"
+         fi
 
 
-} 
+}  | tee -a $file.log
+
 

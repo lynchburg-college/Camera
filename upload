@@ -34,66 +34,15 @@ for file in $(ls $pathVideo/*.mp4)
       then
         isBusy=$(lsof $file)
         if [ ! -z "$isBusy" ]
-
         then
           log "Ignoring (file is open) $file"
 
         else
            log "Found $file"
 
-           # If the filename is a date, use it as the start time
-           baseName=$(basename "$file")
-           baseName="${baseName%.*}"
-
-           date -d @$baseName > /dev/null 2>&1
-
-           if [ ! $? -eq 1 ]
-           then
-             asOf=$baseName
-             log "Using filename ($baseName) as creation date"
-           else
-             asOf=$(stat -c "%s" $file)
-             log "Using file modified date ($asOf)"
-           fi
-
-           # Find the metadata for this guy..
-           log "Metadata date is : $asOf"
-           info=$(./parse meta-epoch "$asOf")
-
-           # Couldn't find anything?  That's OK.. use the default stuff
-           if [ "$info" == "" ]
-           then
-               log "Couldn't find metadata : $roomID / $asOf"
-               info="$roomID Recording|Recording made in $roomID / $roomName on $asOf|capture_$roomID"
-           else
-               log "Matched : $info"
-               echo "$info" > $file.meta
-           fi
-
- 
-           # Parse out the metadata into a curl-friendly string
-           IFS='|' read -a meta <<< "$info"
-           curlParameters=" -F \"title=${meta[0]}\" -F \"description=${meta[1]}\" -F \"userID=${meta[2]}\" "
-
-           # Post to the media server
-           cmd="/usr/bin/curl $curlParameters -F \"updateMode=Y\" -F \"mediaKeywords=$roomID $baseName lecture\" -F \"public=1\" -F \"file=@$file\" $urlUpload"
-           log "$cmd"
-
-           info=$(eval "$cmd")
-           log $info
-
-           # Archive the original file
-           if [[ "$info" == *Success* ]]
-           then
-                log "$file was sucessfully uploaded"
-                mv "$file" "$file.uploaded"
-           else
-                $pathRoot/notify "Upload Error" "$file\n$info"
-           fi
-
         fi
 
-      fi
+     fi
 
 done
 
