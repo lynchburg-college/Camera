@@ -61,7 +61,7 @@ fi
 
          #Use the local init-schedule file to look up metadata
          log "Metadata date is : $asOf"
-         info=$(./parse meta "$asOf")
+         info=$(./parse meta-epoch "$asOf")
 
 
          # Couldn't find anything?  That's OK.. use the default stuff
@@ -97,5 +97,5 @@ fi
            fi
 
 
-} | tee -a $logFile
+} 
 
