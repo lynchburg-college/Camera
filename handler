@@ -42,12 +42,17 @@ fi
 
 
 {
-         # Get the stats of the original
-         /usr/bin/avprobe $file &> $file.info
 
-   	     # Convert the file 
-         $file=$("$pathRoot/convert" "$file")
-         log "Convert result : $file"
+   	     # Convert the file  (sends back the converted filename if sucessful)
+         convertResult=$("$pathRoot/convert" "$file")
+         log "Convert result : $convertResult"
+         if [ ! "!$result" == "!" ] 
+         then
+           file=$convertResult
+         fi
+
+         # Get the stats of the file
+         /usr/bin/avprobe $file &> $file.info
 
          # If the filename is a date, use it as the start time
          baseName=$(basename "$file")
@@ -66,6 +71,7 @@ fi
 
          #Use the local init-schedule file to look up metadata
          log "Metadata date is : $asOf"
+         echo "$pathRoot/parse meta-epoch $asOf"
          info=$("$pathRoot/parse meta-epoch $asOf")
 
 
@@ -84,10 +90,6 @@ fi
          cmd="/usr/bin/curl $info -F \"batchMode=Y\" -F \"convert=no\" -F \"keywords=$roomID $baseName lecture\" -F \"file=@$file\"  $urlUpload"
          log "$cmd"
 
-         if [ "$1" == "debug" ] 
-         then
-           exit 0
-         fi
 
          info=$(eval "$cmd")
          log $info
