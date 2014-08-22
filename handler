@@ -81,7 +81,7 @@ fi
          echo "$info" > $file.meta
                     
          # Post to the media server
-         cmd="/usr/bin/curl $info -F \"batchMode=Y\" -F \"convert=no\" -F \"keywords=$roomID $baseName\" -F \"file=@$file\"  $urlUpload"
+         cmd="/usr/bin/curl $info -F \"batchMode=Y\" -F \"convert=no\" -F \"keywords=$roomID $baseName lecture\" -F \"file=@$file\"  $urlUpload"
          log "$cmd"
 
          if [ "$1" == "debug" ] 

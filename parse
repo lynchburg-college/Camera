@@ -66,7 +66,7 @@ case "$item" in
 		       curlParameters=" -F \"title=${meta[0]}\" -F \"description=${meta[1]}\" -F \"uploadedUser=${meta[2]}\" "
 
 		       # Post to the media server
-		       cmd="/usr/bin/curl $curlParameters -F \"update=Y\" -F \"mediaKeywords=$roomID $baseName\" -F \"public=1\" $urlUpload"
+		       cmd="/usr/bin/curl $curlParameters -F \"update=Y\" -F \"mediaKeywords=$roomID $epoch\" -F \"public=1\" $urlUpload"
 		       log "$cmd"
 
                info=$(eval "$cmd")
@@ -79,6 +79,7 @@ case "$item" in
            done
 
            ;;           
+
 
 
     "schedule" )
