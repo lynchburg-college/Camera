@@ -65,9 +65,9 @@ case "$item" in
 
 		       # Parse out the metadata into a curl-friendly string
 		       IFS='|' read -a meta <<< "$info"
-		       log "Meta =  -F \"title=${meta[3]}\" -F \"description=${meta[4]}\" -F \"uploadedUser=${meta[5]}\" "
+		       log "Meta =  -F \"title=${meta[1]}\" -F \"description=${meta[2]}\" -F \"uploadedUser=${meta[3]}\" "
 
-		       curlParameters=" -F \"title=${meta[3]}\" -F \"description=${meta[4]}\" -F \"uploadedUser=${meta[5]}\" "
+		       curlParameters=" -F \"title=${meta[1]}\" -F \"description=${meta[2]}\" -F \"uploadedUser=${meta[3]}\" "
 		       log "$curlParameters"
 
 		       # Post to the media server
