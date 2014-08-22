@@ -49,11 +49,13 @@ case "$item" in
 
 
     "meta-refresh" )
-           for item in video/*.mp4
+
+           for item in video/*uploaded
            do
 
               baseName=$(basename "$item")
-              epoch=$(basename "$baseName" ".mp4")
+              epoch="${baseName%.*}"
+
               info=$(./parse meta-epoch "$epoch")
               
               if [ ! "$info" == "" ]
@@ -73,7 +75,7 @@ case "$item" in
                log "$info"
 
               else
-                   echo "No metadata for $baseName"
+                   echo "No metadata for $epoch"
               fi
 
            done
