@@ -63,13 +63,14 @@ logFile="$file.log"
 
          # If the filename is a date, use it as the start time
          baseName=$(basename "$file")
-         baseName="${baseName%.*}"
+         IFS='.' read -a names <<< "$basename"
+         epoch=${names[0]}
 
-         date -d @$baseName > /dev/null 2>&1
+         date -d @$epoch > /dev/null 2>&1
 
          if [ ! $? -eq 1 ]
          then
-            asOf="$baseName"
+            asOf="$epoch"
             echo "Using filename ($baseName) as creation date" >> "$logFile"
          else
             asOf=$(stat -c "%s" $file)
