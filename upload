@@ -64,7 +64,7 @@ for file in $(ls $pathVideo/*.mp4)
            if [ "$info" == "" ]
            then
                log "Couldn't find metadata : $roomID / $asOf"
-               info="RECORDING|$asOf|$asOf|$roomID Recording|Recording made in $roomID / $roomName on $asOf|hudson-b"
+               info="$roomID Recording|Recording made in $roomID / $roomName on $asOf|capture_$roomID"
            else
                log "Matched : $info"
                echo "$info" > $file.meta
@@ -73,7 +73,7 @@ for file in $(ls $pathVideo/*.mp4)
  
            # Parse out the metadata into a curl-friendly string
            IFS='|' read -a meta <<< "$info"
-           curlParameters=" -F \"title=${meta[3]}\" -F \"description=${meta[4]}\" -F \"userID=${meta[5]}\" "
+           curlParameters=" -F \"title=${meta[0]}\" -F \"description=${meta[1]}\" -F \"userID=${meta[2]}\" "
 
            # Post to the media server
            cmd="/usr/bin/curl $curlParameters -F \"updateMode=Y\" -F \"mediaKeywords=$roomID $baseName lecture\" -F \"public=1\" -F \"file=@$file\" $urlUpload"
