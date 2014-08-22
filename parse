@@ -16,6 +16,7 @@ fi
 case "$item" in
 
     "meta-epoch" )
+
            epoch=$2
            if [ ! "$epoch" == "" ]
            then
@@ -66,7 +67,11 @@ case "$item" in
 
 		       # Parse out the metadata into a curl-friendly string
 		       IFS='|' read -a meta <<< "$info"
-		       curlParameters="-F \"uploadedUser=${meta[2]}\" -F \"title=${meta[0]}\" -F \"description=${meta[1]}\""
+               metaTitle=${meta[0]}
+               metaDescription=${meta[1]}
+               metaUser=${meta[2]}
+
+		       curlParameters="-F \"uploadedUser=${metaUser:capture}\" -F \"title=${metaTitle:Recording}\" -F \"description=${metaDescription:recording}\""
 
 		       # Post to the media server
 		       cmd="/usr/bin/curl $curlParameters -F \"update=Y\" -F \"public=1\" -F \"mediaKeywords=$roomID $epoch\" $urlUpload"
