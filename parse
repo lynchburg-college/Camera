@@ -54,6 +54,7 @@ case "$item" in
            do
 
               basename=$(basename "$item")
+
   	          IFS='.' read -a names <<< "$basename"
               epoch=${names[0]}
               info=$(./parse meta-epoch "$epoch")
@@ -68,7 +69,7 @@ case "$item" in
 		       curlParameters=" -F \"title=${meta[0]}\" -F \"description=${meta[1]}\" -F \"uploadedUser=${meta[2]}\" "
 
 		       # Post to the media server
-		       cmd="/usr/bin/curl $curlParameters -F \"update=Y\" -F \"mediaKeywords=$roomID $epoch\" -F \"public=1\" $urlUpload"
+		       cmd="/usr/bin/curl $curlParameters -F \"update=Y\" -F \"public=1\" -F \"mediaKeywords=$roomID $epoch\" $urlUpload"
 		       log "$cmd"
 
                info=$(eval "$cmd")
