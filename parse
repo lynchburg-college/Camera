@@ -67,11 +67,12 @@ case "$item" in
 
 		       # Parse out the metadata into a curl-friendly string
 		       IFS='|' read -a meta <<< "$info"
+
                metaTitle=${meta[0]}
                metaDescription=${meta[1]}
                metaUser=${meta[2]}
 
-		       curlParameters="-F \"uploadedUser=${metaUser:capture}\" -F \"title=${metaTitle:Recording}\" -F \"description=${metaDescription:recording}\""
+		       curlParameters="-F \"title=${metaTitle:Recording}\" -F \"description=${metaDescription:recording}\""
 
 		       # Post to the media server
 		       cmd="/usr/bin/curl $curlParameters -F \"update=Y\" -F \"public=1\" -F \"mediaKeywords=$roomID $epoch\" $urlUpload"
