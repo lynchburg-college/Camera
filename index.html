@@ -96,8 +96,8 @@
            <div class="col-sm-12">
 		       <div id="event-calendar"></div>
                <div id="event-calendar-tools" class="well text-center hidden">
-                  <a href="#" class="confirm" data-action="Data.calendar.fetch" data-confirm-prompt="Fetch an updated schedule?" data-confirm-placement="top"><span class="btn btn-warning badge" title="Update Schedule"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
-                  <a href="#" class="confirm" data-action="Data.calendar.clear" data-confirm-prompt="Clear the recording schedule?" data-confirm-placement="top"><span class="btn btn-warning badge" title="Clear Schedule"><span class="glyphicon glyphicon-remove"></span></span></a>
+                  <a id="link-fetch-schedule" href="#link-getch-schedule" class="confirm" data-action="Data.calendar.fetch" data-confirm-prompt="Fetch an updated schedule?" data-confirm-placement="top"><span class="btn btn-warning badge" title="Update Schedule"><span class="glyphicon glyphicon-cloud-download"></span></span></a>
+                  <a id="link-clear-schedule" href="#link-clear-schedule" class="confirm" data-action="Data.calendar.clear" data-confirm-prompt="Clear the recording schedule?" data-confirm-placement="top"><span class="btn btn-warning badge" title="Clear Schedule"><span class="glyphicon glyphicon-remove"></span></span></a>
                </div>
            </div>
         </div>
@@ -241,9 +241,6 @@
 								      <label>Schedule</label>
 								        <div class="input-group">
 								           <input class="form-control" name="urlSchedule" />
-								           <span class="input-group-btn">
-								            <button class="btn btn-xs btn-primary" data-action="Data.calendar.fetch">fetch now</button>
-								           </span>
 								        </div> 
                                         <div class="help-block">Optional: Where to obtain the room schedule</div>
 								    </div>

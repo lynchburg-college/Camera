@@ -48,11 +48,11 @@ fi
          log "Convert result : $convertResult"
          if [ ! "!$result" == "!" ] 
          then
-           file=$convertResult
+           file="$convertResult"
          fi
 
          # Get the stats of the file
-         /usr/bin/avprobe $file &> $file.info
+         /usr/bin/avprobe "$file" &> "$file.info"
 
          # If the filename is a date, use it as the start time
          baseName=$(basename "$file")
@@ -62,7 +62,7 @@ fi
 
          if [ ! $? -eq 1 ]
          then
-            asOf=$baseName
+            asOf="$baseName"
             log "Using filename ($baseName) as creation date"
          else
             asOf=$(stat -c "%s" $file)
@@ -104,6 +104,6 @@ fi
          fi
 
 
-}  | tee -a $file.log
+}  | tee -a "$file.log"
 
 

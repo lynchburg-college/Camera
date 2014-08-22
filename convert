@@ -18,14 +18,14 @@ then
 	eval "$videoConvert"
 
 	# Check to see if the thing converted
-	if [ -e $dest ] 
+	if [ -e "$dest" ] 
 	then
 	 echo $dest
 	else
 	 echo $source
 	fi
 
-} || tee -a $logFile
+} || tee -a "$logFile"
 
 fi
 
