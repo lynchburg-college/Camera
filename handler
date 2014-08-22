@@ -47,12 +47,16 @@ logFile="$file.log"
          echo "Handler start"  >> "$logFile"
 
    	     # Convert the file  
-         convertResult=$("$pathRoot/convert" "$file")
-         echo "Convert result : $convertResult"  >> "$logFile"
-         if [ -e "$convertResult" ] 
+         source="$file"
+         dest="$file.converted"
+
+         echo "Pre Conversion : $file " >> "$logFile"
+         /usr/bin/HandBrakeCLI -i "$source" -o "$dest" --encoder x264 --two-pass --optimize
+         if [ -e "$dest" ] 
          then
-           file="$convertResult"
+           file="$dest"
          fi
+         echo "Post Conversion : $file " >> "$logFile"
 
          # Get the stats of the file
          /usr/bin/avprobe "$file" &> "$file.info"
