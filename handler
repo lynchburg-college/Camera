@@ -62,21 +62,21 @@ logFile="$file.log"
          /usr/bin/avprobe "$file" &> "$file.info"
 
          # If the filename is a date, use it as the start time
-         baseName=$(basename "$file")
+         basename=$(basename "$file")
          IFS='.' read -a names <<< "$basename"
          epoch=${names[0]}
 
          /*
-         date -d @$epoch > /dev/null 2>&1
+         # date -d @$epoch > /dev/null 2>&1
 
-         if [ ! $? -eq 1 ]
-         then
-            asOf="$epoch"
-            echo "Using filename ($baseName) as creation date" >> "$logFile"
-         else
-            asOf=$(stat -c "%s" $file)
-            echo "Using file modified date ($asOf)" 
-         fi
+         #if [ ! $? -eq 1 ]
+         #then
+         #   asOf="$epoch"
+         #   echo "Using filename ($baseName) as creation date" >> "$logFile"
+         #else
+         #   asOf=$(stat -c "%s" $file)
+         #   echo "Using file modified date ($asOf)" 
+         #fi
          */
 
          asOf="$epoch"
