@@ -68,7 +68,7 @@ logFile="$file.log"
          IFS='.' read -a names <<< "$basename"
          epoch=${names[0]}
 
-         /*
+         
          # date -d @$epoch > /dev/null 2>&1
 
          #if [ ! $? -eq 1 ]
@@ -79,7 +79,7 @@ logFile="$file.log"
          #   asOf=$(stat -c "%s" $file)
          #   echo "Using file modified date ($asOf)" 
          #fi
-         */
+         
 
          asOf="$epoch"
 
