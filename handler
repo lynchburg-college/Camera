@@ -52,7 +52,10 @@ logFile="$file.log"
          dest="$file.converted"
 
          echo "Pre Conversion : $file " >> "$logFile"
-         /usr/bin/HandBrakeCLI -i "$source" -o "$dest" --encoder x264 --optimize --start-at frame:5
+         set -x
+         /usr/bin/HandBrakeCLI -i "$source" -o "$dest" --encoder x264 --optimize --start-at frame:5 2? "$source.convert.log"
+         set +x
+
          if [ -e "$dest" ] 
          then
            file="$dest"
@@ -66,10 +69,8 @@ logFile="$file.log"
          basename=$(basename "$file")
          IFS='.' read -a names <<< "$basename"
          epoch=${names[0]}
-
          
          # date -d @$epoch > /dev/null 2>&1
-
          #if [ ! $? -eq 1 ]
          #then
          #   asOf="$epoch"
@@ -90,16 +91,21 @@ logFile="$file.log"
          if [ "$info" == "" ]
          then
              echo "Couldn't find metadata : $roomID / $asOf" >> "$logFile"
-             info="-F \"userID=capture_$roomID\" -F \"public=1\" -F \"title=$roomID Recording\""
+             course="$roomID Recording"
+             description="Ad-hoc recording"
+             owner="capture-$roomID"
          else 
              echo "Matched : $info" >> "$logFile"
+             IFS='|' read course description owner <<< "$basename"
          fi
-           
+
+         info="-F \"title=$course\" -F \"description=$description\" -F \"owner=$owner\" "
          echo "$info" > $file.meta 
+
                     
          # Post to the media server
          set -x
-         /usr/bin/curl "$info" -F "batchMode=Y" -F "convert=no" -F "keywords=$roomID $baseName lecture" -F "file=@$file" "$urlUpload"
+         /usr/bin/curl -F "$info" -F "batchMode=Y" -F "public=1" -F "convert=no" -F "keywords=$roomID $baseName lecture" -F "file=@$file" "$urlUpload"
          set +x
 
          # Archive the original file
