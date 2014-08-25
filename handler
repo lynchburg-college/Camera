@@ -91,15 +91,15 @@ logFile="$file.log"
          if [ "$info" == "" ]
          then
              echo "Couldn't find metadata : $roomID / $asOf" >> "$logFile"
-             course="$roomID Recording"
+             title="$roomID Recording"
              description="Ad-hoc recording"
              owner="capture-$roomID"
          else 
              echo "Matched : $info" >> "$logFile"
-             IFS='|' read course description owner <<< "$basename"
+             IFS='|' read title description owner <<< "$info"
          fi
 
-         info="-F \"title=$course\" -F \"description=$description\" -F \"owner=$owner\" "
+         info="-F \"title=$title\" -F \"description=$description\" -F \"owner=$owner\" "
          echo "$info" > $file.meta 
 
                     
