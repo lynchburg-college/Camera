@@ -99,13 +99,11 @@ logFile="$file.log"
              IFS='|' read title description owner <<< "$info"
          fi
 
-         info="-F \"title=$title\" -F \"description=$description\" -F \"owner=$owner\" "
-         echo "$info" > $file.meta 
-
+         echo "$title|$description|$owner" > $file.meta 
                     
          # Post to the media server
          set -x
-         /usr/bin/curl -F "$info" -F "batchMode=Y" -F "public=1" -F "convert=no" -F "keywords=$roomID $baseName lecture" -F "file=@$file" "$urlUpload"
+         /usr/bin/curl -F "title=$title" -F "description=$description" -F "uploadedUser=$owner" -F "batchMode=Y" -F "public=1" -F "convert=no" -F "keywords=$roomID $baseName lecture" -F "file=@$file" "$urlUpload"
          set +x
 
          # Archive the original file
