@@ -12,7 +12,7 @@ echo $(date)" : $file - $trigger" >> $logFile
 # If we can actually find the file..
 if [ ! -e "$file" ] 
 then
-  #echo "$file not found!" >> $logFile
+  echo "$file not found!" >> $logFile
   exit 1
 fi
 
@@ -21,14 +21,14 @@ base=$(basename "$file")
 ext="${base##*.}"
 if [ ! $ext == "mp4" ] 
 then
-  #echo "$file not a recording" >> $logFile
+ echo "$file not a recording" >> $logFile
  exit 1
 fi
 
 # ... and we have somewhere to upload it..
 if [ -z "$urlUpload" ]
 then
-  #echo "No upload required" >> $logFile
+  echo "No upload required" >> $logFile
   exit 1
 fi
 
@@ -42,16 +42,13 @@ then
    exit 1
 fi
 
-logFile="$file.log"
+
 {
 
-         echo "Handler start"  >> "$logFile"
-
-   	     # Convert the file  
          source="$file"
          dest="$file.converted"
 
-         echo "Pre Conversion : $file " >> "$logFile"
+         echo "Pre Conversion : $file " 
          set -x
          /usr/bin/HandBrakeCLI -i "$source" -o "$dest" --encoder x264 --optimize --start-at frame:5 
          set +x
@@ -60,7 +57,7 @@ logFile="$file.log"
          then
            file="$dest"
          fi
-         echo "Post Conversion : $file " >> "$logFile"
+         echo "Post Conversion : $file " 
 
          # Get the stats of the file
          /usr/bin/avprobe "$file" &> "$file.info"
@@ -80,17 +77,16 @@ logFile="$file.log"
          #   echo "Using file modified date ($asOf)" 
          #fi
          
-
          asOf="$epoch"
 
          #Use the local init-schedule file to look up metadata
-         echo "Metadata date is : $asOf" >> "$logFile"
+         echo "Metadata date is : $asOf" 
          info=$($pathRoot/parse meta-epoch "$asOf")
 
          # Couldn't find anything?  That's OK.. use the default stuff
          if [ "$info" == "" ]
          then
-             echo "Couldn't find metadata : $roomID / $asOf" >> "$logFile"
+             echo "Couldn't find metadata : $roomID / $asOf" 
              title="$roomID Recording"
              description="Ad-hoc recording"
              owner="capture-$roomID"
@@ -98,24 +94,21 @@ logFile="$file.log"
              echo "Matched : $info" >> "$logFile"
              IFS='|' read title description owner <<< "$info"
          fi
-
-         echo "$title|$description|$owner" > $file.meta 
-                    
+                  
          # Post to the media server
          set -x
-         /usr/bin/curl -F "title=$title" -F "description=$description" -F "uploadedUser=$owner" -F "batchMode=Y" -F "public=1" -F "convert=no" -F "keywords=$roomID $baseName lecture" -F "file=@$file" "$urlUpload"
+         uploadResult=$(/usr/bin/curl -F "title=$title" -F "description=$description" -F "uploadedUser=$owner" -F "batchMode=Y" -F "public=1" -F "convert=no" -F "keywords=$roomID $baseName lecture" -F "file=@$file" "$urlUpload")
          set +x
 
          # Archive the original file
-         if [[ "$info" == *Success* ]]
+         if [[ "$uploadResult" == *Success* ]]
          then
-              echo "$file was sucessfully uploaded" >> "$logFile"
+              echo "$file was sucessfully uploaded" 
               mv "$file" "$file.uploaded"
          else
-              $pathRoot/notify "Upload Error" "$file\n$info"
+              $pathRoot/notify "Upload Error" "$file"
          fi
 
-
-}
+} || tee -a "$file.log"
 
 
