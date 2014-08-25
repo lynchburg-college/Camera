@@ -85,7 +85,7 @@ logFile="$file.log"
 
          #Use the local init-schedule file to look up metadata
          echo "Metadata date is : $asOf" >> "$logFile"
-         info=$("$pathRoot/parse meta-epoch $asOf")
+         info=$($pathRoot/parse meta-epoch "$asOf")
 
          # Couldn't find anything?  That's OK.. use the default stuff
          if [ "$info" == "" ]
