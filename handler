@@ -104,6 +104,9 @@ fi
          if [[ "$uploadResult" == *Success* ]]
          then
               echo "$file was sucessfully uploaded" 
+              IFS=':' read -a response mediaName <<< "$uploadResult"
+              echo "$mediaName" > "$file.mediaName"         
+              echo "Media Name : $mediaName" 
               mv "$file" "$file.uploaded"
          else
               $pathRoot/notify "Upload Error" "$file"
