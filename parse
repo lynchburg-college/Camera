@@ -64,6 +64,7 @@ case "$item" in
               then
 
                log "-----------------------------"
+               log "$epoch"
 
 		       # Parse out the metadata into a curl-friendly string
 		       IFS='|' read -a meta <<< "$info"
