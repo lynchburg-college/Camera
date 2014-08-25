@@ -168,7 +168,11 @@
 
            <div class="well well-sm text-center">
              <button class="btn btn-primary confirm" data-confirm-prompt="Save machine configuration?" data-confirm-placement="bottom" data-action="Data.machine.write"><span class="glyphicon glyphicon-floppy-save"></span>  Save</button>
-             <a href="#" class="action-hostname hidden confirm" data-confirm-prompt="Are you sure?  This will reboot the machine" data-confirm-placement="bottom" data-action="Data.actions.hostname"><span class="btn btn-danger" title="Update Hostname"><span class="glyphicon glyphicon-exclamation-sign"></span>  Set hostname to <span class="hostname"></span>  <span class="small">(requires reboot)</span></span></span></a>
+             <a href="#" class="action-hostname hidden confirm" data-confirm-prompt="Are you sure?  This will reboot the machine" data-confirm-placement="bottom" data-action="Data.actions.hostname">
+                  <span class="btn btn-danger" title="Update Hostname">
+                     <span class="glyphicon glyphicon-exclamation-sign"></span>  Set hostname to <span class="hostname"></span>  <span class="small">(requires reboot)</span>
+                 </span>
+             </a>
 
              <span class="pull-right">
               <span class="confirm" data-confirm-prompt="Download and update this software?" data-action="Data.actions.update"><span class="btn btn-warning badge" title="Update Software"><span class="glyphicon glyphicon-cloud-download"></span></span></span>
@@ -192,7 +196,7 @@
 				                                  <label>Room ID</label>
 			  							          <input class="form-control"  name="roomID" size="10" maxlength="10" />
 		   	                                      <div class="help-block">
-				                                    Required: No spaces</span>
+				                                    Required: No spaces
 				                                  </div>
                                           </div>
                                      </div>    
