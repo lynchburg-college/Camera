@@ -52,7 +52,7 @@ logFile="$file.log"
          dest="$file.converted"
 
          echo "Pre Conversion : $file " >> "$logFile"
-         /usr/bin/avconv -i $source -c:v libx264 -c:a libvo_aacenc -movflags faststart $dest
+         /usr/bin/avconv -i $source -c:v libx264 -c:a libvo_aacenc -f mp4 -movflags faststart $dest
          #/usr/bin/HandBrakeCLI -i "$source" -o "$dest" --encoder x264 --two-pass --optimize
          if [ -e "$dest" ] 
          then
