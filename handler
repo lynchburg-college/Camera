@@ -33,11 +33,12 @@ then
 fi
 
 # .. and the file isn't currently open (incrontab can be weird)
+statA=$(ls -l "$file")
 sleep 2
-isBusy=$(lsof $file)
-if [ ! -z "$isBusy" ]
+statB=$(ls -l "$file")
+if [ ! "$statA" == "$statB" ]
 then
-   #echo "Ignoring (file is open) $file" >> $logFile
+   echo "Ignoring (file is open) $file" >> $logFile
    exit 1
 fi
 
