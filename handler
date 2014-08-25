@@ -98,12 +98,9 @@ logFile="$file.log"
          echo "$info" > $file.meta 
                     
          # Post to the media server
-         cmd="/usr/bin/curl $info -F \"batchMode=Y\" -F \"convert=no\" -F \"keywords=$roomID $baseName lecture\" -F \"file=@$file\"  $urlUpload"
-         echo "$cmd" >> "$logFile"
-
-
-         info=$(eval "$cmd")
-         echo $info >> "$logFile"
+         set -x
+         /usr/bin/curl "$info" -F "batchMode=Y" -F "convert=no" -F "keywords=$roomID $baseName lecture" -F "file=@$file" "$urlUpload"
+         set +x
 
          # Archive the original file
          if [[ "$info" == *Success* ]]
