@@ -52,7 +52,7 @@ logFile="$file.log"
          dest="$file.converted"
 
          echo "Pre Conversion : $file " >> "$logFile"
-         /usr/bin/HandBrakeCLI -i "$source" -o "$dest" --encoder x264 --two-pass --optimize
+         /usr/bin/HandBrakeCLI -i "$source" -o "$dest" --encoder x264 --optimize --start-at frame:5
          if [ -e "$dest" ] 
          then
            file="$dest"
