@@ -79,15 +79,17 @@ case "$item" in
                metaUser=${meta[2]}
                metaUploaded=$(date -d@"$epoch")
 
-		       curlParameters="-F \"title=${metaTitle:Recording}\" -F \"description=${metaDescription:recording}\""
-
 		       # Post to the media server
-               info=$( /usr/bin/curl -s -F "title=${metaTitle:Recording}" -F "description=${metaDescription:recording}" -F "update=Y" -F "public=1" -F "mediaKeywords=$roomID $epoch" "$urlUpload" )
+               set -x
+               info=$( /usr/bin/curl -s -F "update=Y" -F "mediaKeywords=$roomID $epoch" "$urlUpload" -F "public=1" -F "title=${metaTitle:Recording}" -F "description=${metaDescription:recording}" )
+               set +x
                log "$info"
 
                if [[ "$info" = "error:no media name" ]] 
                then
+                 set -x
                  info=$(/usr/bin/curl -F "batchMode=Y" -F "public=1" -F "uploadedUser=$metaUser"  -F "uploaded=$metaUploaded" -F "title=$metaTitle" -F "description=$metaDescription" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
+                 set +x
                  log "$info"
                fi
 
