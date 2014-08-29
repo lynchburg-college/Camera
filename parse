@@ -58,13 +58,15 @@ case "$item" in
 
   	          IFS='.' read -a names <<< "$basename"
               epoch=${names[0]}
-              info=$(./parse meta-epoch "$epoch")
-              
-              if [ ! "$info" == "" ]
-              then
 
-               log "-----------------------------"
-               log "$epoch"
+              log "-----------------------------"
+              log "$epoch"
+
+              info=$(./parse meta-epoch "$epoch")
+              if [ "$info" == "" ]
+              then
+                echo "No metadata for $epoch"
+              else
 
 		       # Parse out the metadata into a curl-friendly string
 		       IFS='|' read -a meta <<< "$info"
@@ -81,9 +83,8 @@ case "$item" in
                set +x
                log "$info"
 
-              else
-                   echo "No metadata for $epoch"
               fi
+              log "-----------------------------"
 
            done
 

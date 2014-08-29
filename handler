@@ -42,7 +42,6 @@ then
    exit 1
 fi
 
-
 {
 
          source="$file"
@@ -59,34 +58,19 @@ fi
          fi
          echo "Post Conversion : $file " 
 
-         # Get the stats of the file
-         /usr/bin/avprobe "$file" &> "$file.info"
-
-         # If the filename is a date, use it as the start time
+         # If the filename is an epoch, use it as the start time
          basename=$(basename "$file")
          IFS='.' read -a names <<< "$basename"
          epoch=${names[0]}
          
-         # date -d @$epoch > /dev/null 2>&1
-         #if [ ! $? -eq 1 ]
-         #then
-         #   asOf="$epoch"
-         #   echo "Using filename ($baseName) as creation date" >> "$logFile"
-         #else
-         #   asOf=$(stat -c "%s" $file)
-         #   echo "Using file modified date ($asOf)" 
-         #fi
-         
-         asOf="$epoch"
-
          #Use the local init-schedule file to look up metadata
-         echo "Metadata date is : $asOf" 
-         info=$($pathRoot/parse meta-epoch "$asOf")
+         echo "Metadata date is : $epoch" 
+         info=$($pathRoot/parse meta-epoch "$epoch")
 
          # Couldn't find anything?  That's OK.. use the default stuff
          if [ "$info" == "" ]
          then
-             echo "Couldn't find metadata : $roomID / $asOf" 
+             echo "Couldn't find metadata : $roomID / $epoch" 
              title="$roomID Recording"
              description="Ad-hoc recording"
              owner="capture-$roomID"
@@ -97,7 +81,7 @@ fi
                   
          # Post to the media server
          set -x
-         uploadResult=$(/usr/bin/curl -F "title=$title" -F "description=$description" -F "uploadedUser=$owner" -F "batchMode=Y" -F "public=1" -F "convert=no" -F "keywords=$roomID $baseName lecture" -F "file=@$file" "$urlUpload")
+         uploadResult=$(/usr/bin/curl -F "title=$title" -F "description=$description" -F "uploadedUser=$owner" -F "batchMode=Y" -F "public=1" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
          set +x
 
          # Archive the original file
