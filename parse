@@ -51,10 +51,10 @@ case "$item" in
 
     "meta-refresh" )
 
-           for item in video/*uploaded
+           for file in video/*uploaded
            do
 
-              basename=$(basename "$item")
+              basename=$(basename "$file")
 
   	          IFS='.' read -a names <<< "$basename"
               epoch=${names[0]}
@@ -79,10 +79,18 @@ case "$item" in
 
 		       # Post to the media server
 		       set -x
+
                info=$( /usr/bin/curl -s -F "title=${metaTitle:Recording}" -F "description=${metaDescription:recording}" -F "update=Y" -F "public=1" -F "mediaKeywords=$roomID $epoch" "$urlUpload" )
-               set +x
                log "$info"
 
+               if [[ "$info" = "error:no media name" ]] 
+               then
+                 info=$(/usr/bin/curl -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaUser" -F "batchMode=Y" -F "public=1" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
+                 log "$info"
+               fi
+
+               set +x
+               
               fi
               log "-----------------------------"
 

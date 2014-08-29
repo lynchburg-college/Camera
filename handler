@@ -42,6 +42,7 @@ then
    exit 1
 fi
 
+
 {
 
          source="$file"
@@ -71,17 +72,17 @@ fi
          if [ "$info" == "" ]
          then
              echo "Couldn't find metadata : $roomID / $epoch" 
-             title="$roomID Recording"
-             description="Ad-hoc recording"
-             owner="capture-$roomID"
+             metaTitle="$roomID Recording"
+             metaDescription="Ad-hoc recording"
+             metaOwner="capture-$roomID"
          else 
              echo "Matched : $info" >> "$logFile"
-             IFS='|' read title description owner <<< "$info"
+             IFS='|' read metaTitle metaDescription metaOwner <<< "$info"
          fi
                   
          # Post to the media server
          set -x
-         uploadResult=$(/usr/bin/curl -F "title=$title" -F "description=$description" -F "uploadedUser=$owner" -F "batchMode=Y" -F "public=1" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
+         uploadResult=$(/usr/bin/curl -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaOwner" -F "batchMode=Y" -F "public=1" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
          set +x
 
          # Archive the original file
