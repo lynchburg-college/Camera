@@ -8,7 +8,7 @@
 @reboot cd /home/capture/Camera && ./start &2> /dev/null
 
 # Schedule
-00   00  *  * 0,3   cd /home/capture/Camera && ./fetch schedule && ./parse schedule &2> /dev/null
+  15  00  *   *   *  cd /home/capture/Camera && ./fetch schedule && ./parse schedule &2> /dev/null
 
 # --------------
 
