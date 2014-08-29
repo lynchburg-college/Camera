@@ -77,7 +77,7 @@ case "$item" in
                metaTitle=${meta[0]}
                metaDescription=${meta[1]}
                metaUser=${meta[2]}
-               metaUploaded=$(date -d@"$epoch" +"%D %r")
+               metaUploaded=$(date -d@"$epoch" +"%F %r")
 
 		       # Post to the media server
                set -x
