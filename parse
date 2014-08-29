@@ -81,10 +81,11 @@ case "$item" in
 
 		       # Post to the media server
                set -x
-               info=$( /usr/bin/curl -s -F "update=Y" -F "mediaKeywords=$roomID $epoch" -F "public=1" -F "title=${metaTitle:Recording}" -F "description=${metaDescription:recording}" -F "uploaded=$metaUploaded" "$urlUpload")
+               info=$(/usr/bin/curl -s -F "mediaKeywords=$roomID $basename" -F "update=Y" -F "public=1" -F "uploadedUser=$metaUser"  -F "uploaded=$metaUploaded" -F "title=$metaTitle" -F "description=$metaDescription" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
                set +x
                log "$info"
 
+               # Wasn't there?  Upload it ;)
                if [[ "$info" = "error:no media name" ]] 
                then
                  set -x

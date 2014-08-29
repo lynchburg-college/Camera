@@ -73,7 +73,7 @@ fi
          then
              echo "Couldn't find metadata : $roomID / $epoch" 
              metaTitle="$roomID Recording"
-             metaDescription="Ad-hoc recording"
+             metaDescription="Recording"
              metaOwner="capture-$roomID"
          else 
              echo "Matched : $info" >> "$logFile"
