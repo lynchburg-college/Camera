@@ -81,7 +81,7 @@ case "$item" in
 
 		       # Post to the media server
                set -x
-               info=$( /usr/bin/curl -s -F "update=Y" -F "mediaKeywords=$roomID $epoch" "$urlUpload" -F "public=1" -F "title=${metaTitle:Recording}" -F "description=${metaDescription:recording}" )
+               info=$( /usr/bin/curl -s -F "update=Y" -F "mediaKeywords=$roomID $epoch" -F "public=1" -F "title=${metaTitle:Recording}" -F "description=${metaDescription:recording}" -F "uploaded=$metaUploaded" )
                set +x
                log "$info"
 
