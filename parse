@@ -82,8 +82,6 @@ case "$item" in
 		       curlParameters="-F \"title=${metaTitle:Recording}\" -F \"description=${metaDescription:recording}\""
 
 		       # Post to the media server
-		       set -x
-
                info=$( /usr/bin/curl -s -F "title=${metaTitle:Recording}" -F "description=${metaDescription:recording}" -F "update=Y" -F "public=1" -F "mediaKeywords=$roomID $epoch" "$urlUpload" )
                log "$info"
 
@@ -93,7 +91,6 @@ case "$item" in
                  log "$info"
                fi
 
-               set +x
                
               fi
               log "-----------------------------"
