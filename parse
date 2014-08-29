@@ -26,7 +26,7 @@ case "$item" in
                     while IFS="|" read -r scheduleid start stop title description owner
                     do
                          #take out any end-of-line characters from the last variable
-                         $owner=$(echo "$owner" | tr '\r' '' )
+                         $owner=$(echo "$owner" | tr -d '\r' )
 
                          checkStart=$(( $start - 20 ))
                          checkStop=$(( $stop + 20 ))
