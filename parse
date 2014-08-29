@@ -81,7 +81,7 @@ case "$item" in
 
 		       # Try to update it..
                set -x
-               info=$(/usr/bin/curl -F "mediaKeywords=$roomID $epoch" -F "update=Y" -F "public=1" -F "uploadedUser=$metaUser"  -F "uploaded=$metaUploaded" -F "title=$metaTitle" -F "description=$metaDescription" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
+               info=$(/usr/bin/curl -F "mediaKeywords=$roomID $epoch" -F "update=Y" -F "public=1" -F "uploadedUser=$metaUser"  -F "uploaded=$metaUploaded" -F "title=$metaTitle" -F "description=$metaDescription" "$urlUpload")
                set +x
                log "$info"
 
