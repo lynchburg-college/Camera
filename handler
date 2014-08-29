@@ -87,11 +87,9 @@ fi
          # Archive the original file
          if [[ "$uploadResult" == *Success* ]]
          then
-              echo "$file was sucessfully uploaded" 
-              IFS=':' read -a response mediaName <<< "$uploadResult"
-              echo "$mediaName" > "$file.mediaName"         
-              echo "Media Name : $mediaName" 
+              echo "$uploadResult" > "$file.uploaded.result"         
               mv "$file" "$file.uploaded"
+              echo "$file was sucessfully uploaded" 
          else
               $pathRoot/notify "Upload Error" "$file"
          fi
