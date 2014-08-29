@@ -86,7 +86,7 @@ case "$item" in
 
                if [[ "$info" = "error:no media name" ]] 
                then
-                 info=$(/usr/bin/curl -F "uploaded=$metaUploaded" -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaUser" -F "batchMode=Y" -F "public=1" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
+                 info=$(/usr/bin/curl -F "batchMode=Y" -F "public=1" -F "uploadedUser=$metaUser"  -F "uploaded=$metaUploaded" -F "title=$metaTitle" -F "description=$metaDescription" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
                  log "$info"
                fi
 
