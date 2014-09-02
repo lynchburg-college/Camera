@@ -82,7 +82,7 @@ fi
                   
          # Post to the media server
          set -x
-         uploadResult=$(/usr/bin/curl -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaOwner" -F "batchMode=Y" -F "public=1" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
+         uploadResult=$(/usr/bin/curl -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaOwner" -F "batchMode=Y" -F "public=0" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
          set +x
 
          # Archive the original file
