@@ -72,28 +72,38 @@ fi
          if [ "$info" == "" ]
          then
              echo "Couldn't find metadata : $roomID / $epoch" 
-             metaTitle="$roomID Recording"
-             metaDescription="Recording"
-             metaOwner="capture-$roomID"
-         else 
-             echo "Matched : $info" >> "$logFile"
-             IFS='|' read metaTitle metaDescription metaOwner <<< "$info"
+             $info="$roomID Recording|Recording|capture-$roomID"
          fi
+
+         echo "Metadata : $info" 
+         IFS='|' read -a meta <<< "$info"
+         metaTitle=${meta[0]}
+         metaDescription=${meta[1]}
+         metaUser=${meta[2]}
                   
          # Post to the media server
          set -x
-         uploadResult=$(/usr/bin/curl -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaOwner" -F "batchMode=Y" -F "public=0" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
+         uploadResult=$(/usr/bin/curl -F "batchMode=Y" -F "public=0" -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaUser"  -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
          set +x
 
          # Archive the original file
          if [[ "$uploadResult" == *Success* ]]
          then
-              echo "$uploadResult" > "$file.uploaded.result"         
               mv "$file" "$file.uploaded"
               echo "$file was sucessfully uploaded" 
+              $pathRoot/notify "$roomID : Upload Success" "$file"
          else
-              $pathRoot/notify "Upload Error" "$file"
+              $pathRoot/notify "$roomID : Upload Failure" "$file"
          fi
+
+
+		# Remove uploaded stuff older than 1 week
+		find "$pathRoot/video/*.uploaded" -mtime +12 -exec rm {} \;
+
+		# Alert if space is low
+		spaceUsed=$(df $pathVideo | tail -1 | awk '{print $5}' | sed 's/%//g')
+		[[ $spaceUsed -gt 70 ]] && $pathRoot/notify  "Storage Space Used : $spaceUsed%"
+
 
 } || tee -a "$file.log"
 
