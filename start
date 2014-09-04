@@ -31,12 +31,7 @@ then
  log "Created video directory ($pathRoot/video)"
 fi
 
-# crontab=$(crontab -l)
-# if [[ ! $crontab == *capture* ]] 
-#then
- crontab $pathRoot/config/default-crontab
-# log "Created scheduled jobs"
-#fi
+crontab $pathRoot/config/default-crontab
 
 echo "$pathRoot/video IN_CLOSE_WRITE $pathRoot/handler \$@/\$# \$%" > $pathRoot/config/init-incrontab
 incrontab $pathRoot/config/init-incrontab

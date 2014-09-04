@@ -850,13 +850,16 @@ var interface_video = {
 		                          case "Size" : current.size=value.match(/\w[0-9]+[x][0-9]+/g)[0];
 		                                        current.width=current.size.split('x')[0];
 		                                        current.height=current.size.split('x')[1];
-		                                        
-                                                current['value']='width='+current.width+':height='+current.height+':chroma='+current.chroma;
-		                                        current['name'] = current.chroma+' / ' + current.size;
-                                                formats.push( current );
-
-                                                current={ chroma:current.chroma };
                                                 break;
+
+		                          case "Interval" : //current.fps='0';
+                                                    current.fps=value.match(/[0-9]+\.?[0-9]+(?=(\ fps))/g)[0];
+                                                    current['value']='width='+current.width+':height='+current.height+':chroma='+current.chroma+':fps='+current.fps;
+      		                                        current['name'] = current.chroma+' / ' + current.size + ' / ' + current.fps+' fps';
+                                                    formats.push( current );
+                                                    current={ chroma:current.chroma, size:current.size , width:current.width, height:current.height };
+
+
                                  default : break;
 		                  };
                       };
