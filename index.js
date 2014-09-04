@@ -182,16 +182,14 @@ var interface_machine = {
                                   '# -------------------\n'+
                                   'new recorder broadcast \n'+
                                   'setup recorder input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
-                                  'setup recorder option input-slave=alsa://'+interface_machine.audioDevice+' \n' +
-                                  'setup recorder output #transcode{'+interface_machine.videoTranscode+'}:standard{access=file,mux=mp4,dst=./video/%s.mp4} \n' +
+                                  'setup recorder option input-slave=alsa://'+interface_machine.audioDevice+'\n' +
+                                  'setup recorder output #transcode{threads=2,'+interface_machine.videoTranscode+'}:standard{access=file,mux=mp4,dst=./video/%s.mp4}\n' +
                                   'setup recorder enabled \n'+
                                   '# -------------------\n'+
                                   'new preview broadcast \n'+
-                                  'setup preview input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+' \n' +
-                                  'setup preview option input-slave=alsa://'+interface_machine.audioDevice+' \n' +
-                                  'setup preview option live-caching=1500 \n'+
-                                  'setup preview option http-caching=1500 \n'+
-                                  'setup preview output #transcode{vcodec=theo,vb=800,scale=1,acodec=vorb,channels=1,ab=64,samplerate=22050}:http{mux=ogg,dst=:8889/preview.ogg}\n'+
+                                  'setup preview input v4l2://'+interface_machine.videoDevice+':'+interface_machine.videoFormat+'\n' +
+                                  'setup preview option input-slave=alsa://'+interface_machine.audioDevice+'\n' +
+                                  'setup preview output #transcode{sfilter=marq{marquee="'+interface_machine.roomID+' @ %Y-%m-%d %H:%M:%S",opacity=128,position=5},threads=2,vcodec=theo,vb=2000,scale=1,acodec=vorb,channels=2,ab=64,samplerate=22050}:http{mux=ogg,dst=:8889/preview.ogg}\n'+
                                   '# -------------------\n'+
                                   'setup preview enabled';
                    
@@ -850,14 +848,23 @@ var interface_video = {
 		                          case "Size" : current.size=value.match(/\w[0-9]+[x][0-9]+/g)[0];
 		                                        current.width=current.size.split('x')[0];
 		                                        current.height=current.size.split('x')[1];
-                                                break;
 
+   		                                        current['name'] = current.chroma+' / ' + current.size;
+                                                current['value']='width='+current.width+':height='+current.height+':chroma='+current.chroma;
+
+                                                formats.push( current );
+                                                current={ chroma:current.chroma };
+
+/*
 		                          case "Interval" : //current.fps='0';
                                                     current.fps=value.match(/[0-9]+\.?[0-9]+(?=(\ fps))/g)[0];
-                                                    current['value']='width='+current.width+':height='+current.height+':chroma='+current.chroma+':fps='+current.fps;
+
       		                                        current['name'] = current.chroma+' / ' + current.size + ' / ' + current.fps+' fps';
+                                                    current['value']='width='+current.width+':height='+current.height+':chroma='+current.chroma+':fps='+current.fps;
+
                                                     formats.push( current );
                                                     current={ chroma:current.chroma, size:current.size , width:current.width, height:current.height };
+*/
 
 
                                  default : break;
@@ -1056,6 +1063,7 @@ var interface_preview = {
 			  player=$("#camera-preview video")[0];
 			  player.src='http://'+window.location.hostname+':8889/preview.ogg';
 			  player.load();
+			  player.play();
               console.log("Preview Configured");    
               
           },
