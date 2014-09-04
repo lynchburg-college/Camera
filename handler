@@ -87,10 +87,10 @@ fi
          set +x
 
          # Archive the original file
+         echo $uploadResult
          if [[ "$uploadResult" == *Success* ]]
          then
               mv "$file" "$file.uploaded"
-              echo "$file was sucessfully uploaded" 
               $pathRoot/notify "$roomID : Upload Success" "$file"
          else
               $pathRoot/notify "$roomID : Upload Failure" "$file"
