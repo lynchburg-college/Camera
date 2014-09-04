@@ -86,9 +86,10 @@ case "$item" in
                log "$info"
 
                # Wasn't there?  Upload it ;)
-               if [[ "$info" = "error:no media name" ]] 
+               if [[ "$info" == "error:no media name" ]] 
                then
                  set -x
+                 log "---- UPLOADING --- "
                  info=$(/usr/bin/curl -F "batchMode=Y" -F "public=0" -F "uploadedUser=$metaUser"  -F "uploaded=$metaUploaded" -F "title=$metaTitle" -F "description=$metaDescription" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
                  set +x
                  log "$info"
