@@ -48,7 +48,7 @@ fi
          source="$file"
          dest="$file.converted"
 
-         echo "Pre Conversion : $file " 
+         echo "Pre Conversion : $file " >> "$file.log"
          set -x
          /usr/bin/HandBrakeCLI -i "$source" -o "$dest" --encoder x264 --optimize --start-at frame:5 
          set +x
@@ -57,7 +57,7 @@ fi
          then
            file="$dest"
          fi
-         echo "Post Conversion : $file " 
+         echo "Post Conversion : $file " >> "$file.log"
 
          # If the filename is an epoch, use it as the start time
          basename=$(basename "$file")
@@ -65,17 +65,17 @@ fi
          epoch=${names[0]}
          
          #Use the local init-schedule file to look up metadata
-         echo "Metadata date is : $epoch" 
+         echo "Metadata date is : $epoch" >> "$file.log"
          info=$($pathRoot/parse meta-epoch "$epoch")
 
          # Couldn't find anything?  That's OK.. use the default stuff
          if [ "$info" == "" ]
          then
-             echo "Couldn't find metadata : $roomID / $epoch" 
+             echo "Couldn't find metadata : $roomID / $epoch"  >> "$file.log"
              $info="$roomID Recording|Recording|capture-$roomID"
          fi
 
-         echo "Metadata : $info" 
+         echo "Metadata : $info"  >> "$file.log"
          IFS='|' read -a meta <<< "$info"
          metaTitle=${meta[0]}
          metaDescription=${meta[1]}
@@ -87,7 +87,8 @@ fi
          set +x
 
          # Archive the original file
-         echo $uploadResult
+         echo $uploadResult >> "$file.log"
+
          if [[ "$uploadResult" == *Success* ]]
          then
               mv "$file" "$file.uploaded"
@@ -95,7 +96,6 @@ fi
          else
               $pathRoot/notify "$roomID : Upload Failure" "$file"
          fi
-
 
 		# Remove uploaded stuff older than 1 week
 		find "$pathRoot/video/*.uploaded" -mtime +12 -exec rm {} \;
@@ -105,6 +105,6 @@ fi
 		[[ $spaceUsed -gt 70 ]] && $pathRoot/notify  "Storage Space Used : $spaceUsed%"
 
 
-} || tee -a "$file.log"
+} 
 
 
