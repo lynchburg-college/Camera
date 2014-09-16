@@ -29,7 +29,7 @@ case "$item" in
                          owner=$(echo "$owner"|tr -d '\r' )
 
                          checkStart=$(( $start - 20 ))
-                         checkStop=$(( $stop + 20 ))
+                         checkStop=$(( $stop  ))
 
                          if [[ "$checkStart" -le "$epoch" && "$epoch" -le "$checkStop" ]] 
                          then
