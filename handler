@@ -42,8 +42,8 @@ then
    exit 1
 fi
 
-$logFile="$file.log"
-{
+
+logFile="$file.log"
 
          source="$file"
          dest="$file.converted"
@@ -72,10 +72,11 @@ $logFile="$file.log"
          if [ "$info" == "" ]
          then
              echo "Couldn't find metadata : $roomID / $epoch"  >> $logFile
-             $info="$roomID Recording|Recording|capture-$roomID"
+             info="$roomID Recording|Recording|capture-$roomID"
          fi
 
          echo "Metadata : $info"  >> $logFile
+
          IFS='|' read -a meta <<< "$info"
          metaTitle=${meta[0]}
          metaDescription=${meta[1]}
@@ -104,6 +105,6 @@ $logFile="$file.log"
 		spaceUsed=$(df $pathVideo | tail -1 | awk '{print $5}' | sed 's/%//g')
 		[[ $spaceUsed -gt 70 ]] && $pathRoot/notify  "Storage Space Used : $spaceUsed%"
 
-} 
+
 
 
