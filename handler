@@ -94,9 +94,9 @@ logFile="$file.log"
          if [[ "$uploadResult" == *Success* ]]
          then
               mv "$file" "$file.uploaded"
-              $pathRoot/notify "$roomID : Upload Success" "$file"
+              $pathRoot/notify "$roomID : Upload Success" "$file\n$info"
          else
-              $pathRoot/notify "$roomID : Upload Failure" "$file"
+              $pathRoot/notify "$roomID : Upload Failure" "$file\n$info"
          fi
 
 		# Remove uploaded stuff older than 1 week
