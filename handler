@@ -4,15 +4,13 @@
 source "${0%/*}/config/common"
 source "${0%/*}/config/machine"
 
-exec 1>> "$pathRoot/log/handler.log" 2>&1
-
 file=$1
 trigger=$2
 
 # If we can actually find the file..
 if [ ! -e "$file" ] 
 then
-  echo $(date)": $file not found!" 
+  echo $(date)": $file not found!" >&2 
   exit 1
 fi
 
@@ -25,21 +23,21 @@ if [ $ext == "debug" ]
 then
   ext="mp4"
   trigger="debug"
-  echo $(date)": $file being processed in debug mode"
+  echo $(date)": $file being processed in debug mode" >&2
   set -x
 fi
 
 # .. and the file is an original recording
 if [ ! $ext == "mp4" ] 
 then
-  echo $(date)": $file is not a recording" 
+  echo $(date)": $file is not a recording" >&2
  exit 1
 fi
 
 # ... and we have somewhere to upload it..
 if [ -z "$urlUpload" ]
 then
-  echo $(date)": $file is not being uploaded"
+  echo $(date)": $file is not being uploaded" >&2
   exit 1
 fi
 
@@ -49,15 +47,13 @@ sleep 2
 statB=$(ls -l "$file")
 if [ ! "$statA" == "$statB" ]
 then
-   echo $(date)": $file is still open.  Ignoring for now." 
+   echo $(date)": $file is still open.  Ignoring for now." >&2
    exit 1
 fi
 
-echo $(date)" : $file - $trigger" 
-
 
 # Log everything from here down to the file's trace
-exec 1> "$file.log" 2&>1
+exec 1> "$file.log" 
 
          # If the filename is an epoch, use it as the start time
          basename=$(basename "$file")
