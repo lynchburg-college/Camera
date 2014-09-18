@@ -21,7 +21,7 @@ case "$item" in
            if [ ! "$epoch" == "" ]
            then
 
-                    sourceData=$(grep -h "|" config/meta) 
+                    sourceData=$(grep -h "|" "$pathRoot/config/meta") 
 
                     while IFS="|" read -r scheduleid start stop title description owner
                     do
@@ -46,7 +46,7 @@ case "$item" in
            metaMatch=$2
            if [ ! "$metaMatch" == "" ]
            then
-              grep "$metaMatch" config/meta 
+              grep "$metaMatch" "$pathRoot/config/meta"
            fi
            ;;
 
@@ -109,16 +109,16 @@ case "$item" in
     "schedule" )
 					scheduleCounter=1
 
-					inputLocal="config/schedule-local"
+					inputLocal="$pathRoot/config/schedule-local"
                     touch $inputLocal
 
-					inputRemote="config/schedule-remote"
+					inputRemote="$pathRoot/config/schedule-remote"
                     touch $inputRemote
 
-					outputSchedule="config/init-schedule"
+					outputSchedule="$pathRoot/config/init-schedule"
 					backup "$outputSchedule"
 
-                    outputMeta="config/meta"
+                    outputMeta="$pathRoot/config/meta"
 					backup "$outputMeta"
 
                     sourceData=$(grep -h "|" "$inputLocal" "$inputRemote") 
