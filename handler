@@ -4,13 +4,15 @@
 source "${0%/*}/config/common"
 source "${0%/*}/config/machine"
 
+exec 1>> "$pathRoot/log/handler.log" 2>&1
+
 file=$1
 trigger=$2
 
 # If we can actually find the file..
 if [ ! -e "$file" ] 
 then
-  echo $(date)": $file not found!" >> $logFile
+  echo $(date)": $file not found!" 
   exit 1
 fi
 
@@ -23,21 +25,21 @@ if [ $ext == "debug" ]
 then
   ext="mp4"
   trigger="debug"
-  echo $(date)": $file being processed in debug mode" >> $logFile fi
+  echo $(date)": $file being processed in debug mode"
   set -x
 fi
 
 # .. and the file is an original recording
 if [ ! $ext == "mp4" ] 
 then
-  echo $(date)": $file is not a recording" >> $logFile fi
+  echo $(date)": $file is not a recording" 
  exit 1
 fi
 
 # ... and we have somewhere to upload it..
 if [ -z "$urlUpload" ]
 then
-  echo $(date)": $file is not being uploaded" >> $logFile fi
+  echo $(date)": $file is not being uploaded"
   exit 1
 fi
 
@@ -47,16 +49,15 @@ sleep 2
 statB=$(ls -l "$file")
 if [ ! "$statA" == "$statB" ]
 then
-   echo $(date)": $file is still open.  Ignoring for now." >> $logFile fi
+   echo $(date)": $file is still open.  Ignoring for now." 
    exit 1
 fi
 
-echo $(date)" : $file - $trigger" >> $logFile
+echo $(date)" : $file - $trigger" 
 
-logFile="$file.log"
 
 # Log everything from here down to the file's trace
-exec 1> $logFile
+exec 1> "$file.log"  2&>1
 
          # If the filename is an epoch, use it as the start time
          basename=$(basename "$file")
@@ -64,11 +65,9 @@ exec 1> $logFile
          epoch=${names[0]}
 
          # Look it up in the local meta data
-         set -x
          echo "Metadata date is : [$epoch]" 
          info=$($pathRoot/parse meta-epoch "$epoch")
          echo "Parse returned   : [$info]" 
-         set +x
 
          # Couldn't find anything?  That's OK.. use the default stuff
          if [ "$info" == "" ]
@@ -84,11 +83,11 @@ exec 1> $logFile
          metaDescription=${meta[1]}
          metaUser=${meta[2]}
                   
+
         if [ "$trigger" == "debug" ]
         then
            exit 1
         fi
-
 
         # Convert as needed
          source="$file"
@@ -126,7 +125,6 @@ exec 1> $logFile
 	 # Alert if space is low
  	 spaceUsed=$(df $pathVideo | tail -1 | awk '{print $5}' | sed 's/%//g')
 	 [[ $spaceUsed -gt 70 ]] && $pathRoot/notify  "Storage Space Used : $spaceUsed%"
-
 
 
 echo $(date)" : Processing Complete"
