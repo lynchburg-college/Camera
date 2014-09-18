@@ -53,7 +53,7 @@ fi
 
 
 # Log everything from here down to the file's trace
-exec 1> "$file.log" 
+exec > "$file.log" 2>&1
 
          # If the filename is an epoch, use it as the start time
          basename=$(basename "$file")
