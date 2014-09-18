@@ -7,7 +7,6 @@ source "${0%/*}/config/machine"
 file=$1
 trigger=$2
 
-
 # If we can actually find the file..
 if [ ! -e "$file" ] 
 then
@@ -25,6 +24,7 @@ then
   ext="mp4"
   trigger="debug"
   echo $(date)": $file being processed in debug mode" >> $logFile fi
+  set -x
 fi
 
 # .. and the file is an original recording
@@ -55,6 +55,9 @@ echo $(date)" : $file - $trigger" >> $logFile
 
 logFile="$file.log"
 
+# Log everything from here down to the file's trace
+exec 1> $logFile
+
          # If the filename is an epoch, use it as the start time
          basename=$(basename "$file")
          IFS='.' read -a names <<< "$basename"
@@ -62,19 +65,19 @@ logFile="$file.log"
 
          # Look it up in the local meta data
          set -x
-         echo "Metadata date is : [$epoch]" >> $logFile
+         echo "Metadata date is : [$epoch]" 
          info=$($pathRoot/parse meta-epoch "$epoch")
-         echo "Parse returned   : [$info]" >> $logFile
+         echo "Parse returned   : [$info]" 
          set +x
 
          # Couldn't find anything?  That's OK.. use the default stuff
          if [ "$info" == "" ]
          then
-             echo "Couldn't find metadata : $roomID / $epoch"  >> $logFile
+             echo "Couldn't find metadata : $roomID / $epoch" 
              info="$roomID Recording|Recording|capture-$roomID"
          fi
 
-         echo "Metadata : $info"  >> $logFile
+         echo "Metadata : $info" 
 
          IFS='|' read -a meta <<< "$info"
          metaTitle=${meta[0]}
@@ -91,16 +94,14 @@ logFile="$file.log"
          source="$file"
          dest="$file.converted"
 
-         echo "Pre Conversion : $file " >> $logFile
-         set -x
+         echo "Pre Conversion : $file " 
          /usr/bin/HandBrakeCLI -i "$source" -o "$dest" --encoder x264 --optimize --start-at frame:5 
-         set +x
 
          if [ -e "$dest" ] 
          then
            file="$dest"
          fi
-         echo "Post Conversion : $file " >> $logFile
+         echo "Post Conversion : $file " 
 
 
          # Post to the media server
@@ -109,7 +110,7 @@ logFile="$file.log"
          set +x
 
          # Archive the original file
-         echo $uploadResult >> $logFile
+         echo $uploadResult 
 
          if [[ "$uploadResult" == *Success* ]]
          then
@@ -119,13 +120,14 @@ logFile="$file.log"
               $pathRoot/notify "$roomID : Upload Failure" "$file\n$info"
          fi
 
-		# Remove uploaded stuff older than 1 week
-		find "$pathRoot/video/*.uploaded" -mtime +14 -exec rm {} \;
+         # Remove uploaded stuff older than 1 week
+	 find "$pathRoot/video/*.uploaded" -mtime +14 -exec rm {} \;
 
-		# Alert if space is low
-		spaceUsed=$(df $pathVideo | tail -1 | awk '{print $5}' | sed 's/%//g')
-		[[ $spaceUsed -gt 70 ]] && $pathRoot/notify  "Storage Space Used : $spaceUsed%"
+	 # Alert if space is low
+ 	 spaceUsed=$(df $pathVideo | tail -1 | awk '{print $5}' | sed 's/%//g')
+	 [[ $spaceUsed -gt 70 ]] && $pathRoot/notify  "Storage Space Used : $spaceUsed%"
 
 
 
+echo $(date)" : Processing Complete"
 
