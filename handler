@@ -7,28 +7,37 @@ source "${0%/*}/config/machine"
 file=$1
 trigger=$2
 
-echo $(date)" : $file - $trigger" >> $logFile
 
 # If we can actually find the file..
 if [ ! -e "$file" ] 
 then
-  echo "$file not found!" >> $logFile
+  echo $(date)": $file not found!" >> $logFile
   exit 1
 fi
 
-# .. and the file is an original recording
+
 base=$(basename "$file")
 ext="${base##*.}"
+
+# -- Special Debug Mode
+if [ $ext == "debug" ] 
+then
+  ext="mp4"
+  trigger="debug"
+  echo $(date)": $file being processed in debug mode" >> $logFile fi
+fi
+
+# .. and the file is an original recording
 if [ ! $ext == "mp4" ] 
 then
- echo "$file not a recording" >> $logFile
+  echo $(date)": $file is not a recording" >> $logFile fi
  exit 1
 fi
 
 # ... and we have somewhere to upload it..
 if [ -z "$urlUpload" ]
 then
-  echo "No upload required" >> $logFile
+  echo $(date)": $file is not being uploaded" >> $logFile fi
   exit 1
 fi
 
@@ -38,10 +47,11 @@ sleep 2
 statB=$(ls -l "$file")
 if [ ! "$statA" == "$statB" ]
 then
-   echo "Ignoring (file is open) $file" >> $logFile
+   echo $(date)": $file is still open.  Ignoring for now." >> $logFile fi
    exit 1
 fi
 
+echo $(date)" : $file - $trigger" >> $logFile
 
 logFile="$file.log"
 
