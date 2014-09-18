@@ -65,7 +65,7 @@ case "$item" in
               log "-----------------------------"
               log "$epoch"
 
-              info=$(./parse meta-epoch "$epoch")
+              info=$($pathRoot/parse meta-epoch "$epoch")
               if [ "$info" == "" ]
               then
                 echo "No metadata for $epoch"
