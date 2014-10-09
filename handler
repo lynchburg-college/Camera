@@ -99,9 +99,12 @@ exec > "$file.log" 2>&1
          echo "Post Conversion : $file " 
 
 
+         # Calculate the date this thing should expire
+         expires=$(date +"%Y-%m-%d %H-%M-%S" -d "+4 months")
+
          # Post to the media server
          set -x
-         uploadResult=$(/usr/bin/curl -F "batchMode=Y" -F "public=0" -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaUser"  -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
+         uploadResult=$(/usr/bin/curl -F "batchMode=Y" -F "public=0" -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaUser" -F "expires=$expires" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
          set +x
 
          # Archive the original file
