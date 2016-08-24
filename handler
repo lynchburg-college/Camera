@@ -14,7 +14,6 @@ then
   exit 1
 fi
 
-
 base=$(basename "$file")
 ext="${base##*.}"
 
@@ -27,18 +26,11 @@ then
   set -x
 fi
 
-# .. and the file is an original recording
+# .. If the file is an original recording
 if [ ! $ext == "mp4" ] 
 then
   echo $(date)": $file is not a recording" >&2
  exit 1
-fi
-
-# ... and we have somewhere to upload it..
-if [ -z "$urlUpload" ]
-then
-  echo $(date)": $file is not being uploaded" >&2
-  exit 1
 fi
 
 # .. and the file isn't currently open (incrontab can be weird)
@@ -78,14 +70,13 @@ exec > "$file.log" 2>&1
          metaTitle=${meta[0]}
          metaDescription=${meta[1]}
          metaUser=${meta[2]}
-                  
 
-        if [ "$trigger" == "debug" ]
-        then
-           exit 1
-        fi
+         if [ "$trigger" == "debug" ]
+         then
+            exit 1
+         fi
 
-        # Convert as needed
+         # Convert as needed
          source="$file"
          dest="$file.converted"
 
@@ -102,29 +93,50 @@ exec > "$file.log" 2>&1
          # Calculate the date this thing should expire
          expires=$(date +"%Y-%m-%d %H-%M-%S" -d "+4 months")
 
-         # Post to the media server
-         set -x
-         uploadResult=$(/usr/bin/curl -F "batchMode=Y" -F "public=0" -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaUser" -F "expires=$expires" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
-         set +x
 
-         # Archive the original file
-         echo $uploadResult 
+         # Create a local metadata file
+         cat <<EOL > "$file.json"
+         {  
+            "file" : "$basename",
+            "title" : "$metaTitle",
+            "description" : "$metaDescription",
+            "public" : 0,
+            "uploadedUser" : "$metaUser",
+            "expires" : "$expires",
+            "keywords" : "$roomID $basename lecture"
+         }
+EOL
 
-         if [[ "$uploadResult" == *Success* ]]
+
+         # Upload if we need to
+         if [ ! -z "$urlUpload" ]
          then
-              mv "$file" "$file.uploaded"
-              $pathRoot/notify "$roomID : Upload Success" "$file\n$info"
-         else
-              $pathRoot/notify "$roomID : Upload Failure" "$file\n$info"
+
+		     set -x
+		     uploadResult=$(/usr/bin/curl -F "batchMode=Y" -F "public=0" -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaUser" -F "expires=$expires" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
+		     set +x
+
+		     # Archive the original file
+		     echo $uploadResult 
+
+		     if [[ "$uploadResult" == *Success* ]]
+		     then
+		          mv "$file" "$file.uploaded"
+		          $pathRoot/notify "$roomID : Upload Success" "$file\n$info"
+		     else
+		          $pathRoot/notify "$roomID : Upload Failure" "$file\n$info"
+		     fi
+
+		     # Remove uploaded stuff older than 1 week
+			 find "$pathRoot/video/*.uploaded" -mtime +14 -exec rm {} \;
+
          fi
 
-         # Remove uploaded stuff older than 1 week
-	 find "$pathRoot/video/*.uploaded" -mtime +14 -exec rm {} \;
 
 	 # Alert if space is low
  	 spaceUsed=$(df $pathVideo | tail -1 | awk '{print $5}' | sed 's/%//g')
 	 [[ $spaceUsed -gt 70 ]] && $pathRoot/notify  "Storage Space Used : $spaceUsed%"
 
 
-echo $(date)" : Processing Complete"
+echo $(date)" : $file : Processing Complete"
 
