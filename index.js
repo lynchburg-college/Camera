@@ -232,11 +232,13 @@ var interface_media =  {
              
            if( itemTime == '') {
              $('#status-recorder').addClass('hidden');
+             $('#link-preview').removeClass('hidden');
              refreshDelay=refreshDelay*10;
              
            } else {
              $('#status-recorder').removeClass('hidden');
              $('#status-recorder .small').html( itemTime );
+             $('#link-preview').addClass('hidden');
            };
 
            interface_media.monitorTimer=window.setTimeout( function() { interface_media.monitor() }, refreshDelay );
@@ -1046,6 +1048,15 @@ var interface_preview = {
                       return false;
                    };
           
+               if (
+                    ! $("#status-recorder").hasClass("hidden")
+                  ) {
+                      UI.alert( 'Recording in progress!  Cannot initialize preview.', { type:'danger' } );
+                      $("#link-calendar").tab("show");
+                      return false;
+                   }
+                         
+
               // Load the audio and video controls
               interface_video.setup.controls();
               interface_audio.setup.controls();

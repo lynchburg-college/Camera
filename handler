@@ -4,15 +4,21 @@
 source "${0%/*}/config/common"
 source "${0%/*}/config/machine"
 
+function logHandler { 
+   echo $(date)" : $$ : $@" >> "$pathLog/handler.log"
+}
+
 file=$1
 trigger=$2
+
 
 # If we can actually find the file..
 if [ ! -e "$file" ] 
 then
-  echo $(date)": $file not found!" >&2 
+  logHandler "$file not found! Exiting." 
   exit 1
 fi
+
 
 base=$(basename "$file")
 ext="${base##*.}"
@@ -22,15 +28,15 @@ if [ $ext == "debug" ]
 then
   ext="mp4"
   trigger="debug"
-  echo $(date)": $file being processed in debug mode" >&2
+  logHandler "$file being processed in debug mode.  Continuing." 
   set -x
 fi
 
 # .. If the file is an original recording
 if [ ! $ext == "mp4" ] 
 then
-  echo $(date)": $file is not a recording" >&2
- exit 1
+  # logHandler "$file is not a recording.  Exiting." 
+  exit 1
 fi
 
 # .. and the file isn't currently open (incrontab can be weird)
@@ -39,13 +45,18 @@ sleep 2
 statB=$(ls -l "$file")
 if [ ! "$statA" == "$statB" ]
 then
-   echo $(date)": $file is still open.  Ignoring for now." >&2
+   logHandler "$file is still open.  Ignoring for now.  Exiting."
    exit 1
 fi
 
+logHandler "$file, TRIGGER=$2"
+
 
 # Log everything from here down to the file's trace
-exec > "$file.log" 2>&1
+fileLOG="${file%.*}.log"
+logHandler "$fileLOG created"
+
+exec > "$fileLOG" 2>&1
 
          # If the filename is an epoch, use it as the start time
          basename=$(basename "$file")
@@ -73,29 +84,41 @@ exec > "$file.log" 2>&1
 
          if [ "$trigger" == "debug" ]
          then
+            logHandler "$file debug requested.  Exiting."
             exit 1
          fi
-
-         # Convert as needed
-         source="$file"
-         dest="$file.converted"
-
-         echo "Pre Conversion : $file " 
-         /usr/bin/HandBrakeCLI -i "$source" -o "$dest" --encoder x264 --optimize --start-at frame:5 
-
-         if [ -e "$dest" ] 
-         then
-           file="$dest"
-         fi
-         echo "Post Conversion : $file " 
 
 
          # Calculate the date this thing should expire
          expires=$(date +"%Y-%m-%d %H-%M-%S" -d "+4 months")
 
 
+         # Convert if we need to
+         if [ ! -z "$videoConvert" ] 
+         then
+
+        			 source="$file"
+					 dest="${file%.*}.m4v"
+                     export source dest
+
+					 echo "Pre Conversion : $file " 
+					 echo "Convert        : $videoConvert "
+
+                     /usr/bin/HandBrakeCLI -i "$source" -o "$dest" --encoder x264 --optimize --start-at frame:5 
+                     #envsubst < "$videoConvert" | eval 
+                     
+					 if [ -e "$dest" ] 
+					 then
+					   file="$dest"
+                     fi
+                     echo "Post Conversion : $file " 
+
+         fi
+
+
          # Create a local metadata file
-         cat <<EOL > "$file.json"
+         fileJSON="${file%.*}.json"
+         cat <<EOL > "$fileJSON"
          {  
             "file" : "$basename",
             "title" : "$metaTitle",
@@ -107,28 +130,32 @@ exec > "$file.log" 2>&1
          }
 EOL
 
+         logHandler "$fileJSON created"
+
 
          # Upload if we need to
          if [ ! -z "$urlUpload" ]
          then
+					 set -x
+					 uploadResult=$(/usr/bin/curl -F "batchMode=Y" -F "public=0" -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaUser" -F "expires=$expires" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
+					 set +x
 
-		     set -x
-		     uploadResult=$(/usr/bin/curl -F "batchMode=Y" -F "public=0" -F "title=$metaTitle" -F "description=$metaDescription" -F "uploadedUser=$metaUser" -F "expires=$expires" -F "keywords=$roomID $basename lecture" -F "file=@$file" "$urlUpload")
-		     set +x
+					 # Archive the original file
+					 echo $uploadResult 
 
-		     # Archive the original file
-		     echo $uploadResult 
+					 if [[ "$uploadResult" == *Success* ]]
+					 then
+						  mv "$file" "$file.uploaded"
+						  #$pathRoot/notify "$roomID : Upload Success" "$file\n$info"
 
-		     if [[ "$uploadResult" == *Success* ]]
-		     then
-		          mv "$file" "$file.uploaded"
-		          $pathRoot/notify "$roomID : Upload Success" "$file\n$info"
-		     else
-		          $pathRoot/notify "$roomID : Upload Failure" "$file\n$info"
-		     fi
+					 else
+						  $pathRoot/notify "$roomID : Upload Failure" "$file\n$info"
+					 fi
 
-		     # Remove uploaded stuff older than 1 week
-			 find "$pathRoot/video/*.uploaded" -mtime +14 -exec rm {} \;
+                     logHandler "$file upload : $uploadResult"
+
+					 # Remove uploaded stuff older than 3 weeks
+					 find "$pathRoot/video/*.uploaded" -mtime +21 -exec rm {} \;
 
          fi
 
@@ -137,6 +164,7 @@ EOL
  	 spaceUsed=$(df $pathVideo | tail -1 | awk '{print $5}' | sed 's/%//g')
 	 [[ $spaceUsed -gt 70 ]] && $pathRoot/notify  "Storage Space Used : $spaceUsed%"
 
-
 echo $(date)" : $file : Processing Complete"
+logHandler "$file complete"
+
 
